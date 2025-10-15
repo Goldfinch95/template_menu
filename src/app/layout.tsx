@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
-import "../../styles/globals.css";
+import "@/styles/globals.css";
+import {Open_Sans} from "next/font/google"; 
 
-
+const openSans = Open_Sans({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: "template",
@@ -16,7 +17,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`antialiased bg-zinc-800 text-white`}
+        className={`${openSans.className} antialiased bg-zinc-800 text-white`}
       >
         {children}
       </body>
