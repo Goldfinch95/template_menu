@@ -2,7 +2,7 @@ import React from 'react';
 import { Button } from '@/common/components/ui/button';
 import { FoodMenuItemProps } from '@/interfaces/menu';
 
-const FoodMenuItem: React.FC<FoodMenuItemProps> = ({ name, description, price, image, id }) => {
+const FoodMenuItem: React.FC<FoodMenuItemProps> = ({ name, description, price, image }) => {
   return (
      <div className="py-4 border-b border-gray-700 last:border-b-0">
   <div className="flex gap-3 items-center">
