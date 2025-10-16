@@ -16,7 +16,7 @@ const FoodMenuItem: React.FC<FoodMenuItemProps> = ({ name, description, price, i
       </div>
     </div>
     
-    <div className="flex-1 min-w-0">
+   {/* <div className="flex-1 min-w-0">
       <h3 className="text-white font-bold text-lg  mb-1">{name}</h3>
       <p className="text-gray-400 text-base mb-2 line-clamp-2">{description}</p>
       <div className="flex items-center justify-between">
@@ -28,10 +28,10 @@ const FoodMenuItem: React.FC<FoodMenuItemProps> = ({ name, description, price, i
           Editar
         </Button>
       </div>
-    </div>
+    </div>/*}
   
     {/* other */}
-    {/*<div className="flex-1 min-w-0 grid grid-cols-[1fr_auto] gap-4">
+    <div className="flex-1 min-w-0 grid grid-cols-[1fr_auto] gap-4">
   <div className="min-w-0 flex flex-col">
     <h3 className="text-white font-bold text-lg mb-1">{name}</h3>
     <p className="text-gray-400 text-base mb-2">{description}</p>
@@ -45,7 +45,7 @@ const FoodMenuItem: React.FC<FoodMenuItemProps> = ({ name, description, price, i
       Editar
     </Button>
   </div>
-</div>*/}
+</div>
   </div>
 </div>
   );

@@ -1,110 +1,83 @@
-"use client";
+"use client"
 
-import React, { useState, useEffect } from "react";
-import FoodMenuItem from "@/app/components/FoodMenuItem";
-import menuData from "@/app/data/menu.json";
-import type { Category, MenuData } from "@/interfaces/menu";
-
-const categories: Category[] = [
-  { id: "promociones", label: "Promociones" },
-  { id: "entradas", label: "Entradas" },
-  { id: "principales", label: "Principales" },
-  { id: "postres", label: "Postres" },
-  { id: "bebidas", label: "Bebidas" },
-];
+import React from "react";
+import { Card } from "@/common/components/ui/card";
+import { Button } from "@/common/components/ui/button";
+import { Plus } from "lucide-react";
+import menuExamples from "@/app/data/menuExamples.json";
 
 export default function Home() {
-  const [activeCategory, setActiveCategory] = useState<keyof MenuData>("promociones");
-
-  useEffect(() => {
-    const handleScroll = () => {
-      const categoryIds: (keyof MenuData)[] = ["promociones", "entradas", "principales", "postres", "bebidas"];
-
-      for (const sectionId of categoryIds) {
-        const element = document.getElementById(sectionId);
-        if (element) {
-          const rect = element.getBoundingClientRect();
-          if (rect.top <= 150 && rect.bottom >= 150) {
-            setActiveCategory(sectionId);
-            break;
-          }
-        }
-      }
-    };
-
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
-
-  const scrollToCategory = (categoryId: keyof MenuData) => {
-    setActiveCategory(categoryId);
-    const element = document.getElementById(categoryId);
-    element?.scrollIntoView({ behavior: "smooth", block: "start" });
-  };
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-800 via-gray-900 to-black">
-      {/* Header */}
-      <header className="relative h-48 rounded-b-3xl overflow-hidden bg-gray-900">
-        <div
-          className="absolute inset-0 bg-cover bg-center opacity-60"
-          style={{
-            backgroundImage:
-              "url('https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=800&h=400&fit=crop')",
-          }}
-        />
-        <div className="absolute inset-0 flex items-center justify-center">
-          <div className="text-center">
-            <h1 className="text-white text-4xl font-bold tracking-wider drop-shadow-lg">
-              Different
-            </h1>
-            <p className="text-white text-2xl font-light mt-1 drop-shadow-lg">
-              kind of Food
-            </p>
-          </div>
+    <main className="min-h-screen p-6">
+      <div className="max-w-7xl mx-auto space-y-8 flex flex-col">
+        {/* title */}
+        <header className="text-center">
+          <h1 className="text-4xl font-bold mb-2 ">Mis Menús</h1>
+          <p className="">Explora y selecciona entre los menús creados</p>
+        </header>
+
+        {/* button */}
+        <div className="flex justify-center">
+          <Button className="gap-2">
+            <Plus className="w-4 h-4" />
+            Crear Nuevo Menú
+          </Button>
         </div>
-      </header>
 
-      {/* Category Navigation */}
-      <nav className="flex justify-center sticky top-0 z-10 bg-gray-900 border-b border-gray-800 shadow-lg">
-        <div className="max-w-2xl mx-auto px-2 py-3">
-          <div className="flex gap-1.5 overflow-x-auto scrollbar-hide">
-            {categories.map((category) => (
-              <button
-                key={category.id}
-                onClick={() => scrollToCategory(category.id)}
-                className={`flex-shrink-0 px-3 py-2 rounded-full text-xs font-semibold transition-all whitespace-nowrap ${
-                  activeCategory === category.id
-                    ? "bg-red-500 text-white"
-                    : "bg-gray-800 text-gray-400 hover:bg-gray-700"
-                }`}
-              >
-                {category.label}
-              </button>
-            ))}
+        {/* menus */}
+        <section className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+          {menuExamples.map((menu) => (
+            <Card
+              key={menu.id}
+              className="group cursor-pointer overflow-hidden hover:shadow-xl transition-all duration-300 hover:-translate-y-1 aspect-[3/5] p-0 border-0"
+              onClick={() => console.log('Menú seleccionado:', menu.name)}
+            >
+              <div className={`h-full w-full bg-gradient-to-br ${menu.color} flex items-center justify-center relative p-4`}>
+                {/* Overlay oscuro en hover */}
+                <div className="absolute inset-0 bg-black opacity-0 group-hover:opacity-40 transition-opacity duration-300" />
+                
+                {/* Contenido por defecto */}
+                <div className="text-white text-center z-10 group-hover:opacity-0 transition-opacity duration-300">
+                  <div className="text-4xl mb-3">🍽️</div>
+                  <h3 className="font-bold text-sm leading-tight">
+                    {menu.name}
+                  </h3>
+                </div>
+
+                {/* Símbolo + que aparece en hover */}
+                <div className="absolute inset-0 flex items-center justify-center z-20 opacity-0 group-hover:opacity-100 transition-all duration-300 scale-75 group-hover:scale-100">
+                  <div className="w-16 h-16 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center border-2 border-white">
+                    <svg 
+                      className="w-10 h-10 text-white" 
+                      fill="none" 
+                      strokeLinecap="round" 
+                      strokeLinejoin="round" 
+                      strokeWidth="3" 
+                      viewBox="0 0 24 24" 
+                      stroke="currentColor"
+                    >
+                      <path d="M12 4v16m8-8H4"></path>
+                    </svg>
+                  </div>
+                </div>
+              </div>
+            </Card>
+          ))}
+        </section>
+
+        {/* pie de pagina */}
+        <footer className="border-t border-slate-300 pt-8 mt-12">
+          <div className="text-center text-slate-600">
+            <p className="text-sm text-white mb-2">¿Necesitas ayuda?</p>
+            <Button
+              variant="link"
+              className="text-blue-600 hover:text-blue-700"
+            >
+              Contáctanos
+            </Button>
           </div>
-        </div>
-      </nav>
-
-      {/* Menu Content */}
-      <main className="max-w-2xl mx-auto px-4 py-6">
-        {categories.map((category) => (
-          <section key={category.id} id={category.id} className="mb-8">
-            <div className="mb-4 flex items-end gap-2">
-              <h2 className="text-white text-2xl font-bold">
-                {category.label}
-              </h2>
-              <div className="h-0.5 w-full bg-red-500 rounded mb-1" />
-            </div>
-
-            <div>
-              {menuData[category.id].map((item) => (
-                <FoodMenuItem key={item.id} {...item} />
-              ))}
-            </div>
-          </section>
-        ))}
-      </main>
-    </div>
+        </footer>
+      </div>
+    </main>
   );
 }
