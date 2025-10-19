@@ -2,15 +2,18 @@
 
 import React from "react";
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { Card } from "@/common/components/ui/card";
 import { Button } from "@/common/components/ui/button";
 import { Plus, FilePenLine } from "lucide-react";
 import { Menues } from "@/interfaces/menu";
-
+import MenuEditor from "./menuEditor/page";
 
 export default function Home() {
    const [menus, setMenus] = useState<Menues[]>([]);
    const [error, setError] = useState<string | null>(null);
+   const router = useRouter();
+   
 
    useEffect(() => {
     const fetchMenus = async () => {
@@ -40,6 +43,14 @@ export default function Home() {
     fetchMenus();
   }, []);
 
+   
+ const handleMenuClick = (menuId: number) => {
+    // Navegar a MenuEditor pasando el ID del menú como parámetro
+    router.push(`/menuEditor?id=${menuId}`);
+  };
+ 
+ 
+
   return (
     <main className="min-h-screen p-6">
       <div className="max-w-7xl mx-auto space-y-8 flex flex-col">
@@ -63,7 +74,7 @@ export default function Home() {
             <Card
               key={menu.id}
               className="group cursor-pointer overflow-hidden hover:shadow-xl transition-all duration-300 hover:-translate-y-1 aspect-[3/5] p-0 border-0"
-              onClick={() => console.log('Menú seleccionado:', menu.name)}
+              onClick={() => handleMenuClick(menu.id)}
             >
               <div className={`h-full w-full bg-slate-600 flex items-center justify-center relative p-4`}>
                 {/* Overlay oscuro en hover */}
