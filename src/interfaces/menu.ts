@@ -6,6 +6,11 @@ export interface MenuItem {
   image: string;
 }
 
+export interface Menues {
+  id: number;
+  name: string;
+}
+
 export interface MenuData {
   promociones: MenuItem[];
   entradas: MenuItem[];

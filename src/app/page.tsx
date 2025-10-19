@@ -1,12 +1,45 @@
 "use client"
 
 import React from "react";
+import { useState, useEffect } from 'react';
 import { Card } from "@/common/components/ui/card";
 import { Button } from "@/common/components/ui/button";
-import { Plus } from "lucide-react";
-import menuExamples from "@/app/data/menuExamples.json";
+import { Plus, FilePenLine } from "lucide-react";
+import { Menues } from "@/interfaces/menu";
+
 
 export default function Home() {
+   const [menus, setMenus] = useState<Menues[]>([]);
+   const [error, setError] = useState<string | null>(null);
+
+   useEffect(() => {
+    const fetchMenus = async () => {
+      try {
+        const response = await fetch('http://localhost:3000/api/menus/');
+        
+        if (!response.ok) {
+          throw new Error('Error al cargar los menús');
+        }
+        
+        const data = await response.json();
+
+        console.log('Menús cargados:', data);
+
+        // Mapear los datos y asignar colores
+        const menus = data.map((menu: any, index: number) => ({
+          id: menu.id,
+          name: menu.title,
+        }));
+
+        setMenus(menus);
+         } catch (err) {
+        setError(err instanceof Error ? err.message : 'Error desconocido');
+      }
+    };
+
+    fetchMenus();
+  }, []);
+
   return (
     <main className="min-h-screen p-6">
       <div className="max-w-7xl mx-auto space-y-8 flex flex-col">
@@ -18,7 +51,7 @@ export default function Home() {
 
         {/* button */}
         <div className="flex justify-center">
-          <Button className="gap-2">
+          <Button className="gap-2 dark">
             <Plus className="w-4 h-4" />
             Crear Nuevo Menú
           </Button>
@@ -26,13 +59,13 @@ export default function Home() {
 
         {/* menus */}
         <section className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-          {menuExamples.map((menu) => (
+          {menus.map((menu) => (
             <Card
               key={menu.id}
               className="group cursor-pointer overflow-hidden hover:shadow-xl transition-all duration-300 hover:-translate-y-1 aspect-[3/5] p-0 border-0"
               onClick={() => console.log('Menú seleccionado:', menu.name)}
             >
-              <div className={`h-full w-full bg-gradient-to-br ${menu.color} flex items-center justify-center relative p-4`}>
+              <div className={`h-full w-full bg-slate-600 flex items-center justify-center relative p-4`}>
                 {/* Overlay oscuro en hover */}
                 <div className="absolute inset-0 bg-black opacity-0 group-hover:opacity-40 transition-opacity duration-300" />
                 
@@ -47,17 +80,7 @@ export default function Home() {
                 {/* Símbolo + que aparece en hover */}
                 <div className="absolute inset-0 flex items-center justify-center z-20 opacity-0 group-hover:opacity-100 transition-all duration-300 scale-75 group-hover:scale-100">
                   <div className="w-16 h-16 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center border-2 border-white">
-                    <svg 
-                      className="w-10 h-10 text-white" 
-                      fill="none" 
-                      strokeLinecap="round" 
-                      strokeLinejoin="round" 
-                      strokeWidth="3" 
-                      viewBox="0 0 24 24" 
-                      stroke="currentColor"
-                    >
-                      <path d="M12 4v16m8-8H4"></path>
-                    </svg>
+                    <FilePenLine className="w-8 h-8 text-white" />
                   </div>
                 </div>
               </div>
