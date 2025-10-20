@@ -27,6 +27,9 @@ export default function Menupage() {
         const data = await response.json();
         console.log(data.categories);
         setCategories(data.categories);
+        if (data.categories.length > 0) {
+          setActiveCategory(data.categories[0].id);
+        }
       } catch (error) {
         console.error('Error fetching categories:', error);
       }
@@ -37,7 +40,10 @@ export default function Menupage() {
 
 
   useEffect(() => {
+    if (categories.length === 0) return;
+
     const handleScroll = () => {
+      
       const categoryIds = categories.map(cat => cat.id);
 
       for (const categoryId of categoryIds) {
@@ -54,7 +60,7 @@ export default function Menupage() {
 
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
+  }, [categories]);
 
    const scrollToCategory = (categoryId: number) => {
     setActiveCategory(categoryId);
