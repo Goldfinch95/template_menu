@@ -1,14 +1,14 @@
 export interface MenuItem {
   id: number;
-  name: string;
+  title: string;
   description: string;
   price: number;
-  image: string;
+  image: [];
 }
 
 export interface Menues {
   id: number;
-  name: string;
+  title: string;
 }
 
 export interface MenuData {
@@ -22,6 +22,8 @@ export interface MenuData {
 export interface Category {
   id: keyof MenuData;
   label: string;
+  title: string;
+  items: MenuItem[];
 }
 
 export interface FoodMenuItemProps extends MenuItem {}

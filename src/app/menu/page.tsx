@@ -1,30 +1,46 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { useSearchParams } from 'next/navigation'
 import FoodMenuItem from "@/app/components/FoodMenuItem";
 import menuData from "@/app/data/menu.json";
 import type { Category, MenuData } from "@/interfaces/menu";
 
-const categories: Category[] = [
-  { id: "promociones", label: "Promociones" },
-  { id: "entradas", label: "Entradas" },
-  { id: "principales", label: "Principales" },
-  { id: "postres", label: "Postres" },
-  { id: "bebidas", label: "Bebidas" },
-];
 
 export default function Menupage() {
+
+  const searchParams = useSearchParams();
+  const menuId = searchParams.get('id');
+
+  const [categories, setCategories] = useState<Category[]>([]);
   const [activeCategory, setActiveCategory] =
     useState<keyof MenuData>("promociones");
+
+    // GET de categorías
+  useEffect(() => {
+    const fetchCategories = async () => {
+       if (!menuId) {
+        console.error('No menu ID provided');
+        return;
+      }
+      try {
+        const response = await fetch(`http://localhost:3000/api/menus/${menuId}`);; // Ajusta la URL según tu API
+        const data = await response.json();
+        console.log(data.categories);
+        setCategories(data.categories);
+      } catch (error) {
+        console.error('Error fetching categories:', error);
+      }
+    };
+
+    fetchCategories();
+  }, [menuId]);
+
 
   useEffect(() => {
     const handleScroll = () => {
       const categoryIds: (keyof MenuData)[] = [
-        "promociones",
-        "entradas",
-        "principales",
-        "postres",
-        "bebidas",
+      
       ];
 
       for (const sectionId of categoryIds) {
@@ -45,7 +61,7 @@ export default function Menupage() {
 
   const scrollToCategory = (categoryId: keyof MenuData) => {
     setActiveCategory(categoryId);
-    const element = document.getElementById(categoryId);
+    const element  = document.getElementById(categoryId);
     element?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
@@ -86,7 +102,7 @@ export default function Menupage() {
                     : "bg-gray-800 text-gray-400 hover:bg-gray-700"
                 }`}
               >
-                {category.label}
+                {category.title}
               </button>
             ))}
           </div>
@@ -94,20 +110,25 @@ export default function Menupage() {
       </nav>
 
       {/* Menu Content */}
-      <main className="max-w-2xl mx-auto px-4 py-6">
+<main className="max-w-2xl mx-auto px-4 py-6">
         {categories.map((category) => (
           <section key={category.id} id={category.id} className="mb-8">
             <div className="mb-4 flex items-end gap-2">
               <h2 className="text-white text-2xl font-bold">
-                {category.label}
+                {category.title}
               </h2>
               <div className="h-0.5 w-full bg-red-500 rounded mb-1" />
             </div>
 
             <div>
-              {menuData[category.id].map((item) => (
-                <FoodMenuItem key={item.id} {...item} />
-              ))}
+              {/* ← AQUÍ ACCEDES A LOS ITEMS */}
+              {category.items && category.items.length > 0 ? (
+                category.items.map((item) => (
+                  <FoodMenuItem key={item.id} {...item} />
+                ))
+              ) : (
+                <p className="text-gray-400 text-sm">No hay items en esta categoría</p>
+              )}
             </div>
           </section>
         ))}

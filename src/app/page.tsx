@@ -7,7 +7,7 @@ import { Card } from "@/common/components/ui/card";
 import { Button } from "@/common/components/ui/button";
 import { Plus, FilePenLine } from "lucide-react";
 import { Menues } from "@/interfaces/menu";
-import MenuEditor from "./menuEditor/page";
+
 
 export default function Home() {
    const [menus, setMenus] = useState<Menues[]>([]);
@@ -31,7 +31,7 @@ export default function Home() {
         // Mapear los datos y asignar colores
         const menus = data.map((menu: any, index: number) => ({
           id: menu.id,
-          name: menu.title,
+          title: menu.title,
         }));
 
         setMenus(menus);
@@ -84,7 +84,7 @@ export default function Home() {
                 <div className="text-white text-center z-10 group-hover:opacity-0 transition-opacity duration-300">
                   <div className="text-4xl mb-3">🍽️</div>
                   <h3 className="font-bold text-sm leading-tight">
-                    {menu.name}
+                    {menu.title}
                   </h3>
                 </div>
 
