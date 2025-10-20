@@ -23,12 +23,12 @@ export default function Home() {
           throw new Error('Error al cargar los menús');
         }
         
-        const data = await response.json();
+        const data: Menues[] = await response.json();
 
         console.log('Menús cargados:', data);
 
         // Mapear los datos
-        const menus = data.map((menu: any) => ({
+        const menus = data.map((menu) => ({
           id: menu.id,
           title: menu.title,
         }));
