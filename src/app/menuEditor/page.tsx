@@ -1,12 +1,13 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, Suspense } from "react";
 import { Button } from "@/common/components/ui/button";
 import { useSearchParams, useRouter } from "next/navigation";
 import { ArrowLeft, Eye } from "lucide-react";
 import Image from "next/image";
 
-const MenuEditor = () => {
+// Componente interno que usa useSearchParams
+const MenuEditorContent = () => {
   const searchParams = useSearchParams();
   const router = useRouter();
   const menuId = searchParams.get("id");
@@ -21,17 +22,16 @@ const MenuEditor = () => {
     colorSecundario: '#ffffff'
   });
 
-   const [previews, setPreviews] = useState({
+  const [previews, setPreviews] = useState({
     logo: '',
     background: ''
   });
-
 
   const handleViewMenu = () => {
     router.push(`/menu?id=${menuId}&title=${encodeURIComponent(menuTitle || '')}`)
   };
 
-   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>, field: 'logo' | 'background') => {
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>, field: 'logo' | 'background') => {
     const file = e.target.files?.[0];
     if (file) {
       setFormData(prev => ({ ...prev, [field]: file }));
@@ -75,7 +75,7 @@ const MenuEditor = () => {
           </div>
         </div>
       </nav>
-       {/* Main Content */}
+      {/* Main Content */}
       <main className="max-w-7xl mx-auto px-6 py-8">
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 text-black p-6">
           <div className="space-y-6">
@@ -243,7 +243,6 @@ const MenuEditor = () => {
 
             {/* Botones */}
             <div className="flex justify-end gap-3 pt-4 border-t border-gray-200">
-             
               <button 
                 type="button"
                 onClick={handleSubmit}
@@ -256,6 +255,25 @@ const MenuEditor = () => {
         </div>
       </main>
     </div>
+  );
+};
+
+// Componente de carga mientras se resuelve el Suspense
+const LoadingFallback = () => (
+  <div className="min-h-screen flex items-center justify-center">
+    <div className="text-center">
+      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto"></div>
+      <p className="mt-4 text-gray-600">Cargando editor...</p>
+    </div>
+  </div>
+);
+
+// Componente principal exportado con Suspense
+const MenuEditor = () => {
+  return (
+    <Suspense fallback={<LoadingFallback />}>
+      <MenuEditorContent />
+    </Suspense>
   );
 };
 
