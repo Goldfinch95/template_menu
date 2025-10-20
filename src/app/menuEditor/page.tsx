@@ -4,11 +4,7 @@ import React, { useState } from "react";
 import { Button } from "@/common/components/ui/button";
 import { useSearchParams, useRouter } from "next/navigation";
 import { ArrowLeft, Eye } from "lucide-react";
-
-
-const handleBack = () => {
-  console.log("Volver a inicio");
-};
+import Image from "next/image";
 
 const MenuEditor = () => {
   const searchParams = useSearchParams();
@@ -17,8 +13,8 @@ const MenuEditor = () => {
   const menuTitle = searchParams.get("title");
 
   const [formData, setFormData] = useState({
-    logo: null,
-    background: null,
+    logo: null as File | null,
+    background: null as File | null,
     nombre: '',
     puntosVenta: '',
     colorPrincipal: '#000000',
@@ -32,22 +28,22 @@ const MenuEditor = () => {
 
 
   const handleViewMenu = () => {
-    router.push(`/menu?id=${menuId}&title=${encodeURIComponent(menuTitle)}`)
+    router.push(`/menu?id=${menuId}&title=${encodeURIComponent(menuTitle || '')}`)
   };
 
-  const handleImageChange = (e, field) => {
+   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>, field: 'logo' | 'background') => {
     const file = e.target.files?.[0];
     if (file) {
       setFormData(prev => ({ ...prev, [field]: file }));
       const reader = new FileReader();
       reader.onloadend = () => {
-        setPreviews(prev => ({ ...prev, [field]: reader.result }));
+        setPreviews(prev => ({ ...prev, [field]: reader.result as string }));
       };
       reader.readAsDataURL(file);
     }
   };
 
-  const handleInputChange = (e) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
   };
@@ -91,7 +87,7 @@ const MenuEditor = () => {
                 <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-gray-400 transition-colors">
                   {previews.logo ? (
                     <div className="relative">
-                      <img src={previews.logo} alt="Logo preview" className="max-h-32 mx-auto rounded" />
+                      <Image src={previews.logo} alt="Logo preview" width={128} height={128} className="max-h-32 mx-auto rounded object-contain" />
                       <button
                         className="mt-2 px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-gray-50"
                         onClick={() => {
@@ -129,7 +125,7 @@ const MenuEditor = () => {
                 <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-gray-400 transition-colors">
                   {previews.background ? (
                     <div className="relative">
-                      <img src={previews.background} alt="Background preview" className="max-h-32 mx-auto rounded" />
+                      <Image src={previews.background} width={128} height={128} alt="Background preview" className="max-h-32 mx-auto rounded object-contain" />
                       <button
                         className="mt-2 px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-gray-50"
                         onClick={() => {
