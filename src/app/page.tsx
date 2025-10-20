@@ -28,7 +28,7 @@ export default function Home() {
         console.log('Menús cargados:', data);
 
         // Mapear los datos
-        const menus = data.map((menu: any, index: number) => ({
+        const menus = data.map((menu: any) => ({
           id: menu.id,
           title: menu.title,
         }));
