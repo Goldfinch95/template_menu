@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { useSearchParams } from 'next/navigation'
 import FoodMenuItem from "@/app/components/FoodMenuItem";
-import type { Category, MenuData } from "@/interfaces/menu";
+import type { Category } from "@/interfaces/menu";
 
 
 export default function Menupage() {
@@ -13,8 +13,7 @@ export default function Menupage() {
   const menuTitle = searchParams.get('title');
 
   const [categories, setCategories] = useState<Category[]>([]);
-  const [activeCategory, setActiveCategory] =
-    useState<keyof MenuData>("promociones");
+  const [activeCategory, setActiveCategory] = useState<number | null>(null);
 
     // GET de categorías
   useEffect(() => {
@@ -39,16 +38,14 @@ export default function Menupage() {
 
   useEffect(() => {
     const handleScroll = () => {
-      const categoryIds: (keyof MenuData)[] = [
-      
-      ];
+      const categoryIds = categories.map(cat => cat.id);
 
-      for (const sectionId of categoryIds) {
-        const element = document.getElementById(sectionId);
+      for (const categoryId of categoryIds) {
+        const element = document.getElementById(categoryId.toString());
         if (element) {
           const rect = element.getBoundingClientRect();
           if (rect.top <= 150 && rect.bottom >= 150) {
-            setActiveCategory(sectionId);
+            setActiveCategory(categoryId);
             break;
           }
         }
@@ -59,9 +56,9 @@ export default function Menupage() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  const scrollToCategory = (categoryId: keyof MenuData) => {
+   const scrollToCategory = (categoryId: number) => {
     setActiveCategory(categoryId);
-    const element  = document.getElementById(categoryId);
+    const element = document.getElementById(categoryId.toString());
     element?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
@@ -109,7 +106,7 @@ export default function Menupage() {
       {/* Menu Content */}
 <main className="max-w-2xl mx-auto px-4 py-6">
         {categories.map((category) => (
-          <section key={category.id} id={category.id} className="mb-8">
+          <section key={category.id} id={category.id.toString()} className="mb-8">
             <div className="mb-4 flex items-end gap-2">
               <h2 className="text-white text-2xl font-bold">
                 {category.title}
@@ -118,7 +115,6 @@ export default function Menupage() {
             </div>
 
             <div>
-              {/* ← AQUÍ ACCEDES A LOS ITEMS */}
               {category.items && category.items.length > 0 ? (
                 category.items.map((item) => (
                   <FoodMenuItem key={item.id} {...item} />
