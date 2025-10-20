@@ -1,16 +1,21 @@
 import React from 'react';
-import { Button } from '@/common/components/ui/button';
-import { FoodMenuItemProps } from '@/interfaces/menu';
+import Image from 'next/image';
+import { MenuItem } from '@/interfaces/menu';
 
-const FoodMenuItem: React.FC<FoodMenuItemProps> = ({ title, description, price, image }) => {
+const FoodMenuItem: React.FC<MenuItem> = ({ title, description, price, image }) => {
+
+   const imageSrc = (image && image.length > 0) ? image[0] : '/food_template.webp';
+
   return (
      <div className="py-4 border-b border-gray-700 last:border-b-0">
   <div className="flex gap-3 items-center">
     <div className="flex-shrink-0">
       <div className="w-20 h-20 rounded-lg overflow-hidden ">
-        <img 
-          src={image} 
+        <Image 
+          src={imageSrc}
           alt={title}
+          width={20}
+          height={20}
           className="w-full h-full object-cover rounded-full"
         />
       </div>
