@@ -11,7 +11,6 @@ import { Menues } from "@/interfaces/menu";
 
 export default function Home() {
    const [menus, setMenus] = useState<Menues[]>([]);
-   const [error, setError] = useState<string | null>(null);
    const router = useRouter();
    
 
@@ -28,7 +27,7 @@ export default function Home() {
 
         console.log('Menús cargados:', data);
 
-        // Mapear los datos y asignar colores
+        // Mapear los datos
         const menus = data.map((menu: any, index: number) => ({
           id: menu.id,
           title: menu.title,
@@ -36,7 +35,7 @@ export default function Home() {
 
         setMenus(menus);
          } catch (err) {
-        setError(err instanceof Error ? err.message : 'Error desconocido');
+        console.error('Error al cargar los menús:', err instanceof Error ? err.message : 'Error desconocido');
       }
     };
 

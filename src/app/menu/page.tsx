@@ -3,7 +3,6 @@
 import React, { useState, useEffect } from "react";
 import { useSearchParams } from 'next/navigation'
 import FoodMenuItem from "@/app/components/FoodMenuItem";
-import menuData from "@/app/data/menu.json";
 import type { Category, MenuData } from "@/interfaces/menu";
 
 
