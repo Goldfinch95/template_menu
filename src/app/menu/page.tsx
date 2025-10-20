@@ -1,13 +1,12 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from 'next/navigation'
 import FoodMenuItem from "@/app/components/FoodMenuItem";
 import type { Category } from "@/interfaces/menu";
 
-
-export default function Menupage() {
-
+// Componente interno que usa useSearchParams
+function MenuContent() {
   const searchParams = useSearchParams();
   const menuId = searchParams.get('id');
   const menuTitle = searchParams.get('title');
@@ -15,18 +14,19 @@ export default function Menupage() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [activeCategory, setActiveCategory] = useState<number | null>(null);
 
-    // GET de categorías
+  // GET de categorías
   useEffect(() => {
     const fetchCategories = async () => {
-       if (!menuId) {
+      if (!menuId) {
         console.error('No menu ID provided');
         return;
       }
       try {
-        const response = await fetch(`http://localhost:3000/api/menus/${menuId}`);; // Ajusta la URL según tu API
+        const response = await fetch(`http://localhost:3000/api/menus/${menuId}`);
         const data = await response.json();
         console.log(data.categories);
         setCategories(data.categories);
+        // Establecer la primera categoría como activa por defecto
         if (data.categories.length > 0) {
           setActiveCategory(data.categories[0].id);
         }
@@ -38,12 +38,10 @@ export default function Menupage() {
     fetchCategories();
   }, [menuId]);
 
-
   useEffect(() => {
     if (categories.length === 0) return;
 
     const handleScroll = () => {
-      
       const categoryIds = categories.map(cat => cat.id);
 
       for (const categoryId of categoryIds) {
@@ -62,7 +60,7 @@ export default function Menupage() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, [categories]);
 
-   const scrollToCategory = (categoryId: number) => {
+  const scrollToCategory = (categoryId: number) => {
     setActiveCategory(categoryId);
     const element = document.getElementById(categoryId.toString());
     element?.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -110,7 +108,7 @@ export default function Menupage() {
       </nav>
 
       {/* Menu Content */}
-<main className="max-w-2xl mx-auto px-4 py-6">
+      <main className="max-w-2xl mx-auto px-4 py-6">
         {categories.map((category) => (
           <section key={category.id} id={category.id.toString()} className="mb-8">
             <div className="mb-4 flex items-end gap-2">
@@ -133,5 +131,18 @@ export default function Menupage() {
         ))}
       </main>
     </div>
+  );
+}
+
+// Componente principal con Suspense
+export default function Menupage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gradient-to-br from-gray-800 via-gray-900 to-black flex items-center justify-center">
+        <div className="text-white text-xl">Cargando menú...</div>
+      </div>
+    }>
+      <MenuContent />
+    </Suspense>
   );
 }
