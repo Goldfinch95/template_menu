@@ -14,6 +14,7 @@ const MenuEditor = () => {
   const searchParams = useSearchParams();
   const router = useRouter();
   const menuId = searchParams.get("id");
+  const menuTitle = searchParams.get("title");
 
   const [formData, setFormData] = useState({
     logo: null,
@@ -31,7 +32,7 @@ const MenuEditor = () => {
 
 
   const handleViewMenu = () => {
-    router.push(`/menu?id=${menuId}`);
+    router.push(`/menu?id=${menuId}&title=${encodeURIComponent(menuTitle)}`)
   };
 
   const handleImageChange = (e, field) => {

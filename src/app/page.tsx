@@ -44,10 +44,9 @@ export default function Home() {
   }, []);
 
    
- const handleMenuClick = (menuId: number) => {
-    // Navegar a MenuEditor pasando el ID del menú como parámetro
-    router.push(`/menuEditor?id=${menuId}`);
-  };
+ const handleMenuClick = (menuId: number, menuTitle: string) => {
+  router.push(`/menuEditor?id=${menuId}&title=${encodeURIComponent(menuTitle)}`);
+};
  
  
 
@@ -74,7 +73,7 @@ export default function Home() {
             <Card
               key={menu.id}
               className="group cursor-pointer overflow-hidden hover:shadow-xl transition-all duration-300 hover:-translate-y-1 aspect-[3/5] p-0 border-0"
-              onClick={() => handleMenuClick(menu.id)}
+              onClick={() => handleMenuClick(menu.id, menu.title)}
             >
               <div className={`h-full w-full bg-slate-600 flex items-center justify-center relative p-4`}>
                 {/* Overlay oscuro en hover */}

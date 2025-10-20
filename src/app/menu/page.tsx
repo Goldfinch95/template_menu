@@ -11,6 +11,7 @@ export default function Menupage() {
 
   const searchParams = useSearchParams();
   const menuId = searchParams.get('id');
+  const menuTitle = searchParams.get('title');
 
   const [categories, setCategories] = useState<Category[]>([]);
   const [activeCategory, setActiveCategory] =
@@ -79,11 +80,8 @@ export default function Menupage() {
         <div className="absolute inset-0 flex items-center justify-center">
           <div className="text-center">
             <h1 className="text-white text-4xl font-bold tracking-wider drop-shadow-lg">
-              Different
+              {menuTitle ? decodeURIComponent(menuTitle) : 'Menú'}
             </h1>
-            <p className="text-white text-2xl font-light mt-1 drop-shadow-lg">
-              kind of Food
-            </p>
           </div>
         </div>
       </header>
