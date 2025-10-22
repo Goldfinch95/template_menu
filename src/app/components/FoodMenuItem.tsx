@@ -1,27 +1,40 @@
-import React from 'react';
-import Image from 'next/image';
-import { MenuItem } from '@/interfaces/menu';
+import React from "react";
+import Image from "next/image";
+import { MenuItem } from "@/interfaces/menu";
 
-const FoodMenuItem: React.FC<MenuItem> = ({ title, description, price, image }) => {
+const FoodMenuItem: React.FC<MenuItem> = ({
+  title,
+  description,
+  price,
+  images,
+}) => {
+  // Obtener la primera imagen activa, ordenada por sortOrder
+  const firstImage = images
+    ?.filter(img => img.active)
+    ?.sort((a, b) => a.sortOrder - b.sortOrder)[0];
 
-   const imageSrc = (image && image.length > 0) ? image[0] : '/food_template.webp';
+    const imageSrc = firstImage?.url || '/food_template.webp';
+  const imageAlt = firstImage?.alt || title;
+
+   // Convertir price de string a number para mostrar
+  const priceNumber = parseFloat(price);
 
   return (
-     <div className="py-4 border-b border-gray-700 last:border-b-0">
-  <div className="flex gap-3 items-center">
-    <div className="flex-shrink-0">
-      <div className="w-20 h-20 rounded-lg overflow-hidden ">
-        <Image 
-          src={imageSrc}
-          alt={title}
-          width={20}
-          height={20}
-          className="w-full h-full object-cover rounded-full"
-        />
-      </div>
-    </div>
-    
-   {/* <div className="flex-1 min-w-0">
+    <div className="py-4 border-b border-gray-700 last:border-b-0">
+      <div className="flex gap-3 items-center">
+        <div className="flex-shrink-0">
+          <div className="w-20 h-20 rounded-lg overflow-hidden ">
+            <Image
+              src={imageSrc}
+              alt={imageAlt}
+              width={80}
+              height={80}
+              className="w-full h-full object-cover rounded-full"
+            />
+          </div>
+        </div>
+
+        {/* <div className="flex-1 min-w-0">
       <h3 className="text-white font-bold text-lg  mb-1">{name}</h3>
       <p className="text-gray-400 text-base mb-2 line-clamp-2">{description}</p>
       <div className="flex items-center justify-between">
@@ -36,13 +49,15 @@ const FoodMenuItem: React.FC<MenuItem> = ({ title, description, price, image }) 
     </div>/*}
   
     {/* other */}
-    <div className="flex-1 min-w-0 grid grid-cols-[1fr_auto] gap-4">
-  <div className="min-w-0 flex flex-col">
-    <h3 className="text-white font-bold text-lg mb-1">{title}</h3>
-    <p className="text-gray-400 text-base mb-2">{description}</p>
-    <span className="text-white font-bold text-xl mt-auto">$ {price}</span>
-  </div>
-  {/*}
+        <div className="flex-1 min-w-0 grid grid-cols-[1fr_auto] gap-4">
+          <div className="min-w-0 flex flex-col">
+            <h3 className="text-white font-bold text-lg mb-1">{title}</h3>
+            <p className="text-gray-400 text-base mb-2">{description}</p>
+            <span className="text-white font-bold text-xl mt-auto">
+             $ {priceNumber.toFixed(2)}
+            </span>
+          </div>
+          {/*}
   <div className="flex items-end">
     <Button 
       size="sm"
@@ -51,9 +66,9 @@ const FoodMenuItem: React.FC<MenuItem> = ({ title, description, price, image }) 
       Editar
     </Button>
   </div>*/}
-</div>
-  </div>
-</div>
+        </div>
+      </div>
+    </div>
   );
 };
 
