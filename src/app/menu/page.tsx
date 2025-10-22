@@ -12,7 +12,9 @@ function MenuContent() {
   const menuTitle = searchParams.get("title");
 
   const [categories, setCategories] = useState<Category[]>([]);
-  const [activeCategory, setActiveCategory] = useState<number | null>(null);
+  const [activeCategory, setActiveCategory] = useState(1);
+  const [isScrolling, setIsScrolling] = useState(false);
+  const scrollTimeoutRef = React.useRef(null);
 
   // GET de categorías
   useEffect(() => {
@@ -40,17 +42,33 @@ function MenuContent() {
     fetchCategories();
   }, [menuId]);
 
-  useEffect(() => {
+   useEffect(() => {
     if (categories.length === 0) return;
 
     const handleScroll = () => {
-      const categoryIds = categories.map((cat) => cat.id);
+      // Si estamos haciendo scroll programático, no actualizar la categoría activa
+      if (isScrolling) return;
 
-      for (const categoryId of categoryIds) {
+      const categoryIds = categories.map((cat) => cat.id);
+      const navHeight = 80;
+      
+      // Verificar si estamos exactamente al final de la página (no puede hacer más scroll)
+      const isAtBottom = Math.ceil(window.innerHeight + window.scrollY) >= document.documentElement.scrollHeight;
+      
+      if (isAtBottom) {
+        // Si estamos al final, activar la última categoría
+        setActiveCategory(categoryIds[categoryIds.length - 1]);
+        return;
+      }
+
+      // Recorrer en orden inverso para priorizar categorías más abajo
+      for (let i = categoryIds.length - 1; i >= 0; i--) {
+        const categoryId = categoryIds[i];
         const element = document.getElementById(categoryId.toString());
         if (element) {
           const rect = element.getBoundingClientRect();
-          if (rect.top <= 150 && rect.bottom >= 150) {
+          // Si el título de la categoría está visible en el área superior
+          if (rect.top <= navHeight + 10) {
             setActiveCategory(categoryId);
             break;
           }
@@ -60,12 +78,56 @@ function MenuContent() {
 
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
-  }, [categories]);
+  }, [categories, isScrolling]);
 
-  const scrollToCategory = (categoryId: number) => {
+  const scrollToCategory = (categoryId) => {
     setActiveCategory(categoryId);
+    setIsScrolling(true);
+    
+    // Limpiar timeout anterior si existe
+    if (scrollTimeoutRef.current) {
+      clearTimeout(scrollTimeoutRef.current);
+    }
+    
     const element = document.getElementById(categoryId.toString());
-    element?.scrollIntoView({ behavior: "smooth", block: "start" });
+    if (element) {
+      const navHeight = 80;
+      const elementPosition = element.getBoundingClientRect().top + window.pageYOffset;
+      const offsetPosition = elementPosition - navHeight;
+
+      window.scrollTo({
+        top: offsetPosition,
+        behavior: "smooth"
+      });
+
+      // Esperar a que termine la animación de scroll (aprox 800ms para estar seguros)
+      scrollTimeoutRef.current = setTimeout(() => {
+        setIsScrolling(false);
+        // Forzar una actualización de la categoría activa después del scroll
+        const categoryIds = categories.map((cat) => cat.id);
+        const navHeight = 80;
+        
+        // Verificar si estamos exactamente al final de la página
+        const isAtBottom = Math.ceil(window.innerHeight + window.scrollY) >= document.documentElement.scrollHeight - 5;
+        
+        if (isAtBottom) {
+          setActiveCategory(categoryIds[categoryIds.length - 1]);
+        } else {
+          // Encontrar qué categoría está actualmente visible
+          for (let i = categoryIds.length - 1; i >= 0; i--) {
+            const catId = categoryIds[i];
+            const el = document.getElementById(catId.toString());
+            if (el) {
+              const rect = el.getBoundingClientRect();
+              if (rect.top <= navHeight + 10) {
+                setActiveCategory(catId);
+                break;
+              }
+            }
+          }
+        }
+      }, 800);
+    }
   };
 
   
@@ -90,9 +152,9 @@ function MenuContent() {
           </div>
         </div>
       </header>
-      <div className="bg-white px-4 pb-8 min-h-screen">
+      <div className="bg-white pb-8 min-h-screen">
         {/* Category Navigation */}
-        <nav className="flex justify-center sticky top-0 z-10 ">
+        <nav className="flex justify-center sticky top-0 z-10 bg-white shadow-md">
           <div className="max-w-2xl mx-auto px-2 py-3">
             <div className="flex gap-1.5 overflow-x-auto scrollbar-hide">
               {categories.map((category) => (
@@ -111,7 +173,7 @@ function MenuContent() {
             </div>
           </div>
         </nav>
-
+<div className="bg-white px-4 py-6">
         {/* Menu Content */}
         <main className="space-y-4">
           {categories.map((category) => (
@@ -135,6 +197,7 @@ function MenuContent() {
             </section>
           ))}
         </main>
+      </div>
       </div>
     </div>
   );
