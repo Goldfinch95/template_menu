@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, Suspense } from "react";
+import React, { useState, useEffect, useRef, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import FoodMenuItem from "@/app/components/FoodMenuItem";
 import type { Category } from "@/interfaces/menu";
@@ -14,7 +14,7 @@ function MenuContent() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [activeCategory, setActiveCategory] = useState(1);
   const [isScrolling, setIsScrolling] = useState(false);
-  const scrollTimeoutRef = React.useRef(null);
+  const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // GET de categorías
   useEffect(() => {
@@ -80,7 +80,7 @@ function MenuContent() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, [categories, isScrolling]);
 
-  const scrollToCategory = (categoryId) => {
+  const scrollToCategory = (categoryId: number) => {
     setActiveCategory(categoryId);
     setIsScrolling(true);
     
