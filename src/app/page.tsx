@@ -1,115 +1,144 @@
-"use client"
+"use client";
 
 import React from "react";
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { Card } from "@/common/components/ui/card";
 import { Button } from "@/common/components/ui/button";
-import { Plus, FilePenLine } from "lucide-react";
+import { Plus, UtensilsCrossed, ChevronRight } from "lucide-react";
 import { Menues } from "@/interfaces/menu";
 
-
 export default function Home() {
-   const [menus, setMenus] = useState<Menues[]>([]);
-   const router = useRouter();
-   
+  const [menus, setMenus] = useState<Menues[]>([]);
+  const router = useRouter();
 
-   useEffect(() => {
+  useEffect(() => {
     const fetchMenus = async () => {
       try {
-        const response = await fetch('http://localhost:3000/api/menus/');
-        
+        const response = await fetch("http://localhost:3000/api/menus/");
+
         if (!response.ok) {
-          throw new Error('Error al cargar los menús');
+          throw new Error("Error al cargar los menús");
         }
-        
+
         const data: Menues[] = await response.json();
 
-        console.log('Menús cargados:', data);
+        //example colors
+        const colors = [
+          { color: "from-orange-500 to-red-600" },
+          { color: "from-amber-600 to-orange-700" },
+          { color: "from-emerald-500 to-teal-600" },
+          { color: "from-rose-500 to-pink-600" },
+          { color: "from-red-600 to-rose-700" },
+          { color: "from-green-500 to-emerald-600" },
+          { color: "from-purple-500 to-indigo-600" },
+          { color: "from-blue-500 to-cyan-600" },
+        ];
+
+        console.log("Menús cargados:", data);
 
         // Mapear los datos
         const menus = data.map((menu) => ({
           id: menu.id,
           title: menu.title,
+          color: colors[menu.id % colors.length].color, // Asignar color de ejemplo cíclicamente
         }));
 
         setMenus(menus);
-         } catch (err) {
-        console.error('Error al cargar los menús:', err instanceof Error ? err.message : 'Error desconocido');
+      } catch (err) {
+        console.error(
+          "Error al cargar los menús:",
+          err instanceof Error ? err.message : "Error desconocido"
+        );
       }
     };
 
     fetchMenus();
   }, []);
 
-   
- const handleMenuClick = (menuId: number, menuTitle: string) => {
-  router.push(`/menuEditor?id=${menuId}&title=${encodeURIComponent(menuTitle)}`);
-};
- 
- 
+  const handleMenuClick = (menuId: number, menuTitle: string) => {
+    router.push(
+      `/menuEditor?id=${menuId}&title=${encodeURIComponent(menuTitle)}`
+    );
+  };
+
+  const handleCreateNewMenu = () => {
+    router.push("/menuEditor");
+  };
 
   return (
-    <main className="min-h-screen p-6">
-      <div className="max-w-7xl mx-auto space-y-8 flex flex-col">
-        {/* title */}
-        <header className="text-center">
-          <h1 className="text-4xl font-bold mb-2 ">Mis Menús</h1>
-          <p className="">Explora y selecciona entre los menús creados</p>
-        </header>
-
-        {/* button */}
-        <div className="flex justify-center">
-          <Button className="gap-2 dark">
-            <Plus className="w-4 h-4" />
-            Crear Nuevo Menú
-          </Button>
+    <main className="min-h-screen bg-slate-950 pb-20">
+      {/* Header fijo */}
+      <header className="sticky top-0 z-10 bg-slate-950/95 backdrop-blur-lg border-b border-slate-800 px-6 py-4">
+        <div className="max-w-md mx-auto">
+          <h1 className="text-2xl font-bold text-white mb-1">Mis Menús</h1>
+          <p className="text-sm text-slate-400">Gestiona tus menús digitales</p>
         </div>
+      </header>
 
-        {/* menus */}
-        <section className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-          {menus.map((menu) => (
-            <Card
-              key={menu.id}
-              className="group cursor-pointer overflow-hidden hover:shadow-xl transition-all duration-300 hover:-translate-y-1 aspect-[3/5] p-0 border-0"
-              onClick={() => handleMenuClick(menu.id, menu.title)}
+      <div className="max-w-md mx-auto px-4 py-6 space-y-6">
+        {/* Botón crear nuevo menu */}
+        <Button
+          className="w-full h-14 bg-gradient-to-r from-blue-600 to-violet-600 hover:from-blue-700 hover:to-violet-700 text-white rounded-2xl shadow-lg shadow-blue-500/20 font-semibold text-base transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]"
+          onClick={handleCreateNewMenu}
+        >
+          <Plus className="w-5 h-5 mr-2" />
+          Crear Nuevo Menú
+        </Button>
+      </div>
+      {/* menus */}
+      <section className="grid grid-cols-2 gap-4 px-4">
+        {menus.map((menu) => (
+          <Card
+            key={menu.id}
+            className="group cursor-pointer overflow-hidden border-0 bg-transparent p-0 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]"
+            onClick={() => handleMenuClick(menu.id, menu.title)}
+          >
+            <div
+              className={`relative h-44 rounded-3xl bg-gradient-to-br ${menu.color} p-5 flex flex-col justify-between shadow-xl`}
             >
-              <div className={`h-full w-full bg-slate-600 flex items-center justify-center relative p-4`}>
-                {/* Overlay oscuro en hover */}
-                <div className="absolute inset-0 bg-black opacity-0 group-hover:opacity-40 transition-opacity duration-300" />
-                
-                {/* Contenido por defecto */}
-                <div className="text-white text-center z-10 group-hover:opacity-0 transition-opacity duration-300">
-                  <div className="text-4xl mb-3">🍽️</div>
-                  <h3 className="font-bold text-sm leading-tight">
+              {/* Patrón de fondo */}
+              <div className="absolute inset-0 bg-black/10 rounded-3xl" />
+              {/* Contenido  */}
+              <div className="relative z-10 flex flex-col h-full">
+                {/* Iconos */}
+                <div className="flex-1 flex items-center justify-center">
+                  <div className="w-16 h-16 rounded-full bg-white/25 backdrop-blur-sm flex items-center justify-center transition-transform duration-300 group-hover:scale-110">
+                    {/* Icono de cubiertos */}
+                    <UtensilsCrossed
+                      className="w-8 h-8 text-white absolute transition-all duration-300 group-hover:opacity-0 group-hover:scale-75"
+                      strokeWidth={2.5}
+                    />
+                    <ChevronRight
+                      className="w-8 h-8 text-white absolute transition-all duration-300 opacity-0 scale-75 group-hover:opacity-100 group-hover:scale-100"
+                      strokeWidth={2.5}
+                    />
+                  </div>
+                </div>
+                {/* Título */}
+                <div className="text-center">
+                  <h3 className="font-bold text-white text-sm leading-tight mb-1">
                     {menu.title}
                   </h3>
                 </div>
-
-                {/* Símbolo + que aparece en hover */}
-                <div className="absolute inset-0 flex items-center justify-center z-20 opacity-0 group-hover:opacity-100 transition-all duration-300 scale-75 group-hover:scale-100">
-                  <div className="w-16 h-16 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center border-2 border-white">
-                    <FilePenLine className="w-8 h-8 text-white" />
-                  </div>
-                </div>
               </div>
-            </Card>
-          ))}
-        </section>
+            </div>
+          </Card>
+        ))}
+      </section>
 
-        {/* pie de pagina */}
-        <footer className="border-t border-slate-300 pt-8 mt-12">
-          <div className="text-center text-slate-600">
-            <p className="text-sm text-white mb-2">¿Necesitas ayuda?</p>
-            <Button
-              variant="link"
-              className="text-blue-600 hover:text-blue-700"
-            >
-              Contáctanos
-            </Button>
-          </div>
-        </footer>
-      </div>
+      {/* pie de pagina */}
+      <footer className="pt-6 text-center">
+        <div className="text-center text-slate-600">
+          <p className="text-xs text-slate-500 mb-3">¿Necesitas ayuda?</p>
+          <Button
+            variant="ghost"
+            className="text-blue-400 hover:text-blue-300 hover:bg-slate-900 rounded-xl text-sm"
+          >
+            Contáctanos
+          </Button>
+        </div>
+      </footer>
     </main>
   );
 }

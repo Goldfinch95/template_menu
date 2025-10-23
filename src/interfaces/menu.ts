@@ -1,6 +1,7 @@
 export interface Menues {
   id: number;
   title: string;
+  color: string;
 }
 
 export interface Category {
