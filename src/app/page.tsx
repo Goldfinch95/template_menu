@@ -8,6 +8,14 @@ import { Button } from "@/common/components/ui/button";
 import { Plus, UtensilsCrossed, ChevronRight } from "lucide-react";
 import { Menues } from "@/interfaces/menu";
 
+// Función auxiliar para convertir hex a gradiente de Tailwind
+const hexToGradient = (primaryHex: string, secondaryHex: string) => {
+  // Esta función retorna un estilo inline en lugar de clases de Tailwind
+  return {
+    backgroundImage: `linear-gradient(to bottom right, ${primaryHex}, ${secondaryHex})`
+  };
+};
+
 export default function Home() {
   const [menus, setMenus] = useState<Menues[]>([]);
   const router = useRouter();
@@ -41,7 +49,9 @@ export default function Home() {
         const menus = data.map((menu) => ({
           id: menu.id,
           title: menu.title,
-          color: colors[menu.id % colors.length].color, // Asignar color de ejemplo cíclicamente
+          logo: menu.logo, // Mantener logo si es necesario
+          color: menu.color,
+           // Asignar color de ejemplo cíclicamente
         }));
 
         setMenus(menus);
@@ -95,26 +105,38 @@ export default function Home() {
             onClick={() => handleMenuClick(menu.id, menu.title)}
           >
             <div
-              className={`relative h-44 rounded-3xl bg-gradient-to-br ${menu.color} p-5 flex flex-col justify-between shadow-xl`}
-            >
+                className="relative h-44 md:h-auto md:aspect-[2/3] rounded-3xl p-4 md:p-5 flex flex-col justify-between shadow-xl hover:shadow-2xl transition-shadow duration-300"
+                style={hexToGradient(menu.color.primary, menu.color.secondary)}
+              >
               {/* Patrón de fondo */}
               <div className="absolute inset-0 bg-black/10 rounded-3xl" />
               {/* Contenido  */}
               <div className="relative z-10 flex flex-col h-full">
-                {/* Iconos */}
-                <div className="flex-1 flex items-center justify-center">
-                  <div className="w-16 h-16 rounded-full bg-white/25 backdrop-blur-sm flex items-center justify-center transition-transform duration-300 group-hover:scale-110">
-                    {/* Icono de cubiertos */}
-                    <UtensilsCrossed
-                      className="w-8 h-8 text-white absolute transition-all duration-300 group-hover:opacity-0 group-hover:scale-75"
-                      strokeWidth={2.5}
-                    />
-                    <ChevronRight
-                      className="w-8 h-8 text-white absolute transition-all duration-300 opacity-0 scale-75 group-hover:opacity-100 group-hover:scale-100"
-                      strokeWidth={2.5}
-                    />
+                {/* Icono o Logo */}
+                  <div className="flex-1 flex items-center justify-center">
+                    {menu.logo ? (
+                      // Si hay logo, muestra la imagen
+                      <div className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-white/25 backdrop-blur-sm flex items-center justify-center overflow-hidden transition-transform duration-300 group-hover:scale-110 shadow-lg">
+                        <img 
+                          src={menu.logo} 
+                          alt={menu.title}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                    ) : (
+                      // Si no hay logo, muestra los íconos de cubiertos
+                      <div className="w-14 h-14 md:w-16 md:h-16 rounded-full bg-white/25 backdrop-blur-sm flex items-center justify-center transition-transform duration-300 group-hover:scale-110">
+                        <UtensilsCrossed
+                          className="w-7 h-7 md:w-8 md:h-8 text-white absolute transition-all duration-300 group-hover:opacity-0 group-hover:scale-75"
+                          strokeWidth={2.5}
+                        />
+                        <ChevronRight
+                          className="w-7 h-7 md:w-8 md:h-8 text-white absolute transition-all duration-300 opacity-0 scale-75 group-hover:opacity-100 group-hover:scale-100"
+                          strokeWidth={2.5}
+                        />
+                      </div>
+                    )}
                   </div>
-                </div>
                 {/* Título */}
                 <div className="text-center">
                   <h3 className="font-bold text-white text-sm leading-tight mb-1">
