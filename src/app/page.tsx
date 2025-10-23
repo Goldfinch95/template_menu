@@ -31,18 +31,7 @@ export default function Home() {
 
         const data: Menues[] = await response.json();
 
-        //example colors
-        const colors = [
-          { color: "from-orange-500 to-red-600" },
-          { color: "from-amber-600 to-orange-700" },
-          { color: "from-emerald-500 to-teal-600" },
-          { color: "from-rose-500 to-pink-600" },
-          { color: "from-red-600 to-rose-700" },
-          { color: "from-green-500 to-emerald-600" },
-          { color: "from-purple-500 to-indigo-600" },
-          { color: "from-blue-500 to-cyan-600" },
-        ];
-
+       
         console.log("Menús cargados:", data);
 
         // Mapear los datos
@@ -80,13 +69,13 @@ export default function Home() {
     <main className="min-h-screen bg-slate-950 pb-20">
       {/* Header fijo */}
       <header className="sticky top-0 z-10 bg-slate-950/95 backdrop-blur-lg border-b border-slate-800 px-6 py-4">
-        <div className="max-w-md mx-auto">
+        <div className="max-w-4xl mx-auto ">
           <h1 className="text-2xl font-bold text-white mb-1">Mis Menús</h1>
           <p className="text-sm text-slate-400">Gestiona tus menús digitales</p>
         </div>
       </header>
 
-      <div className="max-w-md mx-auto px-4 py-6 space-y-6">
+      <div className="max-w-4xl mx-auto px-6 py-6 space-y-6">
         {/* Botón crear nuevo menu */}
         <Button
           className="w-full h-14 bg-gradient-to-r from-blue-600 to-violet-600 hover:from-blue-700 hover:to-violet-700 text-white rounded-2xl shadow-lg shadow-blue-500/20 font-semibold text-base transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]"
@@ -96,8 +85,9 @@ export default function Home() {
           Crear Nuevo Menú
         </Button>
       </div>
+
       {/* menus */}
-      <section className="grid grid-cols-2 gap-4 px-4">
+      <section className="grid grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6 px-6 max-w-4xl mx-auto">
         {menus.map((menu) => (
           <Card
             key={menu.id}
@@ -105,41 +95,41 @@ export default function Home() {
             onClick={() => handleMenuClick(menu.id, menu.title)}
           >
             <div
-                className="relative h-44 md:h-auto md:aspect-[2/3] rounded-3xl p-4 md:p-5 flex flex-col justify-between shadow-xl hover:shadow-2xl transition-shadow duration-300"
-                style={hexToGradient(menu.color.primary, menu.color.secondary)}
-              >
+              className="relative h-44 lg:h-80 rounded-3xl p-4 lg:p-6 flex flex-col justify-between shadow-xl hover:shadow-2xl transition-shadow duration-300"
+              style={hexToGradient(menu.color.primary, menu.color.secondary)}
+            >
               {/* Patrón de fondo */}
               <div className="absolute inset-0 bg-black/10 rounded-3xl" />
-              {/* Contenido  */}
+              
+              {/* Contenido */}
               <div className="relative z-10 flex flex-col h-full">
                 {/* Icono o Logo */}
-                  <div className="flex-1 flex items-center justify-center">
-                    {menu.logo ? (
-                      // Si hay logo, muestra la imagen
-                      <div className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-white/25 backdrop-blur-sm flex items-center justify-center overflow-hidden transition-transform duration-300 group-hover:scale-110 shadow-lg">
-                        <img 
-                          src={menu.logo} 
-                          alt={menu.title}
-                          className="w-full h-full object-cover"
-                        />
-                      </div>
-                    ) : (
-                      // Si no hay logo, muestra los íconos de cubiertos
-                      <div className="w-14 h-14 md:w-16 md:h-16 rounded-full bg-white/25 backdrop-blur-sm flex items-center justify-center transition-transform duration-300 group-hover:scale-110">
-                        <UtensilsCrossed
-                          className="w-7 h-7 md:w-8 md:h-8 text-white absolute transition-all duration-300 group-hover:opacity-0 group-hover:scale-75"
-                          strokeWidth={2.5}
-                        />
-                        <ChevronRight
-                          className="w-7 h-7 md:w-8 md:h-8 text-white absolute transition-all duration-300 opacity-0 scale-75 group-hover:opacity-100 group-hover:scale-100"
-                          strokeWidth={2.5}
-                        />
-                      </div>
-                    )}
-                  </div>
+                <div className="flex-1 flex items-center justify-center">
+                  {menu.logo ? (
+                    <div className="w-16 h-16 lg:w-20 lg:h-20 rounded-full bg-white/25 backdrop-blur-sm flex items-center justify-center overflow-hidden transition-transform duration-300 group-hover:scale-110 shadow-lg">
+                      <img 
+                        src={menu.logo} 
+                        alt={menu.title}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                  ) : (
+                    <div className="w-14 h-14 lg:w-16 lg:h-16 rounded-full bg-white/25 backdrop-blur-sm flex items-center justify-center transition-transform duration-300 group-hover:scale-110">
+                      <UtensilsCrossed
+                        className="w-7 h-7 lg:w-8 lg:h-8 text-white absolute transition-all duration-300 group-hover:opacity-0 group-hover:scale-75"
+                        strokeWidth={2.5}
+                      />
+                      <ChevronRight
+                        className="w-7 h-7 lg:w-8 lg:h-8 text-white absolute transition-all duration-300 opacity-0 scale-75 group-hover:opacity-100 group-hover:scale-100"
+                        strokeWidth={2.5}
+                      />
+                    </div>
+                  )}
+                </div>
+
                 {/* Título */}
                 <div className="text-center">
-                  <h3 className="font-bold text-white text-sm leading-tight mb-1">
+                  <h3 className="font-bold text-white text-sm lg:text-base leading-tight mb-1">
                     {menu.title}
                   </h3>
                 </div>
@@ -150,7 +140,7 @@ export default function Home() {
       </section>
 
       {/* pie de pagina */}
-      <footer className="pt-6 text-center">
+      <footer className="pt-6 text-center max-w-4xl mx-auto">
         <div className="text-center text-slate-600">
           <p className="text-xs text-slate-500 mb-3">¿Necesitas ayuda?</p>
           <Button
