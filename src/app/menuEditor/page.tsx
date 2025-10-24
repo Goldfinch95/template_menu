@@ -12,6 +12,7 @@ import {
   Trash2,
   GripVertical,
   ImagePlus,
+  
 } from "lucide-react";
 import { Card } from "@/common/components/ui/card";
 import {
@@ -21,7 +22,7 @@ import {
   TooltipTrigger,
 } from "@/common/components/ui/tooltip";
 import { Alert, AlertDescription } from "@/common/components/ui/alert";
-import { Category, MenuItem, MenuItemImage } from "@/interfaces/menu";
+import { Category, MenuItem, MenuItemImage, Menues } from "@/interfaces/menu";
 
 // Componente interno que usa useSearchParams
 const MenuEditorContent = () => {
@@ -43,6 +44,8 @@ const MenuEditorContent = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [saveError, setSaveError] = useState("");
 
+  const [menus, setMenus] = useState<Menues[]>([]);
+
   const [formData, setFormData] = useState({
     nombre: urlParams.title || "",
     pos: "",
@@ -61,8 +64,13 @@ const MenuEditorContent = () => {
       setIsLoading(true);
       try {
         const response = await fetch(
-          `http://localhost:3000/api/menus/${urlParams.id}`
-        );
+          `http://localhost:3000/api/menus/${urlParams.id}`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          "x-tenant-subdomain": "amaxlote",
+        },
+      });
 
         if (!response.ok) {
           throw new Error("Error al cargar el menú");
@@ -374,11 +382,124 @@ const MenuEditorContent = () => {
   };
 
    // ============================================
-  // GUARDAR MENÚ
-  // ============================================
-  const handleSave = async () => {
-    console.log("need work")
+// GUARDAR MENÚ
+// ============================================
+const handleSave = async () => {
+  try {
+    setIsSaving(true);
+    setSaveError("");
+
+    // Si NO hay id, es un nuevo menú -> hacer POST
+    if (!urlParams.id) {
+      const response = await fetch("http://localhost:3000/api/menus/", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-tenant-subdomain": "amaxlote",
+        },
+        body: JSON.stringify({
+          title: formData.nombre,
+          logo: formData.logoUrl,
+          backgroundImage: formData.backgroundUrl,
+          color: {
+            primary: formData.colorPrincipal,
+            secondary: formData.colorSecundario,
+          },
+          pos: formData.pos,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Error al crear el menú");
+      }
+
+      const data = await response.json();
+      console.log("✅ Menú creado exitosamente:", data);
+
+      // Redirigir al editor con el nuevo id
+      router.push("/");
+      
+    } else {
+      console.log(urlParams.id)
+      // Si hay id, es una actualización -> hacer PUT/PATCH
+      const response = await fetch(`http://localhost:3000/api/menus/${urlParams.id}`, {
+        method: "PUT", // o "PATCH" dependiendo de tu API
+        headers: {
+          "Content-Type": "application/json",
+          "x-tenant-subdomain": "amaxlote",
+        },
+        body: JSON.stringify({
+          title: formData.nombre,
+          logo: formData.logoUrl,
+          backgroundImage: formData.backgroundUrl,
+          color: {
+            primary: formData.colorPrincipal,
+            secondary: formData.colorSecundario,
+          },
+          pos: formData.pos,
+        }),
+      });
+       if (!response.ok) {
+        throw new Error("Error al actualizar el menú");
+      }
+
+      const data = await response.json();
+      console.log("✅ Menú actualizado exitosamente:", data);
+
+      // Redirigir a la página principal
+      router.push("/");
+    }
+  } catch (err) {
+    console.error(
+      "❌ Error al guardar el menú:",
+      err instanceof Error ? err.message : "Error desconocido"
+    );
+    setSaveError(err instanceof Error ? err.message : "Error al guardar el menú");
+  } finally {
+    setIsSaving(false);
   }
+};
+  
+//borrar menu
+// Función para eliminar el menú
+const handleDeleteMenu = async (menuId: number) => {
+  // Opcional: confirmar antes de eliminar
+  if (!window.confirm("¿Estás seguro de que deseas eliminar este menú?")) {
+    return;
+  }
+
+  console.log(`${menuId}`)
+  try {
+    const response = await fetch(`http://localhost:3000/api/menus/${menuId}`, {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+        "x-tenant-subdomain": "amaxlote",
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`Error al eliminar el menú: ${response.status}`);
+    }
+
+    console.log("Menú eliminado exitosamente");
+
+    // Actualizar el estado local removiendo el menú eliminado
+    setMenus((prevMenus) => prevMenus.filter((menu) => menu.id !== menuId));
+
+    // Opcional: mostrar mensaje de éxito
+    // toast.success("Menú eliminado exitosamente");
+// Redirigir a la página principal
+      router.push("/");
+  } catch (err) {
+    console.error(
+      "Error al eliminar el menú:",
+      err instanceof Error ? err.message : "Error desconocido"
+    );
+    // Opcional: mostrar mensaje de error
+    // toast.error("No se pudo eliminar el menú");
+  }
+};
 
   // ============================================
   // LOADING STATE
@@ -727,6 +848,13 @@ const MenuEditorContent = () => {
               )}
             </div>
           </div>
+          <button
+  onClick={() => handleDeleteMenu(Number(menuId))}
+  className="mt-4 flex items-center justify-center gap-2 w-full bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded transition-colors"
+>
+  <Trash2 size={18} />
+  Eliminar Menú
+</button>
         </div>
       </main>
 

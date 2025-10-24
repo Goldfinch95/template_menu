@@ -12,7 +12,7 @@ import { Menues } from "@/interfaces/menu";
 const hexToGradient = (primaryHex: string, secondaryHex: string) => {
   // Esta función retorna un estilo inline en lugar de clases de Tailwind
   return {
-    backgroundImage: `linear-gradient(to bottom right, ${primaryHex}, ${secondaryHex})`
+    backgroundImage: `linear-gradient(to bottom right, ${primaryHex}, ${secondaryHex})`,
   };
 };
 
@@ -21,39 +21,45 @@ export default function Home() {
   const router = useRouter();
 
   useEffect(() => {
-    const fetchMenus = async () => {
-      try {
-        const response = await fetch("http://localhost:3000/api/menus/");
+  const fetchMenus = async () => {
+    try {
+      const response = await fetch("http://localhost:3000/api/menus/", {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          "x-tenant-subdomain": "amaxlote",
+        },
+      });
 
-        if (!response.ok) {
-          throw new Error("Error al cargar los menús");
-        }
-
-        const data: Menues[] = await response.json();
-
-       
-        console.log("Menús cargados:", data);
-
-        // Mapear los datos
-        const menus = data.map((menu) => ({
-          id: menu.id,
-          title: menu.title,
-          logo: menu.logo, // Mantener logo si es necesario
-          color: menu.color,
-           // Asignar color de ejemplo cíclicamente
-        }));
-
-        setMenus(menus);
-      } catch (err) {
-        console.error(
-          "Error al cargar los menús:",
-          err instanceof Error ? err.message : "Error desconocido"
-        );
+      if (!response.ok) {
+        throw new Error(`Error al cargar los menús: ${response.status}`);
       }
-    };
 
-    fetchMenus();
-  }, []);
+      const data: Menues[] = await response.json();
+
+      console.log("Menús cargados:", data);
+
+      // Mapear los datos - simplificado ya que estás manteniendo las mismas propiedades
+      const menus = data.map((menu) => ({
+        id: menu.id,
+        title: menu.title,
+        logo: menu.logo,
+        color: menu.color,
+      }));
+
+      setMenus(menus);
+    } catch (err) {
+      console.error(
+        "Error al cargar los menús:",
+        err instanceof Error ? err.message : "Error desconocido"
+      );
+      // Opcional: podrías setear un estado de error aquí
+      // setError(err instanceof Error ? err.message : "Error desconocido");
+    }
+  };
+
+  fetchMenus();
+}, []);
 
   const handleMenuClick = (menuId: number, menuTitle: string) => {
     router.push(
@@ -100,15 +106,15 @@ export default function Home() {
             >
               {/* Patrón de fondo */}
               <div className="absolute inset-0 bg-black/10 rounded-3xl" />
-              
+
               {/* Contenido */}
               <div className="relative z-10 flex flex-col h-full">
                 {/* Icono o Logo */}
                 <div className="flex-1 flex items-center justify-center">
                   {menu.logo ? (
                     <div className="w-16 h-16 lg:w-20 lg:h-20 rounded-full bg-white/25 backdrop-blur-sm flex items-center justify-center overflow-hidden transition-transform duration-300 group-hover:scale-110 shadow-lg">
-                      <img 
-                        src={menu.logo} 
+                      <img
+                        src={menu.logo}
                         alt={menu.title}
                         className="w-full h-full object-cover"
                       />
