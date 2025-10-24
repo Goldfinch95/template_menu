@@ -2,10 +2,12 @@ export interface Menues {
   id: number;
   title: string;
   logo: string;
+  backgroundImage: string;
   color: {
     primary: string;
     secondary: string;
   };
+  pos: string;
 }
 
 export interface Category {
