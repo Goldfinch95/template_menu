@@ -6,11 +6,12 @@ import { useSearchParams, useRouter } from "next/navigation";
 import {
   ArrowLeft,
   Eye,
-  Upload,
   AlertCircle,
-  Save,
-  Sparkles,
   X,
+  Plus,
+  Trash2,
+  GripVertical,
+  ImagePlus,
 } from "lucide-react";
 import { Card } from "@/common/components/ui/card";
 import {
@@ -20,6 +21,7 @@ import {
   TooltipTrigger,
 } from "@/common/components/ui/tooltip";
 import { Alert, AlertDescription } from "@/common/components/ui/alert";
+import { Category, MenuItem, MenuItemImage } from "@/interfaces/menu";
 
 // Componente interno que usa useSearchParams
 const MenuEditorContent = () => {
@@ -38,51 +40,80 @@ const MenuEditorContent = () => {
 
   const [showPreview, setShowPreview] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [saveError, setSaveError] = useState("");
 
   const [formData, setFormData] = useState({
-  nombre: urlParams.title || "",
-  pos: "",
-  colorPrincipal: "",
-  colorSecundario: "",
-  logoUrl: "",
-  backgroundUrl: "",
-});
+    nombre: urlParams.title || "",
+    pos: "",
+    colorPrincipal: "",
+    colorSecundario: "",
+    logoUrl: "",
+    backgroundUrl: "",
+  });
+
+  const [categories, setCategories] = useState<Category[]>([]);
 
   useEffect(() => {
-  const loadMenuData = async () => {
-    if (!urlParams.id) return; // Si no hay ID, no cargar nada (modo creación)
-    
-    try {
-      console.log('🔄 Cargando menú con ID:', urlParams.id);
-      
-      const response = await fetch(`http://localhost:3000/api/menus/${urlParams.id}`);
-      
-      if (!response.ok) {
-        throw new Error('Error al cargar el menú');
+    const loadMenuData = async () => {
+      if (!urlParams.id) return;
+       // Si no hay ID, no cargar nada (modo creación)
+      setIsLoading(true);
+      try {
+        const response = await fetch(
+          `http://localhost:3000/api/menus/${urlParams.id}`
+        );
+
+        if (!response.ok) {
+          throw new Error("Error al cargar el menú");
+        }
+
+        const data = await response.json();
+        console.log("✅ Menú cargado:", data);
+
+        // Actualizar formData con los datos del menú
+        setFormData({
+          nombre: data.title || "",
+          pos: data.pos || "",
+          colorPrincipal: data.color?.primary || "",
+          colorSecundario: data.color?.secondary || "",
+          logoUrl: data.logo || "",
+          backgroundUrl: data.backgroundImage || "",
+        });
+
+        //cargar categorias y items
+        if (data.categories) {
+          const loadedCategories: Category[] = data.categories.map((cat: any) => ({
+            id: cat.id,
+            menuId: cat.menuId,
+            title: cat.title,
+            active: cat.active,
+            createdAt: cat.createdAt,
+            updatedAt: cat.updatedAt,
+            items: cat.items?.map((item: any) => ({
+              id: item.id,
+              categoryId: item.categoryId,
+              title: item.title,
+              description: item.description,
+              price: item.price,
+              active: item.active,
+              createdAt: item.createdAt,
+              updatedAt: item.updatedAt,
+              images: item.images || []
+            })) || []
+          }));
+          setCategories(loadedCategories);
+        }
+      } catch (error) {
+        console.error("❌ Error:", error);
+        setSaveError("Error al cargar el menú");
+      } finally {
+        setIsLoading(false);
       }
-      
-      const data = await response.json();
-      console.log('✅ Menú cargado:', data);
-      
-      // Actualizar formData con los datos del menú
-      setFormData({
-        nombre: data.title || '',
-        pos: data.pos || '',
-        colorPrincipal: data.color?.primary || '',
-        colorSecundario: data.color?.secondary || '',
-        logoUrl: data.logo || '',
-        backgroundUrl: data.backgroundImage || '',
-      });
-      
-    } catch (error) {
-      console.error('❌ Error al cargar menú:', error);
-      setSaveError('Error al cargar el menú: ' + error.message);
-    }
-  };
-  
-  loadMenuData();
-}, [urlParams.id]);
+    };
+
+    loadMenuData();
+  }, [urlParams.id]);
 
   /* ============================================
    * CÓDIGO DE IMÁGENES LOCALES (COMENTADO)
@@ -179,22 +210,160 @@ const MenuEditorContent = () => {
   * FIN DEL CÓDIGO DE IMÁGENES LOCALES
   * ============================================ */
 
+
+  // ============================================
+  // FUNCIONES PARA CATEGORÍAS
+  // ============================================
+  const addCategory = () => {
+    const newCategory: Category = {
+      id: Date.now(),
+      menuId: 0,
+      title: '',
+      active: true,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      items: []
+    };
+    
+    setCategories([...categories, newCategory]);
+  };
+
+  const updateCategory = (categoryId: number, field: keyof Category, value: any) => {
+    setCategories(categories.map(cat =>
+      cat.id === categoryId 
+        ? { 
+            ...cat, 
+            [field]: value,
+            updatedAt: new Date().toISOString()
+          } 
+        : cat
+    ));
+  };
+
+  const updateCategoryTitle = (categoryId: number, title: string) => {
+    updateCategory(categoryId, 'title', title);
+  };
+
+  const deleteCategory = (categoryId: number) => {
+    if (confirm('¿Eliminar esta categoría y todos sus platos?')) {
+      setCategories(categories.filter(cat => cat.id !== categoryId));
+    }
+  };
+
+  
+
+  // ============================================
+  // FUNCIONES PARA ITEMS (PLATOS)
+  // ============================================
+  const addItem = (categoryId: number) => {
+    const newItem: MenuItem = {
+      id: Date.now(),
+      categoryId: categoryId,
+      title: '',
+      description: '',
+      price: '',
+      active: true,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      images: []
+    };
+
+    setCategories(categories.map(cat =>
+      cat.id === categoryId
+        ? {
+            ...cat,
+            items: [...cat.items, newItem],
+            updatedAt: new Date().toISOString()
+          }
+        : cat
+    ));
+  };
+
+  const updateItem = (
+    categoryId: number, 
+    itemId: number, 
+    field: keyof MenuItem, 
+    value: any
+  ) => {
+    setCategories(categories.map(cat =>
+      cat.id === categoryId
+        ? {
+            ...cat,
+            items: cat.items.map(item =>
+              item.id === itemId 
+                ? { 
+                    ...item, 
+                    [field]: value,
+                    updatedAt: new Date().toISOString()
+                  } 
+                : item
+            ),
+            updatedAt: new Date().toISOString()
+          }
+        : cat
+    ));
+  };
+
+  const deleteItem = (categoryId: number, itemId: number) => {
+    if (confirm('¿Eliminar este plato?')) {
+      setCategories(categories.map(cat =>
+        cat.id === categoryId
+          ? {
+              ...cat,
+              items: cat.items.filter(item => item.id !== itemId),
+              updatedAt: new Date().toISOString()
+            }
+          : cat
+      ));
+    }
+  };
+// ============================================
+  // FUNCIONES PARA IMÁGENES
+  // ============================================
+  const updateItemImage = (categoryId: number, itemId: number, imageUrl: string) => {
+    setCategories(categories.map(cat =>
+      cat.id === categoryId
+        ? {
+            ...cat,
+            items: cat.items.map(item =>
+              item.id === itemId
+                ? {
+                    ...item,
+                    images: imageUrl ? [{
+                      id: Date.now(),
+                      itemId: item.id,
+                      url: imageUrl,
+                      alt: item.title,
+                      sortOrder: 0,
+                      active: true,
+                      createdAt: new Date().toISOString(),
+                      updatedAt: new Date().toISOString()
+                    }] : [],
+                    updatedAt: new Date().toISOString()
+                  }
+                : item
+            )
+          }
+        : cat
+    ));
+  };
+
+  // ============================================
+  // FUNCIONES AUXILIARES
+  // ============================================
   const handleViewMenu = () => {
     router.push(
       `/menu?id=${menuId}&title=${encodeURIComponent(menuTitle || "")}`
     );
   };
 
-  const handleInputChange = (e) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    console.log("📝 Cambiando campo:", name, "a:", value);
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   const canSave = () => {
-    // Verificar que haya nombre
     if (!formData.nombre.trim()) return false;
-    // Verificar que las URLs sean válidas (opcional)
     try {
       if (formData.logoUrl) new URL(formData.logoUrl);
       if (formData.backgroundUrl) new URL(formData.backgroundUrl);
@@ -204,71 +373,26 @@ const MenuEditorContent = () => {
     return true;
   };
 
+   // ============================================
+  // GUARDAR MENÚ
+  // ============================================
   const handleSave = async () => {
-    if (!canSave()) return;
+    console.log("need work")
+  }
 
-    console.log("🔍 Estado actual formData:", formData);
-
-    setIsSaving(true);
-    setSaveError("");
-
-    try {
-      const payload = {
-        userId: 1,
-        title: formData.nombre,
-        logo: formData.logoUrl,
-        backgroundImage: formData.backgroundUrl,
-        color: {
-          primary: formData.colorPrincipal,
-          secondary: formData.colorSecundario,
-        },
-        pos: formData.pos,
-      };
-
-      console.log("📤 Enviando payload:", payload);
-
-      const url = isCreating
-        ? "http://localhost:3000/api/menus"
-        : `http://localhost:3000/api/menus/${urlParams.id}`;
-
-      const method = isCreating ? "POST" : "PUT";
-
-      const response = await fetch(url, {
-        method: method,
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(payload),
-      });
-
-      console.log("📥 Response status:", response.status);
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        console.error("❌ Error:", errorData);
-        throw new Error(errorData.message || "Error al guardar el menú");
-      }
-
-      const data = await response.json();
-      console.log("✅ Menú guardado:", data);
-
-      if (isCreating && data.id) {
-        window.history.replaceState(
-          null,
-          "",
-          `/menu-editor?id=${data.id}&title=${encodeURIComponent(data.title)}`
-        );
-        alert("¡Menú creado exitosamente! ID: " + data.id);
-      } else {
-        alert("Cambios guardados exitosamente");
-      }
-    } catch (error) {
-      console.error("💥 Error:", error);
-      setSaveError(error.message || "Error al guardar el menú.");
-    } finally {
-      setIsSaving(false);
-    }
-  };
+  // ============================================
+  // LOADING STATE
+  // ============================================
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"></div>
+          <p className="mt-4 text-slate-400">Cargando menú...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-slate-950">
@@ -308,10 +432,7 @@ const MenuEditorContent = () => {
         <div className="space-y-6">
           {/* Alert de error */}
           {saveError && (
-            <Alert
-              variant="destructive"
-              className="bg-red-950/50 border-red-900"
-            >
+            <Alert variant="destructive" className="bg-red-950/50 border-red-900">
               <AlertCircle className="h-4 w-4" />
               <AlertDescription>{saveError}</AlertDescription>
             </Alert>
@@ -345,12 +466,8 @@ const MenuEditorContent = () => {
               </div>
 
               <div className="space-y-5">
-                {/* Logo URL */}
                 <div>
-                  <label
-                    htmlFor="logoUrl"
-                    className="block text-sm font-medium text-slate-300 mb-2"
-                  >
+                  <label htmlFor="logoUrl" className="block text-sm font-medium text-slate-300 mb-2">
                     URL del Logo
                   </label>
                   <input
@@ -362,15 +479,10 @@ const MenuEditorContent = () => {
                     placeholder="https://ejemplo.com/logo.png"
                     className="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                   />
-                  
                 </div>
 
-                {/* Background URL */}
                 <div>
-                  <label
-                    htmlFor="backgroundUrl"
-                    className="block text-sm font-medium text-slate-300 mb-2"
-                  >
+                  <label htmlFor="backgroundUrl" className="block text-sm font-medium text-slate-300 mb-2">
                     URL de Imagen de Fondo
                   </label>
                   <input
@@ -382,7 +494,6 @@ const MenuEditorContent = () => {
                     placeholder="https://ejemplo.com/fondo.png"
                     className="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                   />
-                  
                 </div>
               </div>
             </div>
@@ -397,10 +508,7 @@ const MenuEditorContent = () => {
 
               <div className="space-y-5">
                 <div>
-                  <label
-                    htmlFor="nombre"
-                    className="block text-sm font-medium text-slate-300 mb-2"
-                  >
+                  <label htmlFor="nombre" className="block text-sm font-medium text-slate-300 mb-2">
                     Nombre del Menú *
                   </label>
                   <input
@@ -415,10 +523,7 @@ const MenuEditorContent = () => {
                 </div>
 
                 <div>
-                  <label
-                    htmlFor="pos"
-                    className="block text-sm font-medium text-slate-300 mb-2"
-                  >
+                  <label htmlFor="pos" className="block text-sm font-medium text-slate-300 mb-2">
                     Ubicación / Puntos de Venta
                   </label>
                   <input
@@ -444,10 +549,7 @@ const MenuEditorContent = () => {
 
               <div className="grid md:grid-cols-2 gap-5">
                 <div>
-                  <label
-                    htmlFor="colorPrincipal"
-                    className="block text-sm font-medium text-slate-300 mb-3"
-                  >
+                  <label htmlFor="colorPrincipal" className="block text-sm font-medium text-slate-300 mb-3">
                     Color Principal
                   </label>
                   <div className="flex gap-3">
@@ -472,10 +574,7 @@ const MenuEditorContent = () => {
                 </div>
 
                 <div>
-                  <label
-                    htmlFor="colorSecundario"
-                    className="block text-sm font-medium text-slate-300 mb-3"
-                  >
+                  <label htmlFor="colorSecundario" className="block text-sm font-medium text-slate-300 mb-3">
                     Color Secundario
                   </label>
                   <div className="flex gap-3">
@@ -501,6 +600,133 @@ const MenuEditorContent = () => {
               </div>
             </div>
           </Card>
+
+          {/* Categorías y Platos */}
+          <div className="bg-slate-900/50 border border-slate-800 backdrop-blur-sm rounded-xl overflow-hidden">
+            <div className="bg-slate-800/50 px-4 sm:px-6 py-4 border-b border-slate-700">
+              <div className="flex items-center justify-between">
+                <h3 className="font-bold text-white text-base sm:text-lg">
+                  Categorías y Platos
+                </h3>
+                <button
+                  onClick={addCategory}
+                  className="flex items-center gap-2 px-3 sm:px-4 py-2.5 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white rounded-xl text-sm font-semibold shadow-lg shadow-blue-500/20 transition-all"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span className="hidden sm:inline">Nueva Categoría</span>
+                  <span className="sm:hidden">Nueva</span>
+                </button>
+              </div>
+            </div>
+
+            <div className="p-3 sm:p-6 space-y-4">
+              {categories.map((category) => (
+                <div
+                  key={category.id}
+                  className="bg-slate-800/40 backdrop-blur rounded-2xl border border-slate-700 overflow-hidden"
+                >
+                  <div className="bg-slate-800/50 px-4 py-3 flex items-center gap-3 border-b border-slate-700">
+                    <GripVertical className="w-5 h-5 text-slate-500 flex-shrink-0" />
+                    <input
+                      type="text"
+                      value={category.title}
+                      onChange={(e) => updateCategoryTitle(category.id, e.target.value)}
+                      placeholder="Ej: Entradas, Postres..."
+                      className="flex-1 bg-transparent text-white font-semibold text-base placeholder-slate-500 focus:outline-none"
+                    />
+                    <button
+                      onClick={() => deleteCategory(category.id)}
+                      className="p-2 text-red-400 hover:bg-red-950/30 rounded-lg active:scale-95 transition-all flex-shrink-0"
+                    >
+                      <Trash2 className="w-5 h-5" />
+                    </button>
+                  </div>
+
+                  <div className="p-3 space-y-3">
+                    {category.items.map((item) => (
+                      <div
+                        key={item.id}
+                        className="bg-slate-900/50 rounded-xl p-3 border border-slate-700/50"
+                      >
+                        <input
+                          type="text"
+                          value={item.title}
+                          onChange={(e) => updateItem(category.id, item.id, 'title', e.target.value)}
+                          placeholder="Nombre del plato"
+                          className="w-full bg-slate-700/50 text-white font-medium px-3 py-2.5 rounded-lg placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-slate-700 transition-all text-sm"
+                        />
+
+                        <textarea
+                          value={item.description}
+                          onChange={(e) => updateItem(category.id, item.id, 'description', e.target.value)}
+                          placeholder="Descripción (ingredientes, detalles...)"
+                          rows={2}
+                          className="w-full mt-2 bg-slate-700/50 text-white px-3 py-2.5 rounded-lg placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-slate-700 resize-none transition-all text-sm"
+                        />
+
+                        <div className="mt-2">
+                          <div className="relative">
+                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 font-medium text-sm">
+                              $
+                            </span>
+                            <input
+                              type="text"
+                              value={item.price}
+                              onChange={(e) => updateItem(category.id, item.id, 'price', e.target.value)}
+                              placeholder="Precio"
+                              className="w-full bg-slate-700/50 text-white font-semibold pl-7 pr-3 py-2.5 rounded-lg placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-slate-700 transition-all text-sm"
+                            />
+                          </div>
+                        </div>
+
+                        <div className="mt-2">
+                          <div className="flex items-center gap-2 bg-slate-700/30 rounded-lg p-2 border border-slate-700 border-dashed">
+                            <input
+                              type="url"
+                              value={item.images[0]?.url || ''}
+                              onChange={(e) => updateItemImage(category.id, item.id, e.target.value)}
+                              placeholder="Pega URL de imagen..."
+                              className="flex-1 bg-transparent text-white text-sm placeholder-slate-500 focus:outline-none"
+                            />
+                          </div>
+                        </div>
+
+                        <button
+                          onClick={() => deleteItem(category.id, item.id)}
+                          className="w-full mt-3 py-2 text-red-400 hover:bg-red-950/30 rounded-lg transition-all text-sm font-medium flex items-center justify-center gap-2"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                          Eliminar plato
+                        </button>
+                      </div>
+                    ))}
+
+                    <button
+                      onClick={() => addItem(category.id)}
+                      className="w-full py-3 border-2 border-dashed border-slate-700 text-slate-400 hover:text-blue-400 hover:border-blue-600 rounded-xl transition-all text-sm font-medium flex items-center justify-center gap-2"
+                    >
+                      <Plus className="w-4 h-4" />
+                      Agregar Plato
+                    </button>
+                  </div>
+                </div>
+              ))}
+
+              {categories.length === 0 && (
+                <div className="text-center py-16 px-6">
+                  <div className="w-16 h-16 bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <Plus className="w-8 h-8 text-slate-600" />
+                  </div>
+                  <p className="text-slate-400 text-base font-medium mb-2">
+                    No hay categorías aún
+                  </p>
+                  <p className="text-slate-500 text-sm">
+                    Toca "Nueva Categoría" para comenzar a crear tu menú
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       </main>
 
@@ -527,11 +753,7 @@ const MenuEditorContent = () => {
                         : "bg-slate-800 text-slate-600 cursor-not-allowed border border-slate-700"
                     }`}
                   >
-                    {isSaving
-                      ? "Guardando..."
-                      : isCreating
-                      ? "Crear Menú"
-                      : "Guardar Cambios"}
+                    {isSaving ? "Guardando..." : isCreating ? "Crear Menú" : "Guardar Cambios"}
                   </Button>
                 </div>
               </TooltipTrigger>
@@ -576,68 +798,97 @@ const MenuEditorContent = () => {
               <div className="relative h-full flex flex-col items-center justify-center px-6">
                 {formData.logoUrl && (
                   <div className="w-28 h-28 mb-4 bg-white rounded-3xl flex items-center justify-center shadow-2xl overflow-hidden ring-4 ring-white/50">
-                    <img
-                      src={formData.logoUrl}
-                      alt="Logo"
-                      className="w-full h-full object-cover"
-                    />
+                    <img src={formData.logoUrl} alt="Logo" className="w-full h-full object-cover" />
                   </div>
                 )}
 
                 <h1 className="text-white text-4xl font-bold text-center drop-shadow-lg mb-2">
                   {formData.nombre || "Nombre del Menú"}
                 </h1>
-                <h2>
-                  {formData.pos || "Ubicación / Puntos de Venta"}
-                </h2>
+                <h2 className="text-white text-lg">{formData.pos || "Ubicación / Puntos de Venta"}</h2>
               </div>
             </div>
 
             <div className="px-6 py-8 max-w-4xl mx-auto">
-              <h2
-                className="text-2xl font-bold mb-6"
-                style={{ color: formData.colorSecundario }}
-              >
-                Ejemplo de Categoria
-              </h2>
-
-              <div className="space-y-4">
-                {[1, 2, 3].map((item) => (
-                  <div
-                    key={item}
-                    className="border-2 border-slate-200 rounded-2xl p-5 hover:shadow-lg transition-all duration-300 hover:border-slate-300 bg-white"
-                  >
-                    <div className="flex justify-between items-start gap-4">
-                      <div className="flex-1">
-                        <h3 className="font-bold text-slate-800 mb-2 text-lg">
-                          Producto de Ejemplo {item}
-                        </h3>
-                        <p className="text-sm text-slate-600 mb-3">
-                          Descripción del producto con ingredientes y detalles
+              {categories.length === 0 ? (
+                <div className="text-center py-12">
+                  <p className="text-white/70 text-lg">
+                    No hay categorías ni platos para mostrar
+                  </p>
+                  <p className="text-white/50 text-sm mt-2">
+                    Agrega categorías y platos para ver la vista previa
+                  </p>
+                </div>
+              ) : (
+                categories.map((category) => (
+                  <div key={category.id} className="mb-8">
+                    {category.title && (
+                      <h2 className="text-2xl font-bold mb-6" style={{ color: formData.colorSecundario }}>
+                        {category.title}
+                      </h2>
+                    )}
+                    <div className="space-y-4">
+                      {category.items.length === 0 ? (
+                        <p className="text-white/50 text-sm italic">
+                          No hay platos en esta categoría
                         </p>
-                        <p
-                          className="text-xl font-bold"
-                          style={{ color: formData.colorSecundario }}
-                        >
-                          $12.99
-                        </p>
-                      </div>
-                      <div className="w-24 h-24 bg-gradient-to-br from-slate-200 to-slate-300 rounded-2xl flex-shrink-0 flex items-center justify-center text-slate-400 text-xs font-medium">
-                        Imagen
-                      </div>
+                      ) : (
+                        category.items.map((item) => (
+                          <div
+                            key={item.id}
+                            className="border-2 border-slate-200 rounded-2xl p-5 hover:shadow-lg transition-all duration-300 hover:border-slate-300 bg-white"
+                          >
+                            <div className="flex justify-between items-start gap-4">
+                              <div className="flex-1">
+                                <h3 className="font-bold text-slate-800 mb-2 text-lg">
+                                  {item.title || "Plato sin nombre"}
+                                </h3>
+                                {item.description && (
+                                  <p className="text-sm text-slate-600 mb-3">
+                                    {item.description}
+                                  </p>
+                                )}
+                                {item.price && (
+                                  <p className="text-xl font-bold" style={{ color: formData.colorSecundario }}>
+                                    ${item.price}
+                                  </p>
+                                )}
+                              </div>
+                              <div className="w-24 h-24 flex-shrink-0 rounded-2xl overflow-hidden">
+                                {item.images[0]?.url ? (
+                                  <img
+                                    src={item.images[0].url}
+                                    alt={item.title}
+                                    className="w-full h-full object-cover"
+                                    onError={(e) => {
+                                      e.target.style.display = 'none';
+                                      e.target.parentElement.classList.add('bg-gradient-to-br', 'from-slate-200', 'to-slate-300', 'flex', 'items-center', 'justify-center');
+                                      e.target.parentElement.innerHTML = '<span class="text-slate-400 text-xs font-medium">Sin imagen</span>';
+                                    }}
+                                  />
+                                ) : (
+                                  <div className="w-full h-full bg-gradient-to-br from-slate-200 to-slate-300 flex items-center justify-center">
+                                    <span className="text-slate-400 text-xs font-medium">Sin imagen</span>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        ))
+                      )}
                     </div>
                   </div>
-                ))}
+                ))
+              )}
+              {/* Footer informativo */}
+              <div className="mt-8 p-6 bg-slate-50 rounded-2xl text-center">
+                <p className="text-slate-600 text-sm">
+                  ✨ Esta es una vista previa de tu menú
+                </p>
+                <p className="text-slate-500 text-xs mt-2">
+                  Los productos mostrados son solo de ejemplo
+                </p>
               </div>
-            </div>
-
-            <div className="mt-8 p-6 bg-slate-50 rounded-2xl text-center">
-              <p className="text-slate-600 text-sm">
-                ✨ Esta es una vista previa de tu menú
-              </p>
-              <p className="text-slate-500 text-xs mt-2">
-                Los productos mostrados son solo de ejemplo
-              </p>
             </div>
           </div>
         </div>

@@ -1,6 +1,8 @@
 export interface Menues {
   id: number;
+  userId: number;
   title: string;
+  active: boolean;
   logo: string;
   backgroundImage: string;
   color: {
@@ -8,14 +10,33 @@ export interface Menues {
     secondary: string;
   };
   pos: string;
+  createdAt: string;
+  updatedAt: string;
+  categories?: Category[];
 }
+
 
 export interface Category {
   id: number;
-  label: string;
+  menuId: number;
   title: string;
+  active: boolean;
+  createdAt: string;
+  updatedAt: string;
   items: MenuItem[];
 }
+export interface MenuItem {
+  id: number;
+  categoryId: number;
+  title: string;
+  description: string;
+  price: string; // La API devuelve "7500.00" como string
+  active: boolean;
+  createdAt: string;
+  updatedAt: string;
+  images: MenuItemImage[];
+}
+
 export interface MenuItemImage {
   id: number;
   itemId: number;
