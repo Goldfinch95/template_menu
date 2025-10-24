@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, Suspense } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import { Button } from "@/common/components/ui/button";
 import { useSearchParams, useRouter } from "next/navigation";
 import {
@@ -41,13 +41,48 @@ const MenuEditorContent = () => {
   const [saveError, setSaveError] = useState("");
 
   const [formData, setFormData] = useState({
-    nombre: urlParams.title || "",
-    pos: "",
-    colorPrincipal: "",
-    colorSecundario: "",
-    logoUrl: "",
-    backgroundUrl: "",
-  });
+  nombre: urlParams.title || "",
+  pos: "",
+  colorPrincipal: "",
+  colorSecundario: "",
+  logoUrl: "",
+  backgroundUrl: "",
+});
+
+  useEffect(() => {
+  const loadMenuData = async () => {
+    if (!urlParams.id) return; // Si no hay ID, no cargar nada (modo creación)
+    
+    try {
+      console.log('🔄 Cargando menú con ID:', urlParams.id);
+      
+      const response = await fetch(`http://localhost:3000/api/menus/${urlParams.id}`);
+      
+      if (!response.ok) {
+        throw new Error('Error al cargar el menú');
+      }
+      
+      const data = await response.json();
+      console.log('✅ Menú cargado:', data);
+      
+      // Actualizar formData con los datos del menú
+      setFormData({
+        nombre: data.title || '',
+        pos: data.pos || '',
+        colorPrincipal: data.color?.primary || '',
+        colorSecundario: data.color?.secondary || '',
+        logoUrl: data.logo || '',
+        backgroundUrl: data.backgroundImage || '',
+      });
+      
+    } catch (error) {
+      console.error('❌ Error al cargar menú:', error);
+      setSaveError('Error al cargar el menú: ' + error.message);
+    }
+  };
+  
+  loadMenuData();
+}, [urlParams.id]);
 
   /* ============================================
    * CÓDIGO DE IMÁGENES LOCALES (COMENTADO)
