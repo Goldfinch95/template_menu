@@ -67,7 +67,7 @@ export default function Home() {
   return (
     <main
       className="
-      min-h-screen px-4 py-6 rounded-3xl
+      min-h-screen  
       
       bg-gradient-to-b from-white via-[#FFF3EC] to-[#FFE6D3]
       
