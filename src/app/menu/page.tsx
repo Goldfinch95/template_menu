@@ -25,8 +25,14 @@ function MenuContent() {
       }
       try {
         const response = await fetch(
-          `http://localhost:3000/api/menus/${menuId}`
-        );
+          `http://localhost:3000/api/menus/${menuId}`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          "x-tenant-subdomain": "amaxlote",
+        },
+      
+});
         const data = await response.json();
         console.log(data.categories);
         setCategories(data.categories);

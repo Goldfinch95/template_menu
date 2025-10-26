@@ -5,7 +5,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Card } from "@/common/components/ui/card";
 import { Button } from "@/common/components/ui/button";
-import { Plus, UtensilsCrossed, ChevronRight } from "lucide-react";
+import { Plus, UtensilsCrossed, ChevronRight, LogOut } from "lucide-react";
 import { Menues } from "@/interfaces/menu";
 
 // Función auxiliar para convertir hex a gradiente de Tailwind
@@ -21,45 +21,45 @@ export default function Home() {
   const router = useRouter();
 
   useEffect(() => {
-  const fetchMenus = async () => {
-    try {
-      const response = await fetch("http://localhost:3000/api/menus/", {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          "x-tenant-subdomain": "amaxlote",
-        },
-      });
+    const fetchMenus = async () => {
+      try {
+        const response = await fetch("http://localhost:3000/api/menus/", {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            "x-tenant-subdomain": "amaxlote",
+          },
+        });
 
-      if (!response.ok) {
-        throw new Error(`Error al cargar los menús: ${response.status}`);
+        if (!response.ok) {
+          throw new Error(`Error al cargar los menús: ${response.status}`);
+        }
+
+        const data: Menues[] = await response.json();
+
+        console.log("Menús cargados:", data);
+
+        // Mapear los datos - simplificado ya que estás manteniendo las mismas propiedades
+        const menus = data.map((menu) => ({
+          id: menu.id,
+          title: menu.title,
+          logo: menu.logo,
+          color: menu.color,
+        }));
+
+        setMenus(menus);
+      } catch (err) {
+        console.error(
+          "Error al cargar los menús:",
+          err instanceof Error ? err.message : "Error desconocido"
+        );
+        // Opcional: podrías setear un estado de error aquí
+        // setError(err instanceof Error ? err.message : "Error desconocido");
       }
+    };
 
-      const data: Menues[] = await response.json();
-
-      console.log("Menús cargados:", data);
-
-      // Mapear los datos - simplificado ya que estás manteniendo las mismas propiedades
-      const menus = data.map((menu) => ({
-        id: menu.id,
-        title: menu.title,
-        logo: menu.logo,
-        color: menu.color,
-      }));
-
-      setMenus(menus);
-    } catch (err) {
-      console.error(
-        "Error al cargar los menús:",
-        err instanceof Error ? err.message : "Error desconocido"
-      );
-      // Opcional: podrías setear un estado de error aquí
-      // setError(err instanceof Error ? err.message : "Error desconocido");
-    }
-  };
-
-  fetchMenus();
-}, []);
+    fetchMenus();
+  }, []);
 
   const handleMenuClick = (menuId: number, menuTitle: string) => {
     router.push(
@@ -72,27 +72,67 @@ export default function Home() {
   };
 
   return (
-    <main className="min-h-screen bg-slate-950 pb-20">
-      {/* Header fijo */}
-      <header className="sticky top-0 z-10 bg-slate-950/95 backdrop-blur-lg border-b border-slate-800 px-6 py-4">
+    <main className="
+    min-h-screen px-4 py-6 rounded-3xl
+
+    /* Gradiente super suave (casi blanco) */
+    bg-gradient-to-b from-white via-[#FFF3EC] to-[#FFE6D3]
+
+    /* Glassmorphism */
+    backdrop-blur-xl bg-white/60
+    border border-white/30
+    shadow-[0_8px_24px_rgba(0,0,0,0.08)]
+  ">
+      {/* Header  */}
+      <header className="sticky top-0 z-10  px-5 pt-4 pb-4">
         <div className="max-w-4xl mx-auto ">
-          <h1 className="text-2xl font-bold text-white mb-1">Mis Menús</h1>
-          <p className="text-sm text-slate-400">Gestiona tus menús digitales</p>
+          <div className="flex items-center justify-between">
+            <div className="w-10 h-10 bg-gradient-to-br from-orange-400 to-orange-500 rounded-xl flex items-center justify-center shadow-md">
+              {/* user icon */}
+              <UtensilsCrossed className="w-5 h-5 text-white" />
+            </div>
+            <div className="flex-1 text-center mx-4">
+              {/* title */}
+              <h1 className="text-lg font-bold text-slate-900">Mis Menús</h1>
+              <p className="text-xs text-slate-500">
+                Gestiona tus menús digitales
+              </p>
+            </div>
+            {/*log out*/}
+            <button className="p-2 hover:bg-slate-100 rounded-lg transition-colors">
+              <LogOut className="w-5 h-5 text-slate-700" />
+            </button>
+          </div>
         </div>
       </header>
 
-      <div className="max-w-4xl mx-auto px-6 py-6 space-y-6">
-        {/* Botón crear nuevo menu */}
-        <Button
-          className="w-full h-14 bg-gradient-to-r from-blue-600 to-violet-600 hover:from-blue-700 hover:to-violet-700 text-white rounded-2xl shadow-lg shadow-blue-500/20 font-semibold text-base transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]"
-          onClick={handleCreateNewMenu}
-        >
-          <Plus className="w-5 h-5 mr-2" />
-          Crear Nuevo Menú
-        </Button>
-      </div>
-
+      {/*content*/}
+      <section className="max-w-4xl mx-auto px-5 py-4">
+        {/* button create new menu */}
+        <div className="mb-6">
+          <div
+            onClick={handleCreateNewMenu}
+            className="relative bg-gradient-to-r from-orange-400 to-orange-500 rounded-2xl p-6 cursor-pointer transition-all duration-300 hover:shadow-xl active:scale-[0.98] overflow-hidden"
+          >
+            <div className="absolute right-0 top-0 bottom-0 w-32 opacity-20">
+              <div className="w-24 h-24 bg-white rounded-full absolute -right-8 -top-8" />
+              <div className="w-20 h-20 bg-white rounded-full absolute right-4 bottom-0" />
+            </div>
+            <div className="relative z-10 flex items-center">
+              <Plus className="w-8 h-8 text-white mr-3" strokeWidth={3} />
+              <p className="text-white text-base font-semibold">
+                Crear nuevo menú
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
       {/* menus */}
+      <div className="mb-6">
+        <div className="flex items-center justify-between max-w-4xl mx-auto px-5">
+          <h2 className="text-lg font-bold text-slate-900">Tus menús</h2>
+        </div>
+      </div>
       <section className="grid grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6 px-6 max-w-4xl mx-auto">
         {menus.map((menu) => (
           <Card
@@ -148,10 +188,10 @@ export default function Home() {
       {/* pie de pagina */}
       <footer className="pt-6 text-center max-w-4xl mx-auto">
         <div className="text-center text-slate-600">
-          <p className="text-xs text-slate-500 mb-3">¿Necesitas ayuda?</p>
+          <p className="text-sm text-slate-500 mb-4">¿Necesitas ayuda?</p>
           <Button
             variant="ghost"
-            className="text-blue-400 hover:text-blue-300 hover:bg-slate-900 rounded-xl text-sm"
+            className="text-orange-500 hover:text-orange-600 hover:bg-orange-50 rounded-xl px-6 py-2 transition-all duration-200 font-medium"
           >
             Contáctanos
           </Button>
