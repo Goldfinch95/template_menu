@@ -7,6 +7,7 @@ import { Card } from "@/common/components/ui/card";
 import { Button } from "@/common/components/ui/button";
 import { Plus, UtensilsCrossed, ChevronRight, LogOut } from "lucide-react";
 import { Menues } from "@/interfaces/menu";
+import Image from "next/image";
 
 // Función auxiliar para convertir hex a gradiente de Tailwind
 const hexToGradient = (primaryHex: string, secondaryHex: string) => {
@@ -64,7 +65,8 @@ export default function Home() {
   };
 
   return (
-    <main className="
+    <main
+      className="
       min-h-screen px-4 py-6 rounded-3xl
       
       bg-gradient-to-b from-white via-[#FFF3EC] to-[#FFE6D3]
@@ -72,10 +74,10 @@ export default function Home() {
       backdrop-blur-xl bg-white/60
       border border-white/30
       shadow-[0_8px_24px_rgba(0,0,0,0.08)]
-    ">
+    "
+    >
       {/* Contenedor flex para el footer */}
       <div className="min-h-[calc(100vh-3rem)] flex flex-col">
-        
         {/* Header */}
         <header className="px-5 pt-4 pb-4">
           <div className="max-w-4xl mx-auto">
@@ -145,9 +147,11 @@ export default function Home() {
                   <div className="flex-1 flex items-center justify-center">
                     {menu.logo ? (
                       <div className="w-16 h-16 lg:w-20 lg:h-20 rounded-full bg-white/25 backdrop-blur-sm flex items-center justify-center overflow-hidden transition-transform duration-300 group-hover:scale-110 shadow-lg">
-                        <img
+                        <Image
                           src={menu.logo}
                           alt={menu.title}
+                          width={80}
+                          height={80}
                           className="w-full h-full object-cover"
                         />
                       </div>
@@ -192,7 +196,6 @@ export default function Home() {
             </Button>
           </div>
         </footer>
-
       </div>
     </main>
   );
