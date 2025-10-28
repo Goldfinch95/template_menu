@@ -30,7 +30,9 @@ import {
   updateMenu,
 } from "@/common/utils/api";
 import { canSaveMenu } from "@/common/utils/validation";
-import NavbarEditor  from "@/app/menuEditor/components/NavbarEditor";
+import NavbarEditor from "@/app/menuEditor/components/NavbarEditor";
+import ImagesEditor from "./components/ImagesEditor";
+import InfoEditor from "./components/InfoEditor";
 
 // Componente interno que usa useSearchParams
 const MenuEditorContent = () => {
@@ -216,20 +218,20 @@ const MenuEditorContent = () => {
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-  const { name, value } = e.target;
-  
-  if (name === "colorPrimary" || name === "colorSecondary") {
-    setFormData((prev) => ({
-      ...prev,
-      color: {
-        ...prev.color,
-        [name === "colorPrimary" ? "primary" : "secondary"]: value,
-      },
-    }));
-  } else {
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  }
-};
+    const { name, value } = e.target;
+
+    if (name === "colorPrimary" || name === "colorSecondary") {
+      setFormData((prev) => ({
+        ...prev,
+        color: {
+          ...prev.color,
+          [name === "colorPrimary" ? "primary" : "secondary"]: value,
+        },
+      }));
+    } else {
+      setFormData((prev) => ({ ...prev, [name]: value }));
+    }
+  };
 
   const canSave = () => {
     if (!formData.title.trim()) return false;
@@ -289,10 +291,12 @@ const MenuEditorContent = () => {
   return (
     <div className="min-h-screen bg-slate-950">
       {/* Navbar */}
-     <NavbarEditor pageTitle={pageTitle}  // Asegúrate de que `pageTitle` sea un valor que cambia correctamente
-  isCreating={isCreating}
-  handleViewMenu={handleViewMenu} menuId={menuId || ""} />
-
+      <NavbarEditor
+        pageTitle={pageTitle}
+        isCreating={isCreating}
+        handleViewMenu={handleViewMenu}
+        menuId={menuId || ""}
+      />
       {/* Contenido principal */}
       <main className="px-6 py-6 pb-32 max-w-4xl mx-auto">
         <div className="space-y-6">
@@ -308,119 +312,17 @@ const MenuEditorContent = () => {
           )}
 
           {/* Sección de URLs de imágenes */}
-          <Card className="bg-slate-900/50 border-slate-800 backdrop-blur-sm">
-            <div className="p-6">
-              <div className="flex items-center justify-between mb-6">
-                <h3 className="font-semibold text-white text-lg">
-                  URLs de Imágenes
-                </h3>
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <AlertCircle className="w-5 h-5 text-slate-500 cursor-help hover:text-slate-400 transition-colors" />
-                    </TooltipTrigger>
-                    <TooltipContent className="max-w-xs bg-slate-800 border-slate-700">
-                      <p className="font-semibold mb-2 text-white">
-                        Ingresa URLs de imágenes:
-                      </p>
-                      <p className="text-xs mb-1 text-slate-300">
-                        📷 Logo: Imagen cuadrada (256x256 recomendado)
-                      </p>
-                      <p className="text-xs text-slate-300">
-                        🖼️ Fondo: Imagen horizontal (1200x600 recomendado)
-                      </p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              </div>
-
-              <div className="space-y-5">
-                <div>
-                  <label
-                    htmlFor="logoUrl"
-                    className="block text-sm font-medium text-slate-300 mb-2"
-                  >
-                    URL del Logo
-                  </label>
-                  <input
-                    id="logo"
-                    name="logo"
-                    type="url"
-                    value={formData.logo}
-                    onChange={handleInputChange}
-                    placeholder="https://ejemplo.com/logo.png"
-                    className="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                  />
-                </div>
-
-                <div>
-                  <label
-                    htmlFor="backgroundUrl"
-                    className="block text-sm font-medium text-slate-300 mb-2"
-                  >
-                    URL de Imagen de Fondo
-                  </label>
-                  <input
-                    id="backgroundImage"
-                    name="backgroundImage"
-                    type="url"
-                    value={formData.backgroundImage}
-                    onChange={handleInputChange}
-                    placeholder="https://ejemplo.com/fondo.png"
-                    className="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                  />
-                </div>
-              </div>
-            </div>
-          </Card>
-
+          <ImagesEditor
+            logo={formData.logo}
+            backgroundImage={formData.backgroundImage}
+            handleInputChange={handleInputChange}
+          />
           {/* Información básica */}
-          <Card className="bg-slate-900/50 border-slate-800 backdrop-blur-sm">
-            <div className="p-6">
-              <h3 className="font-semibold text-white text-lg mb-6">
-                Información del Restaurante
-              </h3>
-
-              <div className="space-y-5">
-                <div>
-                  <label
-                    htmlFor="nombre"
-                    className="block text-sm font-medium text-slate-300 mb-2"
-                  >
-                    Nombre del Menú *
-                  </label>
-                  <input
-                    id="title"
-                    name="title"
-                    type="text"
-                    value={formData.title}
-                    onChange={handleInputChange}
-                    placeholder="Ej: Restaurante El Buen Sabor"
-                    className="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                  />
-                </div>
-
-                <div>
-                  <label
-                    htmlFor="pos"
-                    className="block text-sm font-medium text-slate-300 mb-2"
-                  >
-                    Ubicación / Puntos de Venta
-                  </label>
-                  <input
-                    id="pos"
-                    name="pos"
-                    type="text"
-                    value={formData.pos}
-                    onChange={handleInputChange}
-                    placeholder="Ej: Av. Principal 123, Centro"
-                    className="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                  />
-                </div>
-              </div>
-            </div>
-          </Card>
-
+          <InfoEditor
+            title={formData.title}
+            pos={formData.pos}
+            handleInputChange={handleInputChange}
+          />
           {/* Colores */}
           <Card className="bg-slate-900/50 border-slate-800 backdrop-blur-sm">
             <div className="p-6">
