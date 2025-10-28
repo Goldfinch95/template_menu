@@ -12,7 +12,6 @@ import {
   Trash2,
   GripVertical,
   ImagePlus,
-  
 } from "lucide-react";
 import { Card } from "@/common/components/ui/card";
 import {
@@ -22,7 +21,16 @@ import {
   TooltipTrigger,
 } from "@/common/components/ui/tooltip";
 import { Alert, AlertDescription } from "@/common/components/ui/alert";
-import { Category, MenuItem, MenuItemImage, Menues } from "@/interfaces/menu";
+import { Category, MenuItem, Menues } from "@/interfaces/menu";
+import Image from "next/image";
+import {
+  createMenu,
+  deleteMenu,
+  getMenu,
+  updateMenu,
+} from "@/common/utils/api";
+import { canSaveMenu } from "@/common/utils/validation";
+import NavbarEditor  from "@/app/menuEditor/components/NavbarEditor";
 
 // Componente interno que usa useSearchParams
 const MenuEditorContent = () => {
@@ -31,193 +39,65 @@ const MenuEditorContent = () => {
   const menuId = searchParams.get("id");
   const menuTitle = searchParams.get("title");
 
-  const [urlParams] = useState({
+  // Url Params
+  const urlParams = {
     id: menuId || "",
     title: menuTitle || "",
-  });
+  };
 
   const isCreating = !urlParams.id;
   const pageTitle = isCreating ? "Creador de Menú" : "Editor de Menú";
 
+  // State
   const [showPreview, setShowPreview] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [saveError, setSaveError] = useState("");
-
-  const [menus, setMenus] = useState<Menues[]>([]);
-
   const [formData, setFormData] = useState({
-    nombre: urlParams.title || "",
+    title: urlParams.title || "",
     pos: "",
-    colorPrincipal: "",
-    colorSecundario: "",
-    logoUrl: "",
-    backgroundUrl: "",
+    color: {
+      primary: "",
+      secondary: "",
+    },
+    logo: "",
+    backgroundImage: "",
   });
-
   const [categories, setCategories] = useState<Category[]>([]);
 
+  // Cargar un menú específico
   useEffect(() => {
-    const loadMenuData = async () => {
-      if (!urlParams.id) return;
-       // Si no hay ID, no cargar nada (modo creación)
+    if (!menuId) return;
+    let mounted = true;
+
+    (async () => {
       setIsLoading(true);
       try {
-        const response = await fetch(
-          `http://localhost:3000/api/menus/${urlParams.id}`, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          "x-tenant-subdomain": "amaxlote",
-        },
-      });
-
-        if (!response.ok) {
-          throw new Error("Error al cargar el menú");
-        }
-
-        const data = await response.json();
-        console.log("✅ Menú cargado:", data);
-
-        // Actualizar formData con los datos del menú
-        setFormData({
-          nombre: data.title || "",
-          pos: data.pos || "",
-          colorPrincipal: data.color?.primary || "",
-          colorSecundario: data.color?.secondary || "",
-          logoUrl: data.logo || "",
-          backgroundUrl: data.backgroundImage || "",
-        });
-
-        //cargar categorias y items
-        if (data.categories) {
-          const loadedCategories: Category[] = data.categories.map((cat: any) => ({
-            id: cat.id,
-            menuId: cat.menuId,
-            title: cat.title,
-            active: cat.active,
-            createdAt: cat.createdAt,
-            updatedAt: cat.updatedAt,
-            items: cat.items?.map((item: any) => ({
-              id: item.id,
-              categoryId: item.categoryId,
-              title: item.title,
-              description: item.description,
-              price: item.price,
-              active: item.active,
-              createdAt: item.createdAt,
-              updatedAt: item.updatedAt,
-              images: item.images || []
-            })) || []
-          }));
-          setCategories(loadedCategories);
+        const data = await getMenu(menuId);
+        if (mounted) {
+          setFormData({
+            title: data.title,
+            pos: data.pos,
+            color: {
+              primary: data.color?.primary || "",
+              secondary: data.color?.secondary || "",
+            },
+            logo: data.logo,
+            backgroundImage: data.backgroundImage,
+          });
+          setCategories(data.categories || []);
         }
       } catch (error) {
-        console.error("❌ Error:", error);
         setSaveError("Error al cargar el menú");
       } finally {
         setIsLoading(false);
       }
+    })();
+
+    return () => {
+      mounted = false;
     };
-
-    loadMenuData();
-  }, [urlParams.id]);
-
-  /* ============================================
-   * CÓDIGO DE IMÁGENES LOCALES (COMENTADO)
-   * Descomenta esto cuando quieras volver a subir archivos
-   * ============================================
-  
-  const [previews, setPreviews] = useState({
-    logo: "",
-    background: "",
-  });
-
-  const [imageErrors, setImageErrors] = useState({
-    logo: "",
-    background: "",
-  });
-
-  const [imageSizes, setImageSizes] = useState({
-    logo: { width: 0, height: 0, size: 0 },
-    background: { width: 0, height: 0, size: 0 },
-  });
-
-  // Límites de tamaño
-  const LIMITS = {
-    logo: {
-      minWidth: 200,
-      maxWidth: 2000,
-      minHeight: 200,
-      maxHeight: 2000,
-      maxSize: 2 * 1024 * 1024, // 2MB
-    },
-    background: {
-      minWidth: 800,
-      maxWidth: 4000,
-      minHeight: 400,
-      maxHeight: 4000,
-      maxSize: 5 * 1024 * 1024, // 5MB
-    },
-  };
-
-  const validateImage = (file, field) => {
-    return new Promise((resolve) => {
-      const img = new Image();
-      const reader = new FileReader();
-
-      reader.onloadend = () => {
-        img.src = reader.result;
-      };
-
-      img.onload = () => {
-        const width = img.width;
-        const height = img.height;
-        const size = file.size;
-        const limits = LIMITS[field];
-
-        let error = "";
-
-        if (size > limits.maxSize) {
-          error = `El archivo es muy pesado (${(size / 1024 / 1024).toFixed(
-            2
-          )}MB). Máximo ${limits.maxSize / 1024 / 1024}MB`;
-        }
-        else if (width < limits.minWidth || height < limits.minHeight) {
-          error = `Imagen muy pequeña (${width}x${height}px). Mínimo ${limits.minWidth}x${limits.minHeight}px`;
-        } else if (width > limits.maxWidth || height > limits.maxHeight) {
-          error = `Imagen muy grande (${width}x${height}px). Máximo ${limits.maxWidth}x${limits.maxHeight}px`;
-        }
-        setImageSizes((prev) => ({
-          ...prev,
-          [field]: { width, height, size },
-        }));
-
-        resolve({ valid: !error, error, preview: reader.result });
-      };
-
-      reader.readAsDataURL(file);
-    });
-  };
-
-  const handleImageChange = async (e, field) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const validation = await validateImage(file, field);
-
-      if (validation.valid) {
-        setPreviews((prev) => ({ ...prev, [field]: validation.preview }));
-        setImageErrors((prev) => ({ ...prev, [field]: "" }));
-      } else {
-        setImageErrors((prev) => ({ ...prev, [field]: validation.error }));
-        setPreviews((prev) => ({ ...prev, [field]: "" }));
-      }
-    }
-  };
-
-  * FIN DEL CÓDIGO DE IMÁGENES LOCALES
-  * ============================================ */
-
+  }, [menuId]);
 
   // ============================================
   // FUNCIONES PARA CATEGORÍAS
@@ -226,39 +106,34 @@ const MenuEditorContent = () => {
     const newCategory: Category = {
       id: Date.now(),
       menuId: 0,
-      title: '',
+      title: "",
       active: true,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
-      items: []
+      items: [],
     };
-    
-    setCategories([...categories, newCategory]);
+    setCategories((prev) => [...prev, newCategory]);
   };
 
-  const updateCategory = (categoryId: number, field: keyof Category, value: any) => {
-    setCategories(categories.map(cat =>
-      cat.id === categoryId 
-        ? { 
-            ...cat, 
-            [field]: value,
-            updatedAt: new Date().toISOString()
-          } 
-        : cat
-    ));
-  };
-
-  const updateCategoryTitle = (categoryId: number, title: string) => {
-    updateCategory(categoryId, 'title', title);
+  const updateCategory = (
+    categoryId: number,
+    field: keyof Category,
+    value: any
+  ) => {
+    setCategories((prev) =>
+      prev.map((cat) =>
+        cat.id === categoryId
+          ? { ...cat, [field]: value, updatedAt: new Date().toISOString() }
+          : cat
+      )
+    );
   };
 
   const deleteCategory = (categoryId: number) => {
-    if (confirm('¿Eliminar esta categoría y todos sus platos?')) {
-      setCategories(categories.filter(cat => cat.id !== categoryId));
+    if (confirm("¿Eliminar esta categoría y todos sus platos?")) {
+      setCategories((prev) => prev.filter((cat) => cat.id !== categoryId));
     }
   };
-
-  
 
   // ============================================
   // FUNCIONES PARA ITEMS (PLATOS)
@@ -266,94 +141,69 @@ const MenuEditorContent = () => {
   const addItem = (categoryId: number) => {
     const newItem: MenuItem = {
       id: Date.now(),
-      categoryId: categoryId,
-      title: '',
-      description: '',
-      price: '',
+      categoryId,
+      title: "",
+      description: "",
+      price: "",
       active: true,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
-      images: []
+      images: [],
     };
-
-    setCategories(categories.map(cat =>
-      cat.id === categoryId
-        ? {
-            ...cat,
-            items: [...cat.items, newItem],
-            updatedAt: new Date().toISOString()
-          }
-        : cat
-    ));
-  };
-
-  const updateItem = (
-    categoryId: number, 
-    itemId: number, 
-    field: keyof MenuItem, 
-    value: any
-  ) => {
-    setCategories(categories.map(cat =>
-      cat.id === categoryId
-        ? {
-            ...cat,
-            items: cat.items.map(item =>
-              item.id === itemId 
-                ? { 
-                    ...item, 
-                    [field]: value,
-                    updatedAt: new Date().toISOString()
-                  } 
-                : item
-            ),
-            updatedAt: new Date().toISOString()
-          }
-        : cat
-    ));
-  };
-
-  const deleteItem = (categoryId: number, itemId: number) => {
-    if (confirm('¿Eliminar este plato?')) {
-      setCategories(categories.map(cat =>
+    setCategories((prev) =>
+      prev.map((cat) =>
         cat.id === categoryId
           ? {
               ...cat,
-              items: cat.items.filter(item => item.id !== itemId),
-              updatedAt: new Date().toISOString()
+              items: [...cat.items, newItem],
+              updatedAt: new Date().toISOString(),
             }
           : cat
-      ));
-    }
+      )
+    );
   };
-// ============================================
-  // FUNCIONES PARA IMÁGENES
-  // ============================================
-  const updateItemImage = (categoryId: number, itemId: number, imageUrl: string) => {
-    setCategories(categories.map(cat =>
-      cat.id === categoryId
-        ? {
-            ...cat,
-            items: cat.items.map(item =>
-              item.id === itemId
-                ? {
-                    ...item,
-                    images: imageUrl ? [{
-                      id: Date.now(),
-                      itemId: item.id,
-                      url: imageUrl,
-                      alt: item.title,
-                      sortOrder: 0,
-                      active: true,
-                      createdAt: new Date().toISOString(),
-                      updatedAt: new Date().toISOString()
-                    }] : [],
-                    updatedAt: new Date().toISOString()
-                  }
-                : item
-            )
-          }
-        : cat
-    ));
+
+  const updateItem = (
+    categoryId: number,
+    itemId: number,
+    field: keyof MenuItem,
+    value: any
+  ) => {
+    setCategories((prev) =>
+      prev.map((cat) =>
+        cat.id === categoryId
+          ? {
+              ...cat,
+              items: cat.items.map((item) =>
+                item.id === itemId
+                  ? {
+                      ...item,
+                      [field]: value,
+                      updatedAt: new Date().toISOString(),
+                    }
+                  : item
+              ),
+              updatedAt: new Date().toISOString(),
+            }
+          : cat
+      )
+    );
+  };
+
+  const deleteItem = (categoryId: number, itemId: number) => {
+    if (confirm("¿Eliminar este plato?")) {
+      setCategories((prev) =>
+        prev.map((cat) =>
+          cat.id === categoryId
+            ? {
+                ...cat,
+                items: cat.items.filter((item) => item.id !== itemId),
+                updatedAt: new Date().toISOString(),
+              }
+            : cat
+        )
+      );
+    }
   };
 
   // ============================================
@@ -366,140 +216,61 @@ const MenuEditorContent = () => {
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
+  const { name, value } = e.target;
+  
+  if (name === "colorPrimary" || name === "colorSecondary") {
+    setFormData((prev) => ({
+      ...prev,
+      color: {
+        ...prev.color,
+        [name === "colorPrimary" ? "primary" : "secondary"]: value,
+      },
+    }));
+  } else {
     setFormData((prev) => ({ ...prev, [name]: value }));
-  };
+  }
+};
 
   const canSave = () => {
-    if (!formData.nombre.trim()) return false;
+    if (!formData.title.trim()) return false;
     try {
-      if (formData.logoUrl) new URL(formData.logoUrl);
-      if (formData.backgroundUrl) new URL(formData.backgroundUrl);
+      if (formData.logo) new URL(formData.logo);
+      if (formData.backgroundImage) new URL(formData.backgroundImage);
     } catch {
       return false;
     }
     return true;
   };
 
-   // ============================================
-// GUARDAR MENÚ
-// ============================================
-const handleSave = async () => {
-  try {
-    setIsSaving(true);
-    setSaveError("");
+  // ============================================
+  // GUARDAR MENÚ
+  // ============================================
+  const handleSave = async () => {
+    try {
+      setIsSaving(true);
+      setSaveError("");
 
-    // Si NO hay id, es un nuevo menú -> hacer POST
-    if (!urlParams.id) {
-      const response = await fetch("http://localhost:3000/api/menus/", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "x-tenant-subdomain": "amaxlote",
-        },
-        body: JSON.stringify({
-          title: formData.nombre,
-          logo: formData.logoUrl,
-          backgroundImage: formData.backgroundUrl,
-          color: {
-            primary: formData.colorPrincipal,
-            secondary: formData.colorSecundario,
-          },
-          pos: formData.pos,
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error("Error al crear el menú");
+      if (isCreating) {
+        await createMenu(formData);
+      } else {
+        await updateMenu(Number(menuId), formData);
       }
 
-      const data = await response.json();
-      console.log("✅ Menú creado exitosamente:", data);
-
-      // Redirigir al editor con el nuevo id
       router.push("/");
-      
-    } else {
-      console.log(urlParams.id)
-      // Si hay id, es una actualización -> hacer PUT/PATCH
-      const response = await fetch(`http://localhost:3000/api/menus/${urlParams.id}`, {
-        method: "PUT", // o "PATCH" dependiendo de tu API
-        headers: {
-          "Content-Type": "application/json",
-          "x-tenant-subdomain": "amaxlote",
-        },
-        body: JSON.stringify({
-          title: formData.nombre,
-          logo: formData.logoUrl,
-          backgroundImage: formData.backgroundUrl,
-          color: {
-            primary: formData.colorPrincipal,
-            secondary: formData.colorSecundario,
-          },
-          pos: formData.pos,
-        }),
-      });
-       if (!response.ok) {
-        throw new Error("Error al actualizar el menú");
-      }
+    } catch (err) {
+      setSaveError("Error al guardar el menú");
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
-      const data = await response.json();
-      console.log("✅ Menú actualizado exitosamente:", data);
-
-      // Redirigir a la página principal
+  // Función para eliminar el menú
+  const handleDeleteMenu = async (id: number) => {
+    if (confirm("¿Seguro que deseas eliminar el menú?")) {
+      await deleteMenu(id);
       router.push("/");
     }
-  } catch (err) {
-    console.error(
-      "❌ Error al guardar el menú:",
-      err instanceof Error ? err.message : "Error desconocido"
-    );
-    setSaveError(err instanceof Error ? err.message : "Error al guardar el menú");
-  } finally {
-    setIsSaving(false);
-  }
-};
-  
-//borrar menu
-// Función para eliminar el menú
-const handleDeleteMenu = async (menuId: number) => {
-  // Opcional: confirmar antes de eliminar
-  if (!window.confirm("¿Estás seguro de que deseas eliminar este menú?")) {
-    return;
-  }
-
-  console.log(`${menuId}`)
-  try {
-    const response = await fetch(`http://localhost:3000/api/menus/${menuId}`, {
-      method: "DELETE",
-      headers: {
-        "Content-Type": "application/json",
-        "x-tenant-subdomain": "amaxlote",
-      },
-    });
-
-    if (!response.ok) {
-      throw new Error(`Error al eliminar el menú: ${response.status}`);
-    }
-
-    console.log("Menú eliminado exitosamente");
-
-    // Actualizar el estado local removiendo el menú eliminado
-    setMenus((prevMenus) => prevMenus.filter((menu) => menu.id !== menuId));
-
-    // Opcional: mostrar mensaje de éxito
-    // toast.success("Menú eliminado exitosamente");
-// Redirigir a la página principal
-      router.push("/");
-  } catch (err) {
-    console.error(
-      "Error al eliminar el menú:",
-      err instanceof Error ? err.message : "Error desconocido"
-    );
-    // Opcional: mostrar mensaje de error
-    // toast.error("No se pudo eliminar el menú");
-  }
-};
+  };
 
   // ============================================
   // LOADING STATE
@@ -518,42 +289,19 @@ const handleDeleteMenu = async (menuId: number) => {
   return (
     <div className="min-h-screen bg-slate-950">
       {/* Navbar */}
-      <nav className="sticky top-0 z-20 bg-slate-950/95 backdrop-blur-lg border-b border-slate-800">
-        <div className="px-6 py-4">
-          <div className="max-w-4xl mx-auto flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <Button
-                variant="ghost"
-                size="icon"
-                className="text-slate-400 hover:text-white hover:bg-slate-800 rounded-xl transition-colors"
-                onClick={() => window.history.back()}
-              >
-                <ArrowLeft className="w-5 h-5" />
-              </Button>
-              <div>
-                <h1 className="text-xl font-bold text-white flex items-center gap-2">
-                  {pageTitle}
-                </h1>
-              </div>
-            </div>
-            {!isCreating && menuId && (
-              <Button
-                onClick={handleViewMenu}
-                className="bg-gradient-to-r from-blue-600 to-violet-600 hover:from-blue-700 hover:to-violet-700 text-white rounded-xl shadow-lg shadow-blue-500/20"
-              >
-                <Eye className="w-4 h-4" />
-              </Button>
-            )}
-          </div>
-        </div>
-      </nav>
+     <NavbarEditor pageTitle={pageTitle}  // Asegúrate de que `pageTitle` sea un valor que cambia correctamente
+  isCreating={isCreating}
+  handleViewMenu={handleViewMenu} menuId={menuId || ""} />
 
       {/* Contenido principal */}
       <main className="px-6 py-6 pb-32 max-w-4xl mx-auto">
         <div className="space-y-6">
           {/* Alert de error */}
           {saveError && (
-            <Alert variant="destructive" className="bg-red-950/50 border-red-900">
+            <Alert
+              variant="destructive"
+              className="bg-red-950/50 border-red-900"
+            >
               <AlertCircle className="h-4 w-4" />
               <AlertDescription>{saveError}</AlertDescription>
             </Alert>
@@ -588,14 +336,17 @@ const handleDeleteMenu = async (menuId: number) => {
 
               <div className="space-y-5">
                 <div>
-                  <label htmlFor="logoUrl" className="block text-sm font-medium text-slate-300 mb-2">
+                  <label
+                    htmlFor="logoUrl"
+                    className="block text-sm font-medium text-slate-300 mb-2"
+                  >
                     URL del Logo
                   </label>
                   <input
-                    id="logoUrl"
-                    name="logoUrl"
+                    id="logo"
+                    name="logo"
                     type="url"
-                    value={formData.logoUrl}
+                    value={formData.logo}
                     onChange={handleInputChange}
                     placeholder="https://ejemplo.com/logo.png"
                     className="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
@@ -603,14 +354,17 @@ const handleDeleteMenu = async (menuId: number) => {
                 </div>
 
                 <div>
-                  <label htmlFor="backgroundUrl" className="block text-sm font-medium text-slate-300 mb-2">
+                  <label
+                    htmlFor="backgroundUrl"
+                    className="block text-sm font-medium text-slate-300 mb-2"
+                  >
                     URL de Imagen de Fondo
                   </label>
                   <input
-                    id="backgroundUrl"
-                    name="backgroundUrl"
+                    id="backgroundImage"
+                    name="backgroundImage"
                     type="url"
-                    value={formData.backgroundUrl}
+                    value={formData.backgroundImage}
                     onChange={handleInputChange}
                     placeholder="https://ejemplo.com/fondo.png"
                     className="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
@@ -629,14 +383,17 @@ const handleDeleteMenu = async (menuId: number) => {
 
               <div className="space-y-5">
                 <div>
-                  <label htmlFor="nombre" className="block text-sm font-medium text-slate-300 mb-2">
+                  <label
+                    htmlFor="nombre"
+                    className="block text-sm font-medium text-slate-300 mb-2"
+                  >
                     Nombre del Menú *
                   </label>
                   <input
-                    id="nombre"
-                    name="nombre"
+                    id="title"
+                    name="title"
                     type="text"
-                    value={formData.nombre}
+                    value={formData.title}
                     onChange={handleInputChange}
                     placeholder="Ej: Restaurante El Buen Sabor"
                     className="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
@@ -644,7 +401,10 @@ const handleDeleteMenu = async (menuId: number) => {
                 </div>
 
                 <div>
-                  <label htmlFor="pos" className="block text-sm font-medium text-slate-300 mb-2">
+                  <label
+                    htmlFor="pos"
+                    className="block text-sm font-medium text-slate-300 mb-2"
+                  >
                     Ubicación / Puntos de Venta
                   </label>
                   <input
@@ -670,23 +430,26 @@ const handleDeleteMenu = async (menuId: number) => {
 
               <div className="grid md:grid-cols-2 gap-5">
                 <div>
-                  <label htmlFor="colorPrincipal" className="block text-sm font-medium text-slate-300 mb-3">
+                  <label
+                    htmlFor="colorPrimary"
+                    className="block text-sm font-medium text-slate-300 mb-3"
+                  >
                     Color Principal
                   </label>
                   <div className="flex gap-3">
                     <div className="relative">
                       <input
-                        id="colorPrincipal"
-                        name="colorPrincipal"
+                        id="colorPrimary"
+                        name="colorPrimary"
                         type="color"
-                        value={formData.colorPrincipal}
+                        value={formData.color.primary}
                         onChange={handleInputChange}
                         className="h-12 w-14 rounded-xl border-2 border-slate-700 cursor-pointer bg-slate-800"
                       />
                     </div>
                     <input
                       type="text"
-                      value={formData.colorPrincipal}
+                      value={formData.color.primary}
                       onChange={handleInputChange}
                       name="colorPrincipal"
                       className="flex-1 px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all font-mono text-sm"
@@ -695,23 +458,26 @@ const handleDeleteMenu = async (menuId: number) => {
                 </div>
 
                 <div>
-                  <label htmlFor="colorSecundario" className="block text-sm font-medium text-slate-300 mb-3">
+                  <label
+                    htmlFor="colorSecondary"
+                    className="block text-sm font-medium text-slate-300 mb-3"
+                  >
                     Color Secundario
                   </label>
                   <div className="flex gap-3">
                     <div className="relative">
                       <input
-                        id="colorSecundario"
-                        name="colorSecundario"
+                        id="colorSecondary"
+                        name="colorSecondary"
                         type="color"
-                        value={formData.colorSecundario}
+                        value={formData.color.secondary}
                         onChange={handleInputChange}
                         className="h-12 w-14 rounded-xl border-2 border-slate-700 cursor-pointer bg-slate-800"
                       />
                     </div>
                     <input
                       type="text"
-                      value={formData.colorSecundario}
+                      value={formData.color.secondary}
                       onChange={handleInputChange}
                       name="colorSecundario"
                       className="flex-1 px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all font-mono text-sm"
@@ -751,7 +517,9 @@ const handleDeleteMenu = async (menuId: number) => {
                     <input
                       type="text"
                       value={category.title}
-                      onChange={(e) => updateCategoryTitle(category.id, e.target.value)}
+                      onChange={(e) =>
+                        updateCategoryTitle(category.id, e.target.value)
+                      }
                       placeholder="Ej: Entradas, Postres..."
                       className="flex-1 bg-transparent text-white font-semibold text-base placeholder-slate-500 focus:outline-none"
                     />
@@ -772,14 +540,28 @@ const handleDeleteMenu = async (menuId: number) => {
                         <input
                           type="text"
                           value={item.title}
-                          onChange={(e) => updateItem(category.id, item.id, 'title', e.target.value)}
+                          onChange={(e) =>
+                            updateItem(
+                              category.id,
+                              item.id,
+                              "title",
+                              e.target.value
+                            )
+                          }
                           placeholder="Nombre del plato"
                           className="w-full bg-slate-700/50 text-white font-medium px-3 py-2.5 rounded-lg placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-slate-700 transition-all text-sm"
                         />
 
                         <textarea
                           value={item.description}
-                          onChange={(e) => updateItem(category.id, item.id, 'description', e.target.value)}
+                          onChange={(e) =>
+                            updateItem(
+                              category.id,
+                              item.id,
+                              "description",
+                              e.target.value
+                            )
+                          }
                           placeholder="Descripción (ingredientes, detalles...)"
                           rows={2}
                           className="w-full mt-2 bg-slate-700/50 text-white px-3 py-2.5 rounded-lg placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-slate-700 resize-none transition-all text-sm"
@@ -793,7 +575,14 @@ const handleDeleteMenu = async (menuId: number) => {
                             <input
                               type="text"
                               value={item.price}
-                              onChange={(e) => updateItem(category.id, item.id, 'price', e.target.value)}
+                              onChange={(e) =>
+                                updateItem(
+                                  category.id,
+                                  item.id,
+                                  "price",
+                                  e.target.value
+                                )
+                              }
                               placeholder="Precio"
                               className="w-full bg-slate-700/50 text-white font-semibold pl-7 pr-3 py-2.5 rounded-lg placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-slate-700 transition-all text-sm"
                             />
@@ -804,8 +593,14 @@ const handleDeleteMenu = async (menuId: number) => {
                           <div className="flex items-center gap-2 bg-slate-700/30 rounded-lg p-2 border border-slate-700 border-dashed">
                             <input
                               type="url"
-                              value={item.images[0]?.url || ''}
-                              onChange={(e) => updateItemImage(category.id, item.id, e.target.value)}
+                              value={item.images[0]?.url || ""}
+                              onChange={(e) =>
+                                updateItemImage(
+                                  category.id,
+                                  item.id,
+                                  e.target.value
+                                )
+                              }
                               placeholder="Pega URL de imagen..."
                               className="flex-1 bg-transparent text-white text-sm placeholder-slate-500 focus:outline-none"
                             />
@@ -849,12 +644,12 @@ const handleDeleteMenu = async (menuId: number) => {
             </div>
           </div>
           <button
-  onClick={() => handleDeleteMenu(Number(menuId))}
-  className="mt-4 flex items-center justify-center gap-2 w-full bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded transition-colors"
->
-  <Trash2 size={18} />
-  Eliminar Menú
-</button>
+            onClick={() => handleDeleteMenu(Number(menuId))}
+            className="mt-4 flex items-center justify-center gap-2 w-full bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded transition-colors"
+          >
+            <Trash2 size={18} />
+            Eliminar Menú
+          </button>
         </div>
       </main>
 
@@ -881,7 +676,11 @@ const handleDeleteMenu = async (menuId: number) => {
                         : "bg-slate-800 text-slate-600 cursor-not-allowed border border-slate-700"
                     }`}
                   >
-                    {isSaving ? "Guardando..." : isCreating ? "Crear Menú" : "Guardar Cambios"}
+                    {isSaving
+                      ? "Guardando..."
+                      : isCreating
+                      ? "Crear Menú"
+                      : "Guardar Cambios"}
                   </Button>
                 </div>
               </TooltipTrigger>
@@ -912,28 +711,37 @@ const handleDeleteMenu = async (menuId: number) => {
             </div>
           </div>
 
-          <div className="min-h-screen" style={{ backgroundColor: formData.colorPrincipal }}>
+          <div
+            className="min-h-screen"
+            style={{ backgroundColor: formData.color.primary }}
+          >
             <div className="relative h-72 overflow-hidden">
               <div
                 className="absolute inset-0 bg-cover bg-center"
                 style={{
-                  backgroundImage: formData.backgroundUrl
-                    ? `linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.6)), url(${formData.backgroundUrl})`
-                    : `linear-gradient(135deg, ${formData.colorPrincipal}, ${formData.colorSecundario})`,
+                  backgroundImage: formData.backgroundImage
+                    ? `linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.6)), url(${formData.backgroundImage})`
+                    : `linear-gradient(135deg, ${formData.color.primary}, ${formData.color.secondary})`,
                 }}
               />
 
               <div className="relative h-full flex flex-col items-center justify-center px-6">
-                {formData.logoUrl && (
+                {formData.logo && (
                   <div className="w-28 h-28 mb-4 bg-white rounded-3xl flex items-center justify-center shadow-2xl overflow-hidden ring-4 ring-white/50">
-                    <img src={formData.logoUrl} alt="Logo" className="w-full h-full object-cover" />
+                    <img
+                      src={formData.logo}
+                      alt="Logo"
+                      className="w-full h-full object-cover"
+                    />
                   </div>
                 )}
 
                 <h1 className="text-white text-4xl font-bold text-center drop-shadow-lg mb-2">
-                  {formData.nombre || "Nombre del Menú"}
+                  {formData.title || "Nombre del Menú"}
                 </h1>
-                <h2 className="text-white text-lg">{formData.pos || "Ubicación / Puntos de Venta"}</h2>
+                <h2 className="text-white text-lg">
+                  {formData.pos || "Ubicación / Puntos de Venta"}
+                </h2>
               </div>
             </div>
 
@@ -951,7 +759,10 @@ const handleDeleteMenu = async (menuId: number) => {
                 categories.map((category) => (
                   <div key={category.id} className="mb-8">
                     {category.title && (
-                      <h2 className="text-2xl font-bold mb-6" style={{ color: formData.colorSecundario }}>
+                      <h2
+                        className="text-2xl font-bold mb-6"
+                        style={{ color: formData.color.secondary }}
+                      >
                         {category.title}
                       </h2>
                     )}
@@ -977,7 +788,10 @@ const handleDeleteMenu = async (menuId: number) => {
                                   </p>
                                 )}
                                 {item.price && (
-                                  <p className="text-xl font-bold" style={{ color: formData.colorSecundario }}>
+                                  <p
+                                    className="text-xl font-bold"
+                                    style={{ color: formData.color.secondary }}
+                                  >
                                     ${item.price}
                                   </p>
                                 )}
@@ -989,14 +803,24 @@ const handleDeleteMenu = async (menuId: number) => {
                                     alt={item.title}
                                     className="w-full h-full object-cover"
                                     onError={(e) => {
-                                      e.target.style.display = 'none';
-                                      e.target.parentElement.classList.add('bg-gradient-to-br', 'from-slate-200', 'to-slate-300', 'flex', 'items-center', 'justify-center');
-                                      e.target.parentElement.innerHTML = '<span class="text-slate-400 text-xs font-medium">Sin imagen</span>';
+                                      e.target.style.display = "none";
+                                      e.target.parentElement.classList.add(
+                                        "bg-gradient-to-br",
+                                        "from-slate-200",
+                                        "to-slate-300",
+                                        "flex",
+                                        "items-center",
+                                        "justify-center"
+                                      );
+                                      e.target.parentElement.innerHTML =
+                                        '<span class="text-slate-400 text-xs font-medium">Sin imagen</span>';
                                     }}
                                   />
                                 ) : (
                                   <div className="w-full h-full bg-gradient-to-br from-slate-200 to-slate-300 flex items-center justify-center">
-                                    <span className="text-slate-400 text-xs font-medium">Sin imagen</span>
+                                    <span className="text-slate-400 text-xs font-medium">
+                                      Sin imagen
+                                    </span>
                                   </div>
                                 )}
                               </div>

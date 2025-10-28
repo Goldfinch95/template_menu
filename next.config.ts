@@ -2,21 +2,22 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   images: {
+    domains: ['ih1.redbubble.net', 'images.unsplash.com'],
     remotePatterns: [
       {
         protocol: 'https',
-        hostname: 'picsum.photos',
-        port: '',
-        pathname: '/**',
+        hostname: '**',
       },
-      // Agrega aquí otros dominios que necesites en el futuro
-      // {
-      //   protocol: 'https',
-      //   hostname: 'images.unsplash.com',
-      //   pathname: '/**',
-      // },
     ],
   },
+  async rewrites() {
+    return [
+      {
+        source: '/api/:path*',
+        destination: 'http://localhost:3000/api/:path*',
+      },
+    ];
+  }, 
 };
 
-export default nextConfig;
+module.exports = nextConfig;

@@ -8,6 +8,11 @@ import { Button } from "@/common/components/ui/button";
 import { Plus, UtensilsCrossed, ChevronRight, LogOut } from "lucide-react";
 import { Menues } from "@/interfaces/menu";
 import Image from "next/image";
+import { Manrope } from "next/font/google";
+import { getMenus } from "@/common/utils/api";
+
+// fuente para titulos
+const manrope = Manrope({ subsets: ["latin"] });
 
 // Función auxiliar para convertir hex a gradiente de Tailwind
 const hexToGradient = (primaryHex: string, secondaryHex: string) => {
@@ -19,35 +24,17 @@ const hexToGradient = (primaryHex: string, secondaryHex: string) => {
 
 export default function Home() {
   const [menus, setMenus] = useState<Menues[]>([]);
+  const [error, setError] = useState("");
   const router = useRouter();
 
   useEffect(() => {
     const fetchMenus = async () => {
       try {
-        const response = await fetch("http://localhost:3000/api/menus/", {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            "x-tenant-subdomain": "amaxlote",
-          },
-        });
-
-        if (!response.ok) {
-          throw new Error(`Error al cargar los menús: ${response.status}`);
-        }
-
-        const data: Menues[] = await response.json();
-
-        console.log("Menús cargados:", data);
-
-        setMenus(data);
+        const data = await getMenus();
+        setMenus(data)
       } catch (err) {
-        console.error(
-          "Error al cargar los menús:",
-          err instanceof Error ? err.message : "Error desconocido"
-        );
-        // Opcional: podrías setear un estado de error aquí
-        // setError(err instanceof Error ? err.message : "Error desconocido");
+        setError(err instanceof Error ? err.message : "No se reciben los Menus de la base de datos");
+        
       }
     };
 
@@ -86,7 +73,7 @@ export default function Home() {
                 <UtensilsCrossed className="w-5 h-5 text-white" />
               </div>
               <div className="flex-1 text-center mx-4">
-                <h1 className="text-lg font-bold text-slate-900">Mis Menús</h1>
+                <h1 className={`${manrope.className} text-lg font-bold text-slate-900`}>Mis Menús</h1>
                 <p className="text-xs text-slate-500">
                   Gestiona tus menús digitales
                 </p>
@@ -123,11 +110,12 @@ export default function Home() {
         {/* menus */}
         <div className="mb-6">
           <div className="flex items-center justify-between max-w-4xl mx-auto px-5">
-            <h2 className="text-lg font-bold text-slate-900">Tus menús</h2>
+            <h2 className={`${manrope.className} text-lg font-bold text-slate-900`}>Tus menús</h2>
           </div>
         </div>
 
-        <section className="grid grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6 px-6 max-w-4xl mx-auto mb-8">
+        <section className="max-w-4xl mx-auto w-full px-5">
+          <div className="grid grid-cols-2 gap-7">
           {menus.map((menu) => (
             <Card
               key={menu.id}
@@ -135,7 +123,7 @@ export default function Home() {
               onClick={() => handleMenuClick(menu.id, menu.title)}
             >
               <div
-                className="relative h-44 lg:h-64 rounded-3xl p-4 lg:p-6 flex flex-col justify-between shadow-xl hover:shadow-2xl transition-shadow duration-300"
+                className="relative h-44 lg:h-64 rounded-3xl p-5 lg:p-6 flex flex-col justify-between shadow-xl hover:shadow-2xl transition-shadow duration-300"
                 style={hexToGradient(menu.color.primary, menu.color.secondary)}
               >
                 {/* Patrón de fondo */}
@@ -167,6 +155,7 @@ export default function Home() {
                         />
                       </div>
                     )}
+                    
                   </div>
 
                   {/* Título */}
@@ -179,6 +168,7 @@ export default function Home() {
               </div>
             </Card>
           ))}
+          </div>
         </section>
 
         {/* Espaciador flexible para empujar el footer hacia abajo cuando hay pocas cards */}
