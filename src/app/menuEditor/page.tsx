@@ -34,6 +34,7 @@ import NavbarEditor from "@/app/menuEditor/components/NavbarEditor";
 import ImagesEditor from "./components/ImagesEditor";
 import InfoEditor from "./components/InfoEditor";
 import ColorEditor from "./components/ColorEditor";
+import FloatingActions from "./components/FloatingActions";
 
 // Componente interno que usa useSearchParams
 const MenuEditorContent = () => {
@@ -331,7 +332,7 @@ const MenuEditorContent = () => {
           />
 
           {/* Categorías y Platos */}
-          <div className="bg-slate-900/50 border border-slate-800 backdrop-blur-sm rounded-xl overflow-hidden">
+          {/*<div className="bg-slate-900/50 border border-slate-800 backdrop-blur-sm rounded-xl overflow-hidden">
             <div className="bg-slate-800/50 px-4 sm:px-6 py-4 border-b border-slate-700">
               <div className="flex items-center justify-between">
                 <h3 className="font-bold text-white text-base sm:text-lg">
@@ -484,7 +485,8 @@ const MenuEditorContent = () => {
                 </div>
               )}
             </div>
-          </div>
+          </div>*/}
+          {/* Eliminar menu */}
           <button
             onClick={() => handleDeleteMenu(Number(menuId))}
             className="mt-4 flex items-center justify-center gap-2 w-full bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded transition-colors"
@@ -496,47 +498,13 @@ const MenuEditorContent = () => {
       </main>
 
       {/* Botones flotantes */}
-      <div className="fixed bottom-0 left-0 right-0 p-6 bg-slate-950/95 backdrop-blur-lg border-t border-slate-800 shadow-2xl">
-        <div className="max-w-4xl mx-auto flex gap-4">
-          <Button
-            onClick={() => setShowPreview(true)}
-            className="flex-1 h-14 bg-slate-800 hover:bg-slate-700 text-white rounded-2xl font-semibold text-base transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] border border-slate-700"
-          >
-            Vista Previa
-          </Button>
-
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <div className="flex-1">
-                  <Button
-                    onClick={handleSave}
-                    disabled={!canSave() || isSaving}
-                    className={`w-full h-14 rounded-2xl font-semibold text-base transition-all duration-300 ${
-                      canSave() && !isSaving
-                        ? "bg-gradient-to-r from-blue-600 to-violet-600 hover:from-blue-700 hover:to-violet-700 text-white shadow-lg shadow-blue-500/20 hover:scale-[1.02] active:scale-[0.98]"
-                        : "bg-slate-800 text-slate-600 cursor-not-allowed border border-slate-700"
-                    }`}
-                  >
-                    {isSaving
-                      ? "Guardando..."
-                      : isCreating
-                      ? "Crear Menú"
-                      : "Guardar Cambios"}
-                  </Button>
-                </div>
-              </TooltipTrigger>
-              {!canSave() && !isSaving && (
-                <TooltipContent className="bg-slate-800 border-slate-700">
-                  <p className="text-xs text-slate-300">
-                    Completa el nombre y URLs válidas
-                  </p>
-                </TooltipContent>
-              )}
-            </Tooltip>
-          </TooltipProvider>
-        </div>
-      </div>
+      <FloatingActions
+        onPreview={() => setShowPreview(true)}
+        onSave={handleSave}
+        canSave={canSave}
+        isSaving={isSaving}
+        isCreating={isCreating}
+      />
 
       {/* Modal de Preview */}
       {showPreview && (
