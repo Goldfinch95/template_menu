@@ -33,6 +33,7 @@ import { canSaveMenu } from "@/common/utils/validation";
 import NavbarEditor from "@/app/menuEditor/components/NavbarEditor";
 import ImagesEditor from "./components/ImagesEditor";
 import InfoEditor from "./components/InfoEditor";
+import ColorEditor from "./components/ColorEditor";
 
 // Componente interno que usa useSearchParams
 const MenuEditorContent = () => {
@@ -324,71 +325,10 @@ const MenuEditorContent = () => {
             handleInputChange={handleInputChange}
           />
           {/* Colores */}
-          <Card className="bg-slate-900/50 border-slate-800 backdrop-blur-sm">
-            <div className="p-6">
-              <h3 className="font-semibold text-white text-lg mb-6">
-                Personalización de Colores
-              </h3>
-
-              <div className="grid md:grid-cols-2 gap-5">
-                <div>
-                  <label
-                    htmlFor="colorPrimary"
-                    className="block text-sm font-medium text-slate-300 mb-3"
-                  >
-                    Color Principal
-                  </label>
-                  <div className="flex gap-3">
-                    <div className="relative">
-                      <input
-                        id="colorPrimary"
-                        name="colorPrimary"
-                        type="color"
-                        value={formData.color.primary}
-                        onChange={handleInputChange}
-                        className="h-12 w-14 rounded-xl border-2 border-slate-700 cursor-pointer bg-slate-800"
-                      />
-                    </div>
-                    <input
-                      type="text"
-                      value={formData.color.primary}
-                      onChange={handleInputChange}
-                      name="colorPrincipal"
-                      className="flex-1 px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all font-mono text-sm"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label
-                    htmlFor="colorSecondary"
-                    className="block text-sm font-medium text-slate-300 mb-3"
-                  >
-                    Color Secundario
-                  </label>
-                  <div className="flex gap-3">
-                    <div className="relative">
-                      <input
-                        id="colorSecondary"
-                        name="colorSecondary"
-                        type="color"
-                        value={formData.color.secondary}
-                        onChange={handleInputChange}
-                        className="h-12 w-14 rounded-xl border-2 border-slate-700 cursor-pointer bg-slate-800"
-                      />
-                    </div>
-                    <input
-                      type="text"
-                      value={formData.color.secondary}
-                      onChange={handleInputChange}
-                      name="colorSecundario"
-                      className="flex-1 px-4 py-3 bg-slate-800 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all font-mono text-sm"
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
-          </Card>
+          <ColorEditor
+            formData={formData}
+            handleInputChange={handleInputChange}
+          />
 
           {/* Categorías y Platos */}
           <div className="bg-slate-900/50 border border-slate-800 backdrop-blur-sm rounded-xl overflow-hidden">
