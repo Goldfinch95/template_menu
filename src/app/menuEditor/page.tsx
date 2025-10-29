@@ -1,40 +1,35 @@
 "use client";
 
 import React, { useState, useEffect, Suspense } from "react";
-import { Button } from "@/common/components/ui/button";
 import { useSearchParams, useRouter } from "next/navigation";
-import {
-  ArrowLeft,
-  Eye,
-  AlertCircle,
-  X,
-  Plus,
-  Trash2,
-  GripVertical,
-  ImagePlus,
-} from "lucide-react";
-import { Card } from "@/common/components/ui/card";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/common/components/ui/tooltip";
-import { Alert, AlertDescription } from "@/common/components/ui/alert";
-import { Category, MenuItem, Menues } from "@/interfaces/menu";
-import Image from "next/image";
+import { Category } from "@/interfaces/menu";
 import {
   createMenu,
   deleteMenu,
   getMenu,
   updateMenu,
 } from "@/common/utils/api";
-import { canSaveMenu } from "@/common/utils/validation";
+import { Alert, AlertDescription } from "@/common/components/ui/alert";
+import {
+  addCategory as addCategoryUtil,
+  updateCategory as updateCategoryUtil,
+  deleteCategory as deleteCategoryUtil,
+} from "@/app/menuEditor/utils/categoryUtils";
+import {
+  addItem as addItemUtil,
+  updateItem as updateItemUtil,
+  deleteItem as deleteItemUtil,
+} from "@/app/menuEditor/utils/dishUtils";
+import {
+  validateFormData,
+  handleInputChange as handleInputChangeUtil,
+} from "@/app/menuEditor/utils/auxiliaryFunctions";
 import NavbarEditor from "@/app/menuEditor/components/NavbarEditor";
 import ImagesEditor from "./components/ImagesEditor";
 import InfoEditor from "./components/InfoEditor";
 import ColorEditor from "./components/ColorEditor";
 import FloatingActions from "./components/FloatingActions";
+import { AlertCircle, X, Trash2 } from "lucide-react";
 
 // Componente interno que usa useSearchParams
 const MenuEditorContent = () => {
@@ -69,7 +64,7 @@ const MenuEditorContent = () => {
   });
   const [categories, setCategories] = useState<Category[]>([]);
 
-  // Cargar un menú específico
+  // Cargar menú específico
   useEffect(() => {
     if (!menuId) return;
     let mounted = true;
@@ -103,152 +98,44 @@ const MenuEditorContent = () => {
     };
   }, [menuId]);
 
-  // ============================================
-  // FUNCIONES PARA CATEGORÍAS
-  // ============================================
-  const addCategory = () => {
-    const newCategory: Category = {
-      id: Date.now(),
-      menuId: 0,
-      title: "",
-      active: true,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      items: [],
-    };
-    setCategories((prev) => [...prev, newCategory]);
-  };
+  // HANDLERS (usando funciones importadas)
 
-  const updateCategory = (
+  const handleAddCategory = () => addCategoryUtil(setCategories);
+
+  const handleUpdateCategory = (
     categoryId: number,
     field: keyof Category,
     value: any
-  ) => {
-    setCategories((prev) =>
-      prev.map((cat) =>
-        cat.id === categoryId
-          ? { ...cat, [field]: value, updatedAt: new Date().toISOString() }
-          : cat
-      )
-    );
-  };
+  ) => updateCategoryUtil(categoryId, field, value, setCategories);
 
-  const deleteCategory = (categoryId: number) => {
-    if (confirm("¿Eliminar esta categoría y todos sus platos?")) {
-      setCategories((prev) => prev.filter((cat) => cat.id !== categoryId));
-    }
-  };
+  const handleDeleteCategory = (categoryId: number) =>
+    deleteCategoryUtil(categoryId, setCategories);
 
-  // ============================================
-  // FUNCIONES PARA ITEMS (PLATOS)
-  // ============================================
-  const addItem = (categoryId: number) => {
-    const newItem: MenuItem = {
-      id: Date.now(),
-      categoryId,
-      title: "",
-      description: "",
-      price: "",
-      active: true,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      images: [],
-    };
-    setCategories((prev) =>
-      prev.map((cat) =>
-        cat.id === categoryId
-          ? {
-              ...cat,
-              items: [...cat.items, newItem],
-              updatedAt: new Date().toISOString(),
-            }
-          : cat
-      )
-    );
-  };
+  const handleAddItem = (categoryId: number) =>
+    addItemUtil(categoryId, setCategories);
 
-  const updateItem = (
+  const handleUpdateItem = (
     categoryId: number,
     itemId: number,
-    field: keyof MenuItem,
+    field: any,
     value: any
-  ) => {
-    setCategories((prev) =>
-      prev.map((cat) =>
-        cat.id === categoryId
-          ? {
-              ...cat,
-              items: cat.items.map((item) =>
-                item.id === itemId
-                  ? {
-                      ...item,
-                      [field]: value,
-                      updatedAt: new Date().toISOString(),
-                    }
-                  : item
-              ),
-              updatedAt: new Date().toISOString(),
-            }
-          : cat
-      )
-    );
-  };
+  ) => updateItemUtil(categoryId, itemId, field, value, setCategories);
 
-  const deleteItem = (categoryId: number, itemId: number) => {
-    if (confirm("¿Eliminar este plato?")) {
-      setCategories((prev) =>
-        prev.map((cat) =>
-          cat.id === categoryId
-            ? {
-                ...cat,
-                items: cat.items.filter((item) => item.id !== itemId),
-                updatedAt: new Date().toISOString(),
-              }
-            : cat
-        )
-      );
-    }
-  };
+  const handleDeleteItem = (categoryId: number, itemId: number) =>
+    deleteItemUtil(categoryId, itemId, setCategories);
 
-  // ============================================
-  // FUNCIONES AUXILIARES
-  // ============================================
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) =>
+    handleInputChangeUtil(e, setFormData);
+
   const handleViewMenu = () => {
     router.push(
       `/menu?id=${menuId}&title=${encodeURIComponent(menuTitle || "")}`
     );
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
+  const canSave = () => validateFormData(formData);
 
-    if (name === "colorPrimary" || name === "colorSecondary") {
-      setFormData((prev) => ({
-        ...prev,
-        color: {
-          ...prev.color,
-          [name === "colorPrimary" ? "primary" : "secondary"]: value,
-        },
-      }));
-    } else {
-      setFormData((prev) => ({ ...prev, [name]: value }));
-    }
-  };
-
-  const canSave = () => {
-    if (!formData.title.trim()) return false;
-    try {
-      if (formData.logo) new URL(formData.logo);
-      if (formData.backgroundImage) new URL(formData.backgroundImage);
-    } catch {
-      return false;
-    }
-    return true;
-  };
-
-  // ============================================
-  // GUARDAR MENÚ
-  // ============================================
+  // Guardar menú
   const handleSave = async () => {
     try {
       setIsSaving(true);
@@ -257,7 +144,7 @@ const MenuEditorContent = () => {
       if (isCreating) {
         await createMenu(formData);
       } else {
-        await updateMenu(Number(menuId), formData);
+        await updateMenu(menuId!, formData);
       }
 
       router.push("/");
@@ -268,11 +155,13 @@ const MenuEditorContent = () => {
     }
   };
 
-  // Función para eliminar el menú
+  // Eliminar menú
   const handleDeleteMenu = async (id: number) => {
-    if (confirm("¿Seguro que deseas eliminar el menú?")) {
+    try {
       await deleteMenu(id);
       router.push("/");
+    } catch (error) {
+      setSaveError("Error al eliminar el menú");
     }
   };
 
@@ -317,19 +206,16 @@ const MenuEditorContent = () => {
           <ImagesEditor
             logo={formData.logo}
             backgroundImage={formData.backgroundImage}
-            handleInputChange={handleInputChange}
+            handleInputChange={handleChange}
           />
           {/* Información básica */}
           <InfoEditor
             title={formData.title}
             pos={formData.pos}
-            handleInputChange={handleInputChange}
+            handleInputChange={handleChange}
           />
           {/* Colores */}
-          <ColorEditor
-            formData={formData}
-            handleInputChange={handleInputChange}
-          />
+          <ColorEditor formData={formData} handleInputChange={handleChange} />
 
           {/* Categorías y Platos */}
           {/*<div className="bg-slate-900/50 border border-slate-800 backdrop-blur-sm rounded-xl overflow-hidden">
