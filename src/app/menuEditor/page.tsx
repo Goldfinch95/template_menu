@@ -38,6 +38,7 @@ const MenuEditorContent = () => {
   const menuId = searchParams.get("id");
   const menuTitle = searchParams.get("title");
 
+
   // Url Params
   const urlParams = {
     id: menuId || "",
@@ -98,32 +99,26 @@ const MenuEditorContent = () => {
     };
   }, [menuId]);
 
+  
   // HANDLERS (usando funciones importadas)
-
+  
   const handleAddCategory = () => addCategoryUtil(setCategories);
-
-  const handleUpdateCategory = (
-    categoryId: number,
-    field: keyof Category,
-    value: any
-  ) => updateCategoryUtil(categoryId, field, value, setCategories);
-
+  
+  const handleUpdateCategory = (categoryId: number, field: keyof Category, value: any) =>
+    updateCategoryUtil(categoryId, field, value, setCategories);
+  
   const handleDeleteCategory = (categoryId: number) =>
     deleteCategoryUtil(categoryId, setCategories);
-
+  
   const handleAddItem = (categoryId: number) =>
     addItemUtil(categoryId, setCategories);
-
-  const handleUpdateItem = (
-    categoryId: number,
-    itemId: number,
-    field: any,
-    value: any
-  ) => updateItemUtil(categoryId, itemId, field, value, setCategories);
-
+  
+  const handleUpdateItem = (categoryId: number, itemId: number, field: any, value: any) =>
+    updateItemUtil(categoryId, itemId, field, value, setCategories);
+  
   const handleDeleteItem = (categoryId: number, itemId: number) =>
     deleteItemUtil(categoryId, itemId, setCategories);
-
+  
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) =>
     handleInputChangeUtil(e, setFormData);
 
@@ -165,6 +160,8 @@ const MenuEditorContent = () => {
     }
   };
 
+  
+
   // ============================================
   // LOADING STATE
   // ============================================
@@ -180,7 +177,13 @@ const MenuEditorContent = () => {
   }
 
   return (
-    <div className="min-h-screen bg-slate-950">
+    <div className="min-h-screen 
+      
+      bg-gradient-to-b from-white via-[#FFF3EC] to-[#FFE6D3]
+      
+      backdrop-blur-xl bg-white/60
+      border border-white/30
+      shadow-[0_8px_24px_rgba(0,0,0,0.08)]">
       {/* Navbar */}
       <NavbarEditor
         pageTitle={pageTitle}
@@ -189,7 +192,7 @@ const MenuEditorContent = () => {
         menuId={menuId || ""}
       />
       {/* Contenido principal */}
-      <main className="px-6 py-6 pb-32 max-w-4xl mx-auto">
+      <main className="max-w-3xl mx-auto w-full px-5 py-8 space-y-6">
         <div className="space-y-6">
           {/* Alert de error */}
           {saveError && (
@@ -215,8 +218,11 @@ const MenuEditorContent = () => {
             handleInputChange={handleChange}
           />
           {/* Colores */}
-          <ColorEditor formData={formData} handleInputChange={handleChange} />
-
+          <ColorEditor
+            formData={formData}
+            handleInputChange={handleChange}
+          />
+          <div className="py-5"></div>
           {/* Categorías y Platos */}
           {/*<div className="bg-slate-900/50 border border-slate-800 backdrop-blur-sm rounded-xl overflow-hidden">
             <div className="bg-slate-800/50 px-4 sm:px-6 py-4 border-b border-slate-700">
