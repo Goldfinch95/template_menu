@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/common/components/ui/button";
 import {
   Tooltip,
@@ -8,10 +8,29 @@ import {
   TooltipTrigger,
   TooltipContent,
 } from "@/common/components/ui/tooltip";
+import { usePathname, useSearchParams } from "next/navigation";
 
 
 
 const FloatingActions = () => {
+
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const [title, setTitle] = useState("");
+
+  useEffect(() => {
+      // Detectar si estamos creando nuevo menu o editando menu.
+  
+      if (pathname === "/menuEditor") {
+        const id = searchParams.get("id");
+        if (id) {
+          setTitle("Guardar Cambios");
+        } else {
+          setTitle("Crear Menu");
+        }
+      }
+    }, [pathname]);
+  
   return (
     <div className="fixed bottom-0 left-0 right-0 p-6 bg-gradient-to-b from-white via-[#FFF3EC] to-[#FFE6D3] backdrop-blur-md shadow-[0_-4px_24px_rgba(0,0,0,0.4)]">
   <div className="max-w-4xl mx-auto flex gap-4">
@@ -42,7 +61,7 @@ const FloatingActions = () => {
         
         hover:scale-[1.02] active:scale-[0.98]"
             >
-              Guardar Cambios
+              {title}
             </Button>
           </div>
         </TooltipTrigger>
