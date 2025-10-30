@@ -177,13 +177,7 @@ const MenuEditorContent = () => {
   }
 
   return (
-    <div className="min-h-screen 
-      
-      bg-gradient-to-b from-white via-[#FFF3EC] to-[#FFE6D3]
-      
-      backdrop-blur-xl bg-white/60
-      border border-white/30
-      shadow-[0_8px_24px_rgba(0,0,0,0.08)]">
+    <div className="min-h-screen bg-gradient-to-b from-white via-[#FFF3EC] to-[#FFE6D3] w-full  pb-25">
       {/* Navbar */}
       <NavbarEditor
         pageTitle={pageTitle}
@@ -192,13 +186,13 @@ const MenuEditorContent = () => {
         menuId={menuId || ""}
       />
       {/* Contenido principal */}
-      <main className="max-w-3xl mx-auto w-full px-5 py-8 space-y-6">
+      <main className="max-w-3xl mx-auto w-full px-5 sm:px-6 lg:px-8 py-10 space-y-8">
         <div className="space-y-6">
           {/* Alert de error */}
           {saveError && (
             <Alert
               variant="destructive"
-              className="bg-red-950/50 border-red-900"
+              className="bg-red-950/50 border border-red-900/70 backdrop-blur-sm"
             >
               <AlertCircle className="h-4 w-4" />
               <AlertDescription>{saveError}</AlertDescription>
@@ -222,7 +216,7 @@ const MenuEditorContent = () => {
             formData={formData}
             handleInputChange={handleChange}
           />
-          <div className="py-5"></div>
+          <div className="py-1"></div>
           {/* Categorías y Platos */}
           {/*<div className="bg-slate-900/50 border border-slate-800 backdrop-blur-sm rounded-xl overflow-hidden">
             <div className="bg-slate-800/50 px-4 sm:px-6 py-4 border-b border-slate-700">
@@ -381,7 +375,7 @@ const MenuEditorContent = () => {
           {/* Eliminar menu */}
           <button
             onClick={() => handleDeleteMenu(Number(menuId))}
-            className="mt-4 flex items-center justify-center gap-2 w-full bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded transition-colors"
+            className="w-full py-4 mt-8 flex items-center justify-center gap-2 bg-red-500 hover:bg-red-600 active:bg-red-700 text-white font-semibold rounded-xl transition-all duration-200 shadow-lg shadow-red-500/25"
           >
             <Trash2 size={18} />
             Eliminar Menú
