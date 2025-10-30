@@ -1,25 +1,16 @@
 "use client";
 
-import React, { useState, useEffect, Suspense } from "react";
+import React, { useState, useEffect } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import { Category } from "@/interfaces/menu";
+import { Category, newCategory } from "@/interfaces/menu";
 import {
   createMenu,
   deleteMenu,
   getMenu,
   updateMenu,
+  createCategory,
 } from "@/common/utils/api";
 import { Alert, AlertDescription } from "@/common/components/ui/alert";
-import {
-  addCategory as addCategoryUtil,
-  updateCategory as updateCategoryUtil,
-  deleteCategory as deleteCategoryUtil,
-} from "@/app/menuEditor/utils/categoryUtils";
-import {
-  addItem as addItemUtil,
-  updateItem as updateItemUtil,
-  deleteItem as deleteItemUtil,
-} from "@/app/menuEditor/utils/dishUtils";
 import {
   validateFormData,
   handleInputChange as handleInputChangeUtil,
@@ -29,17 +20,14 @@ import ImagesEditor from "./components/ImagesEditor";
 import InfoEditor from "./components/InfoEditor";
 import ColorEditor from "./components/ColorEditor";
 import FloatingActions from "./components/FloatingActions";
-import { AlertCircle, X, Trash2 } from "lucide-react";
+import { AlertCircle, Trash2, Plus, GripVertical } from "lucide-react";
 
-// Componente interno que usa useSearchParams
 const MenuEditorContent = () => {
-  const searchParams = useSearchParams();
+  {/*const searchParams = useSearchParams();
   const router = useRouter();
   const menuId = searchParams.get("id");
   const menuTitle = searchParams.get("title");
 
-
-  // Url Params
   const urlParams = {
     id: menuId || "",
     title: menuTitle || "",
@@ -63,7 +51,11 @@ const MenuEditorContent = () => {
     logo: "",
     backgroundImage: "",
   });
+
+  // Categorías
   const [categories, setCategories] = useState<Category[]>([]);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [newCategory, setNewCategory] = useState<newCategory[]>([]);
 
   // Cargar menú específico
   useEffect(() => {
@@ -86,6 +78,7 @@ const MenuEditorContent = () => {
             backgroundImage: data.backgroundImage,
           });
           setCategories(data.categories || []);
+          console.log(data);
         }
       } catch (error) {
         setSaveError("Error al cargar el menú");
@@ -99,28 +92,23 @@ const MenuEditorContent = () => {
     };
   }, [menuId]);
 
+  // HANDLERS DE CATEGORÍAS
+  const handleAddCategory = () => {
+    const newCategory: newCategory = {
+      title: category.title,
+    };
+    setCategories([...categories, newCategory]);
+    setHasUnsavedChanges(true);
+  };
+
   
-  // HANDLERS (usando funciones importadas)
+
   
-  const handleAddCategory = () => addCategoryUtil(setCategories);
-  
-  const handleUpdateCategory = (categoryId: number, field: keyof Category, value: any) =>
-    updateCategoryUtil(categoryId, field, value, setCategories);
-  
-  const handleDeleteCategory = (categoryId: number) =>
-    deleteCategoryUtil(categoryId, setCategories);
-  
-  const handleAddItem = (categoryId: number) =>
-    addItemUtil(categoryId, setCategories);
-  
-  const handleUpdateItem = (categoryId: number, itemId: number, field: any, value: any) =>
-    updateItemUtil(categoryId, itemId, field, value, setCategories);
-  
-  const handleDeleteItem = (categoryId: number, itemId: number) =>
-    deleteItemUtil(categoryId, itemId, setCategories);
-  
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) =>
+  // HANDLERS GENERALES
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     handleInputChangeUtil(e, setFormData);
+    setHasUnsavedChanges(true);
+  };
 
   const handleViewMenu = () => {
     router.push(
@@ -130,21 +118,42 @@ const MenuEditorContent = () => {
 
   const canSave = () => validateFormData(formData);
 
-  // Guardar menú
+  const handlePreview = () => {
+    setShowPreview(!showPreview);
+  };
+
+  // Guardar menú Y categorías nuevas
   const handleSave = async () => {
     try {
       setIsSaving(true);
       setSaveError("");
 
+      // 1. Guardar o actualizar el menú
+      let currentMenuId = menuId;
       if (isCreating) {
-        await createMenu(formData);
+        const createdMenu = await createMenu(formData);
+        currentMenuId = String(createdMenu.id);
       } else {
         await updateMenu(menuId!, formData);
       }
 
+      // 2. Guardar categorías nuevas
+      const newCategories = categories.filter((cat) => cat.isNew);
+
+      for (const category of newCategories) {
+        if (category.title.trim()) {
+          await createCategory(Number(currentMenuId), {
+            title: category.title,
+            items: [],
+          });
+        }
+      }
+
+      setHasUnsavedChanges(false);
       router.push("/");
     } catch (err) {
-      setSaveError("Error al guardar el menú");
+      setSaveError("Error al guardar el menú y/o categorías");
+      console.error(err);
     } finally {
       setIsSaving(false);
     }
@@ -160,8 +169,6 @@ const MenuEditorContent = () => {
     }
   };
 
-  
-
   // ============================================
   // LOADING STATE
   // ============================================
@@ -174,21 +181,17 @@ const MenuEditorContent = () => {
         </div>
       </div>
     );
-  }
+  }*/}
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-white via-[#FFF3EC] to-[#FFE6D3] w-full  pb-25">
       {/* Navbar */}
       <NavbarEditor
-        pageTitle={pageTitle}
-        isCreating={isCreating}
-        handleViewMenu={handleViewMenu}
-        menuId={menuId || ""}
       />
-      {/* Contenido principal */}
+      {/* Contenido principal 
       <main className="max-w-3xl mx-auto w-full px-5 sm:px-6 lg:px-8 py-10 space-y-8">
         <div className="space-y-6">
-          {/* Alert de error */}
+          {/* Alert de error 
           {saveError && (
             <Alert
               variant="destructive"
@@ -199,180 +202,169 @@ const MenuEditorContent = () => {
             </Alert>
           )}
 
-          {/* Sección de URLs de imágenes */}
+          {/* Sección de URLs de imágenes 
           <ImagesEditor
             logo={formData.logo}
             backgroundImage={formData.backgroundImage}
             handleInputChange={handleChange}
           />
-          {/* Información básica */}
+          {/* Información básica 
           <InfoEditor
             title={formData.title}
             pos={formData.pos}
             handleInputChange={handleChange}
           />
-          {/* Colores */}
+          {/* Colores
           <ColorEditor
             formData={formData}
             handleInputChange={handleChange}
           />
           <div className="py-1"></div>
-          {/* Categorías y Platos */}
-          {/*<div className="bg-slate-900/50 border border-slate-800 backdrop-blur-sm rounded-xl overflow-hidden">
-            <div className="bg-slate-800/50 px-4 sm:px-6 py-4 border-b border-slate-700">
-              <div className="flex items-center justify-between">
-                <h3 className="font-bold text-white text-base sm:text-lg">
-                  Categorías y Platos
-                </h3>
-                <button
-                  onClick={addCategory}
-                  className="flex items-center gap-2 px-3 sm:px-4 py-2.5 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white rounded-xl text-sm font-semibold shadow-lg shadow-blue-500/20 transition-all"
-                >
-                  <Plus className="w-4 h-4" />
-                  <span className="hidden sm:inline">Nueva Categoría</span>
-                  <span className="sm:hidden">Nueva</span>
-                </button>
+          {/* Categorías y Platos 
+         <div className="bg-white/80 backdrop-blur-xl border border-slate-200 rounded-xl shadow-md overflow-hidden sm:rounded-2xl sm:shadow-lg">
+  {/* Header 
+  <div className="bg-gradient-to-b from-white/90 to-white/70 px-4 py-3 border-b border-slate-200 flex items-center justify-between">
+    <h3 className="font-semibold text-slate-800 text-base sm:text-lg">
+      Categorías y Platos
+    </h3>
+    <button
+      onClick={handleAddCategory}
+      className="flex items-center justify-center gap-2 px-3 py-2 bg-gradient-to-br from-orange-400 to-orange-500 
+      hover:from-orange-500 hover:to-orange-600 active:scale-[0.97]
+      text-white rounded-lg text-sm font-semibold shadow-md hover:shadow-lg transition-all"
+    >
+      <Plus className="w-4 h-4" />
+      <span className="hidden sm:inline">Nueva Categoría</span>
+    </button>
+  </div>
+
+  {/* Contenido 
+  <div className="p-3 sm:p-5 space-y-4">
+    {categories.map((category) => (
+      <div
+        key={category.id}
+        className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden"
+      >
+        {/*onChange={(e) =>
+              updateCategoryTitle(category.id, e.target.value)
+            }
+        {/* Nombre categoría 
+        <div className="flex items-center gap-3 px-3 py-3 border-b border-slate-200 bg-slate-50/50">
+          <GripVertical className="w-4 h-4 text-slate-400 flex-shrink-0" />
+          <input
+            type="text"
+            value={category.title}
+            
+            placeholder="Ej: Entradas, Postres..."
+            className="flex-1 bg-white border border-slate-200 text-slate-800 text-sm rounded-lg px-3 py-2 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-orange-400 transition-all"
+          />
+          
+         
+          {/*<button
+            onClick={() => deleteCategory(category.id)}
+            className="p-2 text-red-500 hover:bg-red-100 rounded-md transition-all"
+          >
+            <Trash2 className="w-4 h-4" />
+          </button>
+        </div>
+
+        {/* Items 
+        {/*<div className="p-3 space-y-3">
+          {category.items.map((item) => (
+            <div
+              key={item.id}
+              className="bg-slate-50 rounded-lg p-3 border border-slate-200"
+            >
+              {/* Nombre del plato 
+              <input
+                type="text"
+                value={item.title}
+                onChange={(e) =>
+                  updateItem(category.id, item.id, "title", e.target.value)
+                }
+                placeholder="Nombre del plato"
+                className="w-full bg-white border border-slate-200 text-slate-800 text-sm rounded-lg px-3 py-2 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-orange-400 transition-all"
+              />
+
+              {/* Descripción 
+              <textarea
+                value={item.description}
+                onChange={(e) =>
+                  updateItem(category.id, item.id, "description", e.target.value)
+                }
+                placeholder="Descripción (ingredientes, detalles...)"
+                rows={2}
+                className="w-full mt-2 bg-white border border-slate-200 text-slate-800 text-sm rounded-lg px-3 py-2 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-orange-400 resize-none transition-all"
+              />
+
+              {/* Precio 
+              <div className="relative mt-2">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">
+                  $
+                </span>
+                <input
+                  type="text"
+                  value={item.price}
+                  onChange={(e) =>
+                    updateItem(category.id, item.id, "price", e.target.value)
+                  }
+                  placeholder="Precio"
+                  className="w-full bg-white border border-slate-200 text-slate-800 text-sm rounded-lg pl-7 pr-3 py-2 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-orange-400 transition-all"
+                />
               </div>
+
+              {/* Imagen 
+              <input
+                type="url"
+                value={item.images[0]?.url || ""}
+                onChange={(e) =>
+                  updateItemImage(category.id, item.id, e.target.value)
+                }
+                placeholder="URL de imagen..."
+                className="w-full mt-2 bg-white border border-slate-200 text-slate-800 text-sm rounded-lg px-3 py-2 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-orange-400 transition-all"
+              />
+
+              {/* Eliminar plato 
+              <button
+                onClick={() => deleteItem(category.id, item.id)}
+                className="w-full mt-3 py-2 text-red-500 hover:bg-red-100 rounded-lg transition-all text-xs font-medium flex items-center justify-center gap-2"
+              >
+                <Trash2 className="w-4 h-4" />
+                Eliminar plato
+              </button>
             </div>
+          ))}
 
-            <div className="p-3 sm:p-6 space-y-4">
-              {categories.map((category) => (
-                <div
-                  key={category.id}
-                  className="bg-slate-800/40 backdrop-blur rounded-2xl border border-slate-700 overflow-hidden"
-                >
-                  <div className="bg-slate-800/50 px-4 py-3 flex items-center gap-3 border-b border-slate-700">
-                    <GripVertical className="w-5 h-5 text-slate-500 flex-shrink-0" />
-                    <input
-                      type="text"
-                      value={category.title}
-                      onChange={(e) =>
-                        updateCategoryTitle(category.id, e.target.value)
-                      }
-                      placeholder="Ej: Entradas, Postres..."
-                      className="flex-1 bg-transparent text-white font-semibold text-base placeholder-slate-500 focus:outline-none"
-                    />
-                    <button
-                      onClick={() => deleteCategory(category.id)}
-                      className="p-2 text-red-400 hover:bg-red-950/30 rounded-lg active:scale-95 transition-all flex-shrink-0"
-                    >
-                      <Trash2 className="w-5 h-5" />
-                    </button>
-                  </div>
+          {/* Agregar plato 
+          <button
+            onClick={() => addItem(category.id)}
+            className="w-full py-3 border-2 border-dashed border-slate-300 text-slate-500 hover:text-orange-500 hover:border-orange-400 rounded-lg transition-all text-sm font-medium flex items-center justify-center gap-2 bg-white"
+          >
+            <Plus className="w-4 h-4" />
+            Agregar Plato
+          </button>
+        </div>
+      </div>
+    ))}
 
-                  <div className="p-3 space-y-3">
-                    {category.items.map((item) => (
-                      <div
-                        key={item.id}
-                        className="bg-slate-900/50 rounded-xl p-3 border border-slate-700/50"
-                      >
-                        <input
-                          type="text"
-                          value={item.title}
-                          onChange={(e) =>
-                            updateItem(
-                              category.id,
-                              item.id,
-                              "title",
-                              e.target.value
-                            )
-                          }
-                          placeholder="Nombre del plato"
-                          className="w-full bg-slate-700/50 text-white font-medium px-3 py-2.5 rounded-lg placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-slate-700 transition-all text-sm"
-                        />
+    {/* Sin categorías 
+    {categories.length === 0 && (
+      <div className="text-center py-12 px-4">
+        <div className="w-14 h-14 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-3 shadow-inner">
+          <Plus className="w-7 h-7 text-slate-400" />
+        </div>
+        <p className="text-slate-600 text-base font-medium mb-1">
+          No hay categorías aún
+        </p>
+        <p className="text-slate-500 text-sm">
+          Toca “+” para comenzar a crear tu menú
+        </p>
+      </div>
+    )}
+  </div>
+</div>
 
-                        <textarea
-                          value={item.description}
-                          onChange={(e) =>
-                            updateItem(
-                              category.id,
-                              item.id,
-                              "description",
-                              e.target.value
-                            )
-                          }
-                          placeholder="Descripción (ingredientes, detalles...)"
-                          rows={2}
-                          className="w-full mt-2 bg-slate-700/50 text-white px-3 py-2.5 rounded-lg placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-slate-700 resize-none transition-all text-sm"
-                        />
-
-                        <div className="mt-2">
-                          <div className="relative">
-                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 font-medium text-sm">
-                              $
-                            </span>
-                            <input
-                              type="text"
-                              value={item.price}
-                              onChange={(e) =>
-                                updateItem(
-                                  category.id,
-                                  item.id,
-                                  "price",
-                                  e.target.value
-                                )
-                              }
-                              placeholder="Precio"
-                              className="w-full bg-slate-700/50 text-white font-semibold pl-7 pr-3 py-2.5 rounded-lg placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-slate-700 transition-all text-sm"
-                            />
-                          </div>
-                        </div>
-
-                        <div className="mt-2">
-                          <div className="flex items-center gap-2 bg-slate-700/30 rounded-lg p-2 border border-slate-700 border-dashed">
-                            <input
-                              type="url"
-                              value={item.images[0]?.url || ""}
-                              onChange={(e) =>
-                                updateItemImage(
-                                  category.id,
-                                  item.id,
-                                  e.target.value
-                                )
-                              }
-                              placeholder="Pega URL de imagen..."
-                              className="flex-1 bg-transparent text-white text-sm placeholder-slate-500 focus:outline-none"
-                            />
-                          </div>
-                        </div>
-
-                        <button
-                          onClick={() => deleteItem(category.id, item.id)}
-                          className="w-full mt-3 py-2 text-red-400 hover:bg-red-950/30 rounded-lg transition-all text-sm font-medium flex items-center justify-center gap-2"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                          Eliminar plato
-                        </button>
-                      </div>
-                    ))}
-
-                    <button
-                      onClick={() => addItem(category.id)}
-                      className="w-full py-3 border-2 border-dashed border-slate-700 text-slate-400 hover:text-blue-400 hover:border-blue-600 rounded-xl transition-all text-sm font-medium flex items-center justify-center gap-2"
-                    >
-                      <Plus className="w-4 h-4" />
-                      Agregar Plato
-                    </button>
-                  </div>
-                </div>
-              ))}
-
-              {categories.length === 0 && (
-                <div className="text-center py-16 px-6">
-                  <div className="w-16 h-16 bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <Plus className="w-8 h-8 text-slate-600" />
-                  </div>
-                  <p className="text-slate-400 text-base font-medium mb-2">
-                    No hay categorías aún
-                  </p>
-                  <p className="text-slate-500 text-sm">
-                    Toca "Nueva Categoría" para comenzar a crear tu menú
-                  </p>
-                </div>
-              )}
-            </div>
-          </div>*/}
-          {/* Eliminar menu */}
+          {/* Eliminar menu 
           <button
             onClick={() => handleDeleteMenu(Number(menuId))}
             className="w-full py-4 mt-8 flex items-center justify-center gap-2 bg-red-500 hover:bg-red-600 active:bg-red-700 text-white font-semibold rounded-xl transition-all duration-200 shadow-lg shadow-red-500/25"
@@ -383,16 +375,16 @@ const MenuEditorContent = () => {
         </div>
       </main>
 
-      {/* Botones flotantes */}
+      {/* Botones flotantes 
       <FloatingActions
-        onPreview={() => setShowPreview(true)}
+        onPreview={handlePreview}
         onSave={handleSave}
         canSave={canSave}
         isSaving={isSaving}
         isCreating={isCreating}
       />
 
-      {/* Modal de Preview */}
+      {/* Modal de Preview 
       {showPreview && (
         <div className="fixed inset-0 bg-black z-50 overflow-y-auto">
           <div className="sticky top-0 bg-white/10 backdrop-blur-md border-b border-white/20 z-10">
@@ -528,7 +520,7 @@ const MenuEditorContent = () => {
                   </div>
                 ))
               )}
-              {/* Footer informativo */}
+              {/* Footer informativo
               <div className="mt-8 p-6 bg-slate-50 rounded-2xl text-center">
                 <p className="text-slate-600 text-sm">
                   ✨ Esta es una vista previa de tu menú
@@ -539,27 +531,27 @@ const MenuEditorContent = () => {
               </div>
             </div>
           </div>
-        </div>
-      )}
+        </div> 
+      )}*/}
     </div>
   );
 };
 
-const LoadingFallback = () => (
+{/*const LoadingFallback = () => (
   <div className="min-h-screen flex items-center justify-center">
     <div className="text-center">
       <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto"></div>
       <p className="mt-4 text-gray-600">Cargando editor...</p>
     </div>
   </div>
-);
+);*/}
 
-const MenuEditor = () => {
+{/*const MenuEditor = () => {
   return (
     <Suspense fallback={<LoadingFallback />}>
       <MenuEditorContent />
     </Suspense>
   );
-};
+};*/}
 
-export default MenuEditor;
+export default MenuEditorContent;

@@ -1,36 +1,34 @@
 
 // validaciones
-export const validateFormData = (formData: {
-  title: string;
-  logo: string;
-  backgroundImage: string;
-}): boolean => {
-  if (!formData.title.trim()) return false;
-  try {
-    if (formData.logo) new URL(formData.logo);
-    if (formData.backgroundImage) new URL(formData.backgroundImage);
-  } catch {
-    return false;
-  }
-  return true;
+export const validateFormData = (formData: any): boolean => {
+  return !!(
+    formData.title?.trim() &&
+    formData.pos?.trim()
+  );
 };
 
-// cambio del input
+// Manejar cambios en inputs simples
 export const handleInputChange = (
   e: React.ChangeEvent<HTMLInputElement>,
   setFormData: React.Dispatch<React.SetStateAction<any>>
 ) => {
   const { name, value } = e.target;
 
-  if (name === "colorPrimary" || name === "colorSecondary") {
+  // Si el campo es anidado (ej: color.primary)
+  if (name.includes(".")) {
+    const [parent, child] = name.split(".");
     setFormData((prev: any) => ({
       ...prev,
-      color: {
-        ...prev.color,
-        [name === "colorPrimary" ? "primary" : "secondary"]: value,
+      [parent]: {
+        ...prev[parent],
+        [child]: value,
       },
     }));
   } else {
-    setFormData((prev: any) => ({ ...prev, [name]: value }));
+    // Campo simple
+    setFormData((prev: any) => ({
+      ...prev,
+      [name]: value,
+    }));
   }
 };

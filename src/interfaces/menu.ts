@@ -15,6 +15,10 @@ export interface Menues {
   categories?: Category[];
 }
 
+export interface newCategory {
+  title: string;
+  items?: [];
+}
 
 export interface Category {
   id: number;
@@ -24,6 +28,7 @@ export interface Category {
   createdAt: string;
   updatedAt: string;
   items: MenuItem[];
+  isNew?: boolean;
 }
 export interface MenuItem {
   id: number;
@@ -55,5 +60,6 @@ export interface MenuItem {
   price: string; // La API devuelve string "7500.00", no number
   images: MenuItemImage[]; // Cambio: era "image: string[]"
 }
+
 
 
