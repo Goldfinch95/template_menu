@@ -1,4 +1,4 @@
-import { Menues, Category, MenuItem } from "@/interfaces/menu";
+import { Menues, Category, MenuItem, NewCategoryPayload } from "@/interfaces/menu";
 
 const BASE_URL = "http://localhost:3000/api/menus";
 const CATEGORIES_BASE_URL = "http://localhost:3000/api/categories";
@@ -121,31 +121,16 @@ export const deleteMenu = async (id: string | number): Promise<void> => {
 
 // Crear una nueva categoría
 export const createCategory = async (
-  menuId: number,
-  categoryData: {
-    title: string;
-    items?: Array<{
-      title: string;
-      price: number;
-      description?: string;
-      images?: Array<{ url: string; sortOrder: number }>;
-    }>;
-  }
+  categoryData: NewCategoryPayload
 ): Promise<Category> => {
   try {
-    const payload = {
-      menuId,
-      title: categoryData.title,
-      items: categoryData.items || [],
-    };
-
     const response = await fetch(CATEGORIES_BASE_URL, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         ...TENANT_HEADER,
       },
-      body: JSON.stringify(payload),
+      body: JSON.stringify(categoryData),
     });
 
     if (!response.ok) {

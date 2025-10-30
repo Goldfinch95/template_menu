@@ -20,6 +20,29 @@ export interface newCategory {
   items?: [];
 }
 
+// Tipos para crear nuevas categorías con items
+export interface NewImage {
+  url: string;
+  alt?: string | null;
+  sortOrder?: number;
+}
+
+export interface NewItem {
+  title: string;
+  description?: string | null;
+  price: number;
+  active?: boolean;
+  images?: NewImage[];
+}
+
+export interface NewCategoryPayload {
+  menuId: number;
+  title: string;
+  description?: string | null;
+  active?: boolean;
+  items?: NewItem[];
+}
+
 export interface Category {
   id: number;
   menuId: number;
