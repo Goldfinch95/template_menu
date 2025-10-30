@@ -23,6 +23,11 @@ import FloatingActions from "./components/FloatingActions";
 import { AlertCircle, Trash2, Plus, GripVertical } from "lucide-react";
 
 const MenuEditorContent = () => {
+
+  const receiveImages = (images: { logo: string; backgroundImage: string }) => {
+    console.log("Valores recibidos del hijo:", images);
+    // Aquí haces lo que necesites con los valores
+  };
   {/*const searchParams = useSearchParams();
   const router = useRouter();
   const menuId = searchParams.get("id");
@@ -188,7 +193,7 @@ const MenuEditorContent = () => {
       {/* Navbar */}
       <NavbarEditor
       />
-      {/* Contenido principal 
+      {/* Contenido principal */}
       <main className="max-w-3xl mx-auto w-full px-5 sm:px-6 lg:px-8 py-10 space-y-8">
         <div className="space-y-6">
           {/* Alert de error 
@@ -202,12 +207,12 @@ const MenuEditorContent = () => {
             </Alert>
           )}
 
-          {/* Sección de URLs de imágenes 
+          {/*Sección de URLs de imágenes*/} 
           <ImagesEditor
-            logo={formData.logo}
-            backgroundImage={formData.backgroundImage}
-            handleInputChange={handleChange}
+            onImagesSubmit={receiveImages}
           />
+          </div>
+          </main>
           {/* Información básica 
           <InfoEditor
             title={formData.title}
