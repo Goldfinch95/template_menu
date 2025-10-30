@@ -32,6 +32,11 @@ const MenuEditorContent = () => {
     // ver valores recibidos de la info
     console.log("Información del restaurante recibida:", info);
   };
+
+  const reciveRestaurantColors = (colors: { primary: string; secondary: string }) => {
+    console.log("Colores recibidos del hijo:", colors);
+    // Aquí puedes hacer lo que necesites con los colores
+  };
   {/*const searchParams = useSearchParams();
   const router = useRouter();
   const menuId = searchParams.get("id");
@@ -220,13 +225,12 @@ const MenuEditorContent = () => {
           <InfoEditor
           onInfoSubmit={reciveRestaurantInformation}
           />
+          {/* Colores */}
+          <ColorEditor
+            onColorsChange={reciveRestaurantColors}
+          />
           </div>
           </main>
-          {/* Colores
-          <ColorEditor
-            formData={formData}
-            handleInputChange={handleChange}
-          />
           <div className="py-1"></div>
           {/* Categorías y Platos 
          <div className="bg-white/80 backdrop-blur-xl border border-slate-200 rounded-xl shadow-md overflow-hidden sm:rounded-2xl sm:shadow-lg">
