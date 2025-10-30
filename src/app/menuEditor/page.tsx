@@ -24,9 +24,13 @@ import { AlertCircle, Trash2, Plus, GripVertical } from "lucide-react";
 
 const MenuEditorContent = () => {
 
-  const receiveImages = (images: { logo: string; backgroundImage: string }) => {
+  const reciveRestaurantImages = (images: { logo: string; backgroundImage: string }) => {
+    //ver valores recibidos de las imagenes
     console.log("Valores recibidos del hijo:", images);
-    // Aquí haces lo que necesites con los valores
+  };
+  const reciveRestaurantInformation = (info: { title: string; pos: string }) => {
+    // ver valores recibidos de la info
+    console.log("Información del restaurante recibida:", info);
   };
   {/*const searchParams = useSearchParams();
   const router = useRouter();
@@ -209,16 +213,15 @@ const MenuEditorContent = () => {
 
           {/*Sección de URLs de imágenes*/} 
           <ImagesEditor
-            onImagesSubmit={receiveImages}
+            onImagesSubmit={reciveRestaurantImages}
+          />
+          
+          {/*Información básica */} 
+          <InfoEditor
+          onInfoSubmit={reciveRestaurantInformation}
           />
           </div>
           </main>
-          {/* Información básica 
-          <InfoEditor
-            title={formData.title}
-            pos={formData.pos}
-            handleInputChange={handleChange}
-          />
           {/* Colores
           <ColorEditor
             formData={formData}
