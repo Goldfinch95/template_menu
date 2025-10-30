@@ -24,6 +24,7 @@ import { AlertCircle, Trash2, Plus, GripVertical } from "lucide-react";
 
 const MenuEditorContent = () => {
 
+  //Recibo los valores de los subcomponentes
   const reciveRestaurantImages = (images: { logo: string; backgroundImage: string }) => {
     //ver valores recibidos de las imagenes
     console.log("Valores recibidos del hijo:", images);
@@ -34,8 +35,8 @@ const MenuEditorContent = () => {
   };
 
   const reciveRestaurantColors = (colors: { primary: string; secondary: string }) => {
-    console.log("Colores recibidos del hijo:", colors);
-    // Aquí puedes hacer lo que necesites con los colores
+    //ver valores recibidos de los colores
+    console.log("Colores recibidos del hijo:", colors);    
   };
   {/*const searchParams = useSearchParams();
   const router = useRouter();
@@ -229,8 +230,6 @@ const MenuEditorContent = () => {
           <ColorEditor
             onColorsChange={reciveRestaurantColors}
           />
-          </div>
-          </main>
           <div className="py-1"></div>
           {/* Categorías y Platos 
          <div className="bg-white/80 backdrop-blur-xl border border-slate-200 rounded-xl shadow-md overflow-hidden sm:rounded-2xl sm:shadow-lg">
@@ -383,17 +382,13 @@ const MenuEditorContent = () => {
           >
             <Trash2 size={18} />
             Eliminar Menú
-          </button>
+          </button>*/}
         </div>
       </main>
 
-      {/* Botones flotantes 
+      {/* Botones flotantes */}
       <FloatingActions
-        onPreview={handlePreview}
-        onSave={handleSave}
-        canSave={canSave}
-        isSaving={isSaving}
-        isCreating={isCreating}
+        
       />
 
       {/* Modal de Preview 
