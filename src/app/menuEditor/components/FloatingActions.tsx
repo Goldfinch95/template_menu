@@ -10,7 +10,9 @@ import {
 } from "@/common/components/ui/tooltip";
 import { usePathname, useSearchParams } from "next/navigation";
 import { newMenu } from "@/interfaces/menu";
-
+import {createMenu} from "@/common/utils/api";
+import {Menues} from "@/interfaces/menu";
+import { useRouter } from 'next/navigation';
 
 interface FloatingActionsProps {
   newMenu: newMenu;
@@ -21,6 +23,10 @@ const FloatingActions: React.FC<FloatingActionsProps> = ({ newMenu }) => {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const [title, setTitle] = useState("");
+
+  const router = useRouter();
+
+  /*const [isSaving, setIsSaving] = useState(false);*/
 
   useEffect(() => {
       // Detectar si estamos creando nuevo menu o editando menu.
@@ -38,9 +44,15 @@ const FloatingActions: React.FC<FloatingActionsProps> = ({ newMenu }) => {
     
  
 
-  const handleSave = () => {
-    console.log("📝 Datos del menú al guardar:", newMenu);
-  };
+  const handleSave = async() => {
+    
+    try {
+     await createMenu(newMenu);
+      router.push('/');
+  }
+  catch (error) {
+    console.error("❌ Error al crear el menú:", error);
+  } };
 
   return (
     <div className="fixed bottom-0 left-0 right-0 p-6 bg-gradient-to-b from-white via-[#FFF3EC] to-[#FFE6D3] backdrop-blur-md shadow-[0_-4px_24px_rgba(0,0,0,0.4)]">

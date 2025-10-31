@@ -69,10 +69,7 @@ const ColorEditor = ({ onColorsChange }: ColorEditorProps) => {
       } else {
         setSecondaryColor(newColor);
       }
-      console.log(
-        `Picker usado - Último activo (${activeColorInput}):`,
-        newColor
-      );
+      
     }
   };
 

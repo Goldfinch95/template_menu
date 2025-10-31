@@ -21,7 +21,6 @@ export const getMenus = async (): Promise<Menues[]> => {
     }
 
     const data: Menues[] = await response.json();
-    console.log("✅ Menús cargados:", data);
     return data;
   } catch (error) {
     console.error(
@@ -32,7 +31,7 @@ export const getMenus = async (): Promise<Menues[]> => {
   }
 };
 
-// --- 🔹 Obtener un menú específico
+// --- 🔹 Obtener un menú específico (menuEditor)
 export const getMenu = async (id: string | number): Promise<Menues> => {
   try {
     const response = await fetch(`${BASE_URL}/${id}`, {
@@ -52,7 +51,7 @@ export const getMenu = async (id: string | number): Promise<Menues> => {
   }
 };
 
-// --- 🔹 Crear un nuevo menú
+// --- 🔹 Crear un nuevo menú (menuEditor)
 export const createMenu = async (data: Partial<Menues>): Promise<Menues> => {
   try {
     const response = await fetch(BASE_URL, {
