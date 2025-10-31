@@ -1,10 +1,9 @@
 "use client";
 
 import React, { useCallback, useState, useEffect } from "react";
-import { useSearchParams, useRouter } from "next/navigation";
+import {  useSearchParams, useRouter } from "next/navigation";
 import { newMenu } from "@/interfaces/menu";
 import {
-  createMenu,
   deleteMenu,
   getMenu,
   updateMenu,
@@ -34,6 +33,12 @@ const MenuEditorContent = () => {
     },
     pos: "",
   });
+  //Estado para obtener id del menú
+  const searchParams = useSearchParams();
+  // estado para eliminar menú
+  const [isDeleting, setIsDeleting] = useState(false);
+  // estado para el router
+  const router = useRouter();
 
   // recibir datos de los componentes hijos
   const reciveRestaurantImages = useCallback(
@@ -69,6 +74,24 @@ const MenuEditorContent = () => {
       },
     }));
   };
+
+  const handleDeleteMenu = async () => {
+  
+  const menuId = searchParams.get("id");
+  if (!menuId) {
+    alert('No se encontró el ID del menú');
+    return;
+  }
+  setIsDeleting(true);
+  try {
+    await deleteMenu(menuId); 
+    router.push('/');
+  } catch (error) {
+    alert('Error al eliminar el menú');
+  } finally {
+    setIsDeleting(false);
+  }
+};
 
   {
     /*const searchParams = useSearchParams();
@@ -402,14 +425,14 @@ const MenuEditorContent = () => {
   </div>
 </div>
 
-          {/* Eliminar menu 
+          {/* Eliminar menu */} 
           <button
-            onClick={() => handleDeleteMenu(Number(menuId))}
+            onClick={handleDeleteMenu}
             className="w-full py-4 mt-8 flex items-center justify-center gap-2 bg-red-500 hover:bg-red-600 active:bg-red-700 text-white font-semibold rounded-xl transition-all duration-200 shadow-lg shadow-red-500/25"
           >
             <Trash2 size={18} />
             Eliminar Menú
-          </button>*/}
+          </button>
         </div>
       </main>
 
