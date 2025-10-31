@@ -119,46 +119,6 @@ export const deleteMenu = async (id: string | number): Promise<void> => {
 // --- 🔹 CATEGORÍAS
 
 // Crear una nueva categoría
-export const createCategory = async (
-  menuId: number,
-  categoryData: {
-    title: string;
-    items?: Array<{
-      title: string;
-      price: number;
-      description?: string;
-      images?: Array<{ url: string; sortOrder: number }>;
-    }>;
-  }
-): Promise<Category> => {
-  try {
-    const payload = {
-      menuId,
-      title: categoryData.title,
-      items: categoryData.items || [],
-    };
 
-    const response = await fetch(CATEGORIES_BASE_URL, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        ...TENANT_HEADER,
-      },
-      body: JSON.stringify(payload),
-    });
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(`Error al crear categoría: ${response.status} - ${errorText}`);
-    }
-
-    const data = await response.json();
-    console.log("✅ Categoría creada:", data);
-    return data;
-  } catch (error) {
-    console.error("❌ Error al crear categoría:", error);
-    throw error;
-  }
-};
 
 
