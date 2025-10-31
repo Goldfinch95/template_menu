@@ -1,3 +1,4 @@
+// menu con categorias e items
 export interface Menues {
   id: number;
   userId: number;
@@ -28,12 +29,24 @@ export interface newMenu {
   pos: string;
 }
 
+// nueva categoria
 export interface newCategory {
   id: number;
   title: string;
   items?: [];
 }
 
+// payload de categoria
+
+export interface newCategoryPayload {
+  menuId: number;
+  title: string;
+  description?: string | null;
+  active?: boolean;
+  items?: MenuItem[];
+}
+
+// categoria con items
 export interface Category {
   id: number;
   menuId: number;
@@ -43,6 +56,7 @@ export interface Category {
   updatedAt: string;
   items: MenuItem[];
 }
+// item del menu
 export interface MenuItem {
   id: number;
   categoryId: number;
@@ -54,7 +68,7 @@ export interface MenuItem {
   updatedAt: string;
   images: MenuItemImage[];
 }
-
+// item de las imagenes del menu
 export interface MenuItemImage {
   id: number;
   itemId: number;
@@ -64,14 +78,6 @@ export interface MenuItemImage {
   active: boolean;
   createdAt: string;
   updatedAt: string;
-}
-
-export interface MenuItem {
-  id: number;
-  title: string;
-  description: string;
-  price: string; // La API devuelve string "7500.00", no number
-  images: MenuItemImage[]; // Cambio: era "image: string[]"
 }
 
 

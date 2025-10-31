@@ -1,4 +1,4 @@
-import { Menues, Category, MenuItem } from "@/interfaces/menu";
+import { Menues, Category, newCategoryPayload } from "@/interfaces/menu";
 
 const BASE_URL = "http://localhost:3000/api/menus";
 const CATEGORIES_BASE_URL = "http://localhost:3000/api/categories";
@@ -119,6 +119,28 @@ export const deleteMenu = async (id: string | number): Promise<void> => {
 // --- 🔹 CATEGORÍAS
 
 // Crear una nueva categoría
+export const createCategory = async (
+  categoryData: newCategoryPayload
+): Promise<Category> => {
+  try {
+    const response = await fetch(CATEGORIES_BASE_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...TENANT_HEADER,
+      },
+      body: JSON.stringify(categoryData),
+    });
 
-
-
+    if (!response.ok){
+      const errorText = await response.text();
+      throw new Error(`Error al crear categoría: ${response.status} - ${errorText}`);
+    } 
+    const data = await response.json();
+    console.log("✅ Categoría creada:", data);
+    return data;
+  } catch (error) {
+    console.error("❌ Error al crear categoría:", error);
+    throw error;
+  }
+};
