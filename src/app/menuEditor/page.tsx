@@ -2,7 +2,7 @@
 
 import React, { useCallback, useState, useEffect } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import { Menues, newMenu } from "@/interfaces/menu";
+import { Menues, newMenu, newCategoryPayload } from "@/interfaces/menu";
 import {
   deleteMenu,
   getMenu,
@@ -21,6 +21,7 @@ import ColorEditor from "./components/ColorEditor";
 import CategoryEditor from "./components/CategoryEditor";
 import FloatingActions from "./components/FloatingActions";
 import { AlertCircle, Trash2, Plus, GripVertical } from "lucide-react";
+import { title } from "process";
 
 const MenuEditorContent = () => {
   // estado para nuevo menú
@@ -50,11 +51,21 @@ const MenuEditorContent = () => {
     updatedAt: "",
     categories: [],
   });
+  const [newCategoryPayload, setNewCategoryPayload] = useState<newCategoryPayload>({
+    menuId: 0,
+    title: "",
+    description: null,
+    active: true,
+    items: [],
+  });
+
   //Estado para obtener id del menú
   const searchParams = useSearchParams();
   // estado para el router
   const router = useRouter();
 
+  // estado para almacenar los datos de categorías payload
+  const [categories, setCategories] = useState<newCategoryPayload[]>([]);
   //cargar menú existente si hay id en los parámetros
   useEffect(() => {
     const menuId = searchParams.get("id");
@@ -108,6 +119,12 @@ const MenuEditorContent = () => {
     }));
   };
 
+  //funcion para recibir las categorías del componente hijo
+  const reciveRestaurantCategories = (updatedCategories: newCategoryPayload[]) => {
+    
+    setCategories(updatedCategories);
+  }
+
   // funcion que elimina el menú
   const handleDeleteMenu = async () => {
     const menuId = searchParams.get("id");
@@ -152,7 +169,7 @@ const MenuEditorContent = () => {
           {/* Colores */}
           <ColorEditor primary={menuData.color.primary} secondary={menuData.color.secondary} onColorsChange={reciveRestaurantColors} />
           <div className="py-1"></div>
-          <CategoryEditor categories={menuData.categories} />
+          <CategoryEditor reciveRestaurantCategories={reciveRestaurantCategories} categories={menuData.categories} />
          
   
 
@@ -168,7 +185,7 @@ const MenuEditorContent = () => {
       </main>
 
       {/* Botones flotantes */}
-      <FloatingActions newMenu={newMenu} />
+      <FloatingActions newMenu={newMenu} categories={categories} />
 
       {/* Modal de Preview 
       {showPreview && (

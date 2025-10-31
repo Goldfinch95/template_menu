@@ -32,19 +32,12 @@ export interface newMenu {
 // nueva categoria
 export interface newCategory {
   id: number;
+  menuId: number;
   title: string;
   items?: [];
 }
 
-// payload de categoria
 
-export interface newCategoryPayload {
-  menuId: number;
-  title: string;
-  description?: string | null;
-  active?: boolean;
-  items?: MenuItem[];
-}
 
 // categoria con items
 export interface Category {
@@ -81,4 +74,27 @@ export interface MenuItemImage {
 }
 
 
+// payload de categoria
 
+export interface newCategoryPayload {
+  menuId: number;
+  title: string;
+  description?: string | null;
+  active?: boolean;
+  items?: NewItem[];
+}
+// payload de nuevo item
+export interface NewItem {
+  title: string;
+  description?: string | null;
+  price: string;
+  active?: boolean;
+  images?: NewImage[];
+}
+
+export interface NewImage {
+  url: string;
+  alt?: string | null;
+  sortOrder?: number;
+  active?: boolean;
+}

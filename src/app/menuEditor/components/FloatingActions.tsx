@@ -10,16 +10,18 @@ import {
 } from "@/common/components/ui/tooltip";
 import { usePathname, useSearchParams, useRouter } from "next/navigation";
 import { newMenu } from "@/interfaces/menu";
-import {createMenu} from "@/common/utils/api";
-import {Menues} from "@/interfaces/menu";
-
+import { createMenu, createCategory } from "@/common/utils/api";
+import { Menues, newCategoryPayload } from "@/interfaces/menu";
 
 interface FloatingActionsProps {
   newMenu: newMenu;
+  categories: newCategoryPayload[];
 }
 
-const FloatingActions: React.FC<FloatingActionsProps> = ({ newMenu }) => {
-
+const FloatingActions: React.FC<FloatingActionsProps> = ({
+  newMenu,
+  categories,
+}) => {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const [title, setTitle] = useState("");
@@ -29,38 +31,39 @@ const FloatingActions: React.FC<FloatingActionsProps> = ({ newMenu }) => {
   /*const [isSaving, setIsSaving] = useState(false);*/
 
   useEffect(() => {
-      // Detectar si estamos creando nuevo menu o editando menu.
-  
-      if (pathname === "/menuEditor") {
-        const id = searchParams.get("id");
-        if (id) {
-          setTitle("Guardar Cambios");
-        } else {
-          setTitle("Crear Menu");
-        }
+    // Detectar si estamos creando nuevo menu o editando menu.
+
+    if (pathname === "/menuEditor") {
+      const id = searchParams.get("id");
+      if (id) {
+        setTitle("Guardar Cambios");
+      } else {
+        setTitle("Crear Menu");
       }
-    }, [pathname]);
+    }
+  }, [pathname]);
 
-    
- 
-
-  const handleSave = async() => {
-    
+  const handleSave = async () => {
     try {
-     await createMenu(newMenu);
-      router.push('/');
-  }
-  catch (error) {
-    console.error("❌ Error al crear el menú:", error);
-  } };
+      await createMenu(newMenu);
+      if (categories && categories.length > 0) {
+        const categoryPromises = categories.map(category => 
+        createCategory(category)
+      );
+       await Promise.all(categoryPromises);
+      }
+      router.push("/");
+    } catch (error) {
+      console.error("❌ Error al crear el menú:", error);
+    }
+  };
 
   return (
     <div className="fixed bottom-0 left-0 right-0 p-6 bg-gradient-to-b from-white via-[#FFF3EC] to-[#FFE6D3] backdrop-blur-md shadow-[0_-4px_24px_rgba(0,0,0,0.4)]">
-  <div className="max-w-4xl mx-auto flex gap-4">
-    {/* Botón Vista Previa */}
-    <Button
-      
-      className="
+      <div className="max-w-4xl mx-auto flex gap-4">
+        {/* Botón Vista Previa */}
+        <Button
+          className="
         flex-1 h-14 
         bg-gradient-to-br from-orange-400 to-orange-500 hover:from-orange-500 hover:to-orange-600
         text-white font-semibold text-base 
@@ -68,39 +71,38 @@ const FloatingActions: React.FC<FloatingActionsProps> = ({ newMenu }) => {
         
         hover:scale-[1.02] active:scale-[0.98]
       "
-    >
-      Vista Previa
-    </Button>
+        >
+          Vista Previa
+        </Button>
 
-    {/* Botón Guardar */}
-    <TooltipProvider>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <div className="flex-1">
-            <Button 
-            onClick={handleSave}
-            className="h-14 
+        {/* Botón Guardar */}
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div className="flex-1">
+                <Button
+                  onClick={handleSave}
+                  className="h-14 
         bg-gradient-to-br from-orange-400 to-orange-500 hover:from-orange-500 hover:to-orange-600
         text-white font-semibold text-base 
         rounded-2xl transition-all duration-300 
         
         hover:scale-[1.02] active:scale-[0.98]"
-            >
-              {title}
-            </Button>
-          </div>
-        </TooltipTrigger>
+                >
+                  {title}
+                </Button>
+              </div>
+            </TooltipTrigger>
 
-        {/* Tooltip */}
-       
-          <TooltipContent className="bg-slate-800 border border-slate-700 text-slate-300 text-xs">
-            Completa el nombre y URLs válidas
-          </TooltipContent>
-        
-      </Tooltip>
-    </TooltipProvider>
-  </div>
-</div>
+            {/* Tooltip */}
+
+            <TooltipContent className="bg-slate-800 border border-slate-700 text-slate-300 text-xs">
+              Completa el nombre y URLs válidas
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      </div>
+    </div>
   );
 };
 

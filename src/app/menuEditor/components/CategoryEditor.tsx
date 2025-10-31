@@ -1,19 +1,24 @@
 "use client";
 
-import React, { useEffect } from "react";
+import React, { useEffect, useRef } from "react";
 import { Plus, GripVertical, Trash2 } from "lucide-react";
 import { Category, newCategory } from "@/interfaces/menu";
 
 interface CategoryEditorProps {
   categories: Category[];
+   reciveRestaurantCategories?: (updatedCategories: Category[]) => void;
 }
 
 const CategoryEditor = ({
   categories: initialCategories,
+  reciveRestaurantCategories,
 }: CategoryEditorProps) => {
   // Estado local para las categorías contando las ya establecidas y las nuevas
   const [categories, setCategories] =
     React.useState<Category[]>(initialCategories);
+
+    // Ref para almacenar el timeout del debounce
+  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   // Sincronizar cuando initialCategories cambie desde el backend
   useEffect(() => {
@@ -23,7 +28,7 @@ const CategoryEditor = ({
   // Función para agregar categoría y añadirlo a las otras categorías
   const addCategory = () => {
     const newCategory: newCategory = {
-      id: categories.length + 1,
+    menuId: 1, // Temporalmente asignado, debería ser dinámico
       title: "",
       items: [],
     };
@@ -38,6 +43,28 @@ const CategoryEditor = ({
       )
     );
   };
+
+  // Debounce: Enviar cambios al padre después de 500ms de inactividad
+  useEffect(() => {
+    // Limpiar el timer anterior si existe
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+    }
+
+    // Crear nuevo timer
+    debounceTimerRef.current = setTimeout(() => {
+      if (reciveRestaurantCategories) {
+        reciveRestaurantCategories(categories);
+      }
+    }, 500);
+
+    // Cleanup: limpiar el timer cuando el componente se desmonte
+    return () => {
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
+    };
+  }, [categories]); // ✅ Solo observa categories, NO reciveRestaurantCategories
 
   // Función para eliminar una categoría
   const deleteCategory = (id: number) => {
