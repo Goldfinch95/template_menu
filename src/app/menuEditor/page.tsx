@@ -1,8 +1,8 @@
 "use client";
 
 import React, { useCallback, useState, useEffect } from "react";
-import {  useSearchParams, useRouter } from "next/navigation";
-import { newMenu } from "@/interfaces/menu";
+import { useSearchParams, useRouter } from "next/navigation";
+import { Menues, newMenu } from "@/interfaces/menu";
 import {
   deleteMenu,
   getMenu,
@@ -33,12 +33,45 @@ const MenuEditorContent = () => {
     },
     pos: "",
   });
+  const [menuData, setMenuData] = useState<Menues>({
+    id: 0,
+    userId: 0,
+    title: "",
+    active: false,
+    logo: "",
+    backgroundImage: "",
+    color: {
+      primary: "#000000",
+      secondary: "#ffffff",
+    },
+    pos: "",
+    createdAt: "",
+    updatedAt: "",
+    categories: [],
+  });
   //Estado para obtener id del menú
   const searchParams = useSearchParams();
-  // estado para eliminar menú
-  const [isDeleting, setIsDeleting] = useState(false);
   // estado para el router
   const router = useRouter();
+
+  //cargar menú existente si hay id en los parámetros
+  useEffect(() => {
+    const menuId = searchParams.get("id");
+    if (!menuId) return;
+
+    const loadMenu = async () => {
+      try {
+        const menu = await getMenu(menuId);
+        console.log("✅ Menú cargado:", menu);
+        setMenuData(menu);
+      } catch (error) {
+        console.error("❌ Error al cargar el menú:", error);
+      }
+    };
+    loadMenu();
+  }, [searchParams]);
+
+  
 
   // recibir datos de los componentes hijos
   const reciveRestaurantImages = useCallback(
@@ -51,7 +84,6 @@ const MenuEditorContent = () => {
     },
     []
   );
-
   const reciveRestaurantInformation = useCallback(
     (info: { title: string; pos: string }) => {
       setNewMenu((prevMenu) => ({
@@ -75,23 +107,21 @@ const MenuEditorContent = () => {
     }));
   };
 
+  // funcion que elimina el menú
   const handleDeleteMenu = async () => {
-  
-  const menuId = searchParams.get("id");
-  if (!menuId) {
-    alert('No se encontró el ID del menú');
-    return;
-  }
-  setIsDeleting(true);
-  try {
-    await deleteMenu(menuId); 
-    router.push('/');
-  } catch (error) {
-    alert('Error al eliminar el menú');
-  } finally {
-    setIsDeleting(false);
-  }
-};
+    const menuId = searchParams.get("id");
+    if (!menuId) {
+      alert("No se encontró el ID del menú");
+      return;
+    }
+
+    try {
+      await deleteMenu(menuId);
+      router.push("/");
+    } catch (error) {
+      alert("Error al eliminar el menú");
+    }
+  };
 
   {
     /*const searchParams = useSearchParams();
@@ -274,12 +304,12 @@ const MenuEditorContent = () => {
           )}
 
           {/*Sección de URLs de imágenes*/}
-          <ImagesEditor onImagesSubmit={reciveRestaurantImages} />
+          <ImagesEditor logo={menuData.logo} background={menuData.backgroundImage} onImagesSubmit={reciveRestaurantImages} />
 
           {/*Información básica */}
-          <InfoEditor onInfoSubmit={reciveRestaurantInformation} />
+          <InfoEditor title={menuData.title} pos={menuData.pos} onInfoSubmit={reciveRestaurantInformation} />
           {/* Colores */}
-          <ColorEditor onColorsChange={reciveRestaurantColors} />
+          <ColorEditor primary={menuData.color.primary} secondary={menuData.color.secondary} onColorsChange={reciveRestaurantColors} />
           <div className="py-1"></div>
           {/* Categorías y Platos 
          <div className="bg-white/80 backdrop-blur-xl border border-slate-200 rounded-xl shadow-md overflow-hidden sm:rounded-2xl sm:shadow-lg">
@@ -425,7 +455,7 @@ const MenuEditorContent = () => {
   </div>
 </div>
 
-          {/* Eliminar menu */} 
+          {/* Eliminar menu */}
           <button
             onClick={handleDeleteMenu}
             className="w-full py-4 mt-8 flex items-center justify-center gap-2 bg-red-500 hover:bg-red-600 active:bg-red-700 text-white font-semibold rounded-xl transition-all duration-200 shadow-lg shadow-red-500/25"

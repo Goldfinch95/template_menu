@@ -4,26 +4,34 @@ import React, { useState, useEffect } from "react";
 import { Card } from "@/common/components/ui/card";
 
 interface InfoEditorProps {
+  title: string;
+  pos: string;
   onInfoSubmit?: (info: { title: string; pos: string }) => void;
 }
 
-const InfoEditor = ({ onInfoSubmit }: InfoEditorProps) => {
+const InfoEditor = ({ title, pos, onInfoSubmit }: InfoEditorProps) => {
   // Estados locales para los inputs
-  const [title, setTitle] = useState("");
-  const [pos, setPos] = useState("");
+  const [inputTitle, setInputTitle] = useState("");
+  const [inputPos, setInputPos] = useState("");
   // Estados para debounce (espera antes de enviar)
   const [debouncedTitle, setDebouncedTitle] = useState("");
   const [debouncedPos, setDebouncedPos] = useState("");
 
+  // Inicializar con los valores del padre cuando lleguen
+    useEffect(() => {
+      if (title) setInputTitle(title);
+      if (pos) setInputPos(pos);
+    }, [title, pos]);
+
   // Debounce: espera 500ms después de que el usuario deja de escribir
   useEffect(() => {
     const timer = setTimeout(() => {
-      setDebouncedTitle(title);
-      setDebouncedPos(pos);
+      setDebouncedTitle(inputTitle);
+      setDebouncedPos(inputPos);
     }, 500);
   
     return () => clearTimeout(timer);
-  }, [title, pos]);
+  }, [inputTitle, inputPos]);
   
     // Enviar valores al padre cuando cambien los valores debounced
     useEffect(() => {
@@ -57,8 +65,8 @@ const InfoEditor = ({ onInfoSubmit }: InfoEditorProps) => {
               id="title"
               name="title"
               type="text"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
+              value={inputTitle}
+              onChange={(e) => setInputTitle(e.target.value)}
               placeholder="Ej: Restaurante El Buen Sabor"
               className="w-full px-4 py-2 border border-slate-300 rounded-lg placeholder:text-slate-400 focus:ring-2 focus:ring-orange-500 focus:border-transparent"
             />
@@ -76,8 +84,8 @@ const InfoEditor = ({ onInfoSubmit }: InfoEditorProps) => {
               id="pos"
               name="pos"
               type="text"
-              value={pos}
-              onChange={(e) => setPos(e.target.value)}
+              value={inputPos}
+              onChange={(e) => setInputPos(e.target.value)}
               placeholder="Ej: Av. Principal 123, Centro"
               className="w-full px-4 py-2 border border-slate-300 rounded-lg placeholder:text-slate-400 focus:ring-2 focus:ring-orange-500 focus:border-transparent"
             />

@@ -15,10 +15,12 @@ import { HexColorPicker } from "react-colorful";
 import { X } from "lucide-react";
 
 interface ColorEditorProps {
+  primary: string;
+  secondary: string;
   onColorsChange?: (colors: { primary: string; secondary: string }) => void;
 }
 
-const ColorEditor = ({ onColorsChange }: ColorEditorProps) => {
+const ColorEditor = ({ primary, secondary, onColorsChange }: ColorEditorProps) => {
   const [color, setColor] = useState("#fffff");
   const [primaryColor, setPrimaryColor] = useState("#000000");
   const [secondaryColor, setSecondaryColor] = useState("#000000");
@@ -29,6 +31,12 @@ const ColorEditor = ({ onColorsChange }: ColorEditorProps) => {
   // Agregar refs para los inputs
   const primaryInputRef = useRef<HTMLInputElement>(null);
   const secondaryInputRef = useRef<HTMLInputElement>(null);
+
+  // Inicializar con los valores del padre cuando lleguen
+      useEffect(() => {
+        if (primary) setPrimaryColor(primary);
+        if (secondary) setSecondaryColor(secondary);
+      }, [primary, secondary]);
 
   // maneja los cambios del input primario
   const selectPrimaryColor = (e: React.ChangeEvent<HTMLInputElement>) => {

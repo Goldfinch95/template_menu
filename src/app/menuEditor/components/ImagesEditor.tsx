@@ -4,26 +4,34 @@ import React, { useEffect,useState } from "react";
 import { Card } from "@/common/components/ui/card";
 
 interface ImagesEditorProps {
+  logo?: string;
+  background?: string;
   onImagesSubmit?: (images: { logo: string; backgroundImage: string }) => void;
 }
 
-const ImagesEditor = ({ onImagesSubmit }: ImagesEditorProps) => {
+const ImagesEditor = ({ logo, background, onImagesSubmit }: ImagesEditorProps) => {
   // Estados locales para los inputs
-  const [logo, setLogo] = useState("");
-  const [backgroundImage, setBackgroundImage] = useState("");
+  const [logoUrl, setLogoUrl] = useState("");
+  const [backgroundImageUrl, setBackgroundImageUrl] = useState("");
   // Estados para debounce (espera antes de enviar)
   const [debouncedLogo, setDebouncedLogo] = useState("");
   const [debouncedBackgroundImage, setDebouncedBackgroundImage] = useState("");
 
+  // Inicializar con los valores del padre cuando lleguen
+  useEffect(() => {
+    if (logo) setLogoUrl(logo);
+    if (background) setBackgroundImageUrl(background);
+  }, [logo, background]);
+
   // Debounce: espera 500ms después de que el usuario deja de escribir
 useEffect(() => {
   const timer = setTimeout(() => {
-    setDebouncedLogo(logo);
-    setDebouncedBackgroundImage(backgroundImage);
+    setDebouncedLogo(logoUrl);
+    setDebouncedBackgroundImage(backgroundImageUrl);
   }, 500);
 
   return () => clearTimeout(timer);
-}, [logo, backgroundImage]);
+}, [logoUrl, backgroundImageUrl]);
 
   // Enviar valores al padre cuando cambien los valores debounced
   useEffect(() => {
@@ -57,8 +65,8 @@ useEffect(() => {
             id="logo"
             name="logo"
             type="url"
-            value={logo}
-            onChange={(e) => setLogo(e.target.value)}
+            value={logoUrl}
+            onChange={(e) => setLogoUrl(e.target.value)}
             placeholder="https://ejemplo.com/logo.png"
             className="w-full px-4 py-2 border border-slate-300 rounded-lg placeholder:text-slate-400 focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
           />
@@ -75,8 +83,8 @@ useEffect(() => {
             id="backgroundImage"
             name="backgroundImage"
             type="url"
-            value={backgroundImage}
-            onChange={(e) => setBackgroundImage(e.target.value)}
+            value={backgroundImageUrl}
+            onChange={(e) => setBackgroundImageUrl(e.target.value)}
             placeholder="https://ejemplo.com/fondo.png"
             className="w-full px-4 py-2 border border-slate-300 rounded-lg placeholder:text-slate-400 focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
           />
