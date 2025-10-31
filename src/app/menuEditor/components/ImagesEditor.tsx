@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState } from "react";
+import React, { useEffect,useState } from "react";
 import { Card } from "@/common/components/ui/card";
 
 interface ImagesEditorProps {
@@ -8,20 +8,32 @@ interface ImagesEditorProps {
 }
 
 const ImagesEditor = ({ onImagesSubmit }: ImagesEditorProps) => {
+  // Estados locales para los inputs
   const [logo, setLogo] = useState("");
   const [backgroundImage, setBackgroundImage] = useState("");
+  // Estados para debounce (espera antes de enviar)
+  const [debouncedLogo, setDebouncedLogo] = useState("");
+  const [debouncedBackgroundImage, setDebouncedBackgroundImage] = useState("");
 
-  // comprobar valores
-  const showValues = () => {
-    const values = {
-      logo,
-      backgroundImage
-    };
-    
-    if(onImagesSubmit){
-      onImagesSubmit(values);
-    }
-  };
+  // Debounce: espera 500ms después de que el usuario deja de escribir
+useEffect(() => {
+  const timer = setTimeout(() => {
+    setDebouncedLogo(logo);
+    setDebouncedBackgroundImage(backgroundImage);
+  }, 500);
+
+  return () => clearTimeout(timer);
+}, [logo, backgroundImage]);
+
+  // Enviar valores al padre cuando cambien los valores debounced
+  useEffect(() => {
+  if (debouncedLogo && debouncedBackgroundImage) {
+    onImagesSubmit?.({ 
+        logo: debouncedLogo,
+        backgroundImage: debouncedBackgroundImage
+      });
+  }
+}, [debouncedLogo, debouncedBackgroundImage, onImagesSubmit]);
 
   return (
     <Card className="bg-white/70 backdrop-blur-xl border border-white/40 rounded-2xl p-5 shadow-lg">
@@ -69,15 +81,7 @@ const ImagesEditor = ({ onImagesSubmit }: ImagesEditorProps) => {
             className="w-full px-4 py-2 border border-slate-300 rounded-lg placeholder:text-slate-400 focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
           />
         </div>
-        
       </div>
-      {/* Botón de Control */}
-      <button
-        onClick={showValues}
-        className="mt-5 w-full bg-orange-500 hover:bg-orange-600 text-white font-medium py-2 px-4 rounded-lg transition-colors"
-      >
-        Ver Valores
-      </button>
     </Card>
   );
 };

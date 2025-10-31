@@ -1,8 +1,8 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useCallback, useState, useEffect } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import { Category, newCategory } from "@/interfaces/menu";
+import { newMenu } from "@/interfaces/menu";
 import {
   createMenu,
   deleteMenu,
@@ -23,22 +23,55 @@ import FloatingActions from "./components/FloatingActions";
 import { AlertCircle, Trash2, Plus, GripVertical } from "lucide-react";
 
 const MenuEditorContent = () => {
+  // estado para nuevo menú
+  const [newMenu, setNewMenu] = useState<newMenu>({
+    title: "",
+    logo: "",
+    backgroundImage: "",
+    color: {
+      primary: "",
+      secondary: "",
+    },
+    pos: "",
+  });
 
-  //Recibo los valores de los subcomponentes
-  const reciveRestaurantImages = (images: { logo: string; backgroundImage: string }) => {
-    //ver valores recibidos de las imagenes
-    console.log("Valores recibidos del hijo:", images);
-  };
-  const reciveRestaurantInformation = (info: { title: string; pos: string }) => {
-    // ver valores recibidos de la info
-    console.log("Información del restaurante recibida:", info);
+  // recibir datos de los componentes hijos
+  const reciveRestaurantImages = useCallback(
+    (images: { logo: string; backgroundImage: string }) => {
+      setNewMenu((prevMenu) => ({
+        ...prevMenu,
+        logo: images.logo,
+        backgroundImage: images.backgroundImage,
+      }));
+    },
+    []
+  );
+
+  const reciveRestaurantInformation = useCallback(
+    (info: { title: string; pos: string }) => {
+      setNewMenu((prevMenu) => ({
+        ...prevMenu,
+        title: info.title,
+        pos: info.pos,
+      }));
+    },
+    []
+  );
+  const reciveRestaurantColors = (colors: {
+    primary: string;
+    secondary: string;
+  }) => {
+    setNewMenu((prevMenu) => ({
+      ...prevMenu,
+      color: {
+        primary: colors.primary,
+        secondary: colors.secondary,
+      },
+    }));
   };
 
-  const reciveRestaurantColors = (colors: { primary: string; secondary: string }) => {
-    //ver valores recibidos de los colores
-    console.log("Colores recibidos del hijo:", colors);    
-  };
-  {/*const searchParams = useSearchParams();
+  {
+    /*const searchParams = useSearchParams();
   const router = useRouter();
   const menuId = searchParams.get("id");
   const menuTitle = searchParams.get("title");
@@ -196,13 +229,13 @@ const MenuEditorContent = () => {
         </div>
       </div>
     );
-  }*/}
+  }*/
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-white via-[#FFF3EC] to-[#FFE6D3] w-full  pb-25">
       {/* Navbar */}
-      <NavbarEditor
-      />
+      <NavbarEditor />
       {/* Contenido principal */}
       <main className="max-w-3xl mx-auto w-full px-5 sm:px-6 lg:px-8 py-10 space-y-8">
         <div className="space-y-6">
@@ -217,19 +250,13 @@ const MenuEditorContent = () => {
             </Alert>
           )}
 
-          {/*Sección de URLs de imágenes*/} 
-          <ImagesEditor
-            onImagesSubmit={reciveRestaurantImages}
-          />
-          
-          {/*Información básica */} 
-          <InfoEditor
-          onInfoSubmit={reciveRestaurantInformation}
-          />
+          {/*Sección de URLs de imágenes*/}
+          <ImagesEditor onImagesSubmit={reciveRestaurantImages} />
+
+          {/*Información básica */}
+          <InfoEditor onInfoSubmit={reciveRestaurantInformation} />
           {/* Colores */}
-          <ColorEditor
-            onColorsChange={reciveRestaurantColors}
-          />
+          <ColorEditor onColorsChange={reciveRestaurantColors} />
           <div className="py-1"></div>
           {/* Categorías y Platos 
          <div className="bg-white/80 backdrop-blur-xl border border-slate-200 rounded-xl shadow-md overflow-hidden sm:rounded-2xl sm:shadow-lg">
@@ -387,9 +414,7 @@ const MenuEditorContent = () => {
       </main>
 
       {/* Botones flotantes */}
-      <FloatingActions
-        
-      />
+      <FloatingActions newMenu={newMenu} />
 
       {/* Modal de Preview 
       {showPreview && (
@@ -544,21 +569,25 @@ const MenuEditorContent = () => {
   );
 };
 
-{/*const LoadingFallback = () => (
+{
+  /*const LoadingFallback = () => (
   <div className="min-h-screen flex items-center justify-center">
     <div className="text-center">
       <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto"></div>
       <p className="mt-4 text-gray-600">Cargando editor...</p>
     </div>
   </div>
-);*/}
+);*/
+}
 
-{/*const MenuEditor = () => {
+{
+  /*const MenuEditor = () => {
   return (
     <Suspense fallback={<LoadingFallback />}>
       <MenuEditorContent />
     </Suspense>
   );
-};*/}
+};*/
+}
 
 export default MenuEditorContent;

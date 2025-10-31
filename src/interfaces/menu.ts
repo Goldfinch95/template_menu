@@ -15,6 +15,19 @@ export interface Menues {
   categories?: Category[];
 }
 
+// nuevo menu
+
+export interface newMenu {
+  title: string;
+  logo: string;
+  backgroundImage: string;
+  color: {
+    primary: string;
+    secondary: string;
+  };
+  pos: string;
+}
+
 export interface newCategory {
   title: string;
   items?: [];

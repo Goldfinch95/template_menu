@@ -36,7 +36,6 @@ const ColorEditor = ({ onColorsChange }: ColorEditorProps) => {
     setPrimaryColor(primaryColor);
     setActiveColorInput("primary");
     setColor(primaryColor);
-    console.log("Input seleccionado: PRIMARY", primaryColor);
     // Validar que sea un hex válido antes de actualizar el picker
     /*if (/^#[0-9A-Fa-f]{6}$/.test(primaryColor)) {
     setColor(primaryColor);
@@ -50,7 +49,6 @@ const ColorEditor = ({ onColorsChange }: ColorEditorProps) => {
     setSecondaryColor(secondaryColor);
     setActiveColorInput("secondary");
     setColor(secondaryColor);
-    console.log("Input seleccionado: SECONDARY", secondaryColor);
   };
 
   //detecta el cambio de color en consola.
@@ -61,11 +59,9 @@ const ColorEditor = ({ onColorsChange }: ColorEditorProps) => {
     if (document.activeElement === primaryInputRef.current) {
       setPrimaryColor(newColor);
       setActiveColorInput("primary");
-      console.log("Picker usado - Input PRIMARIO activo:", newColor);
     } else if (document.activeElement === secondaryInputRef.current) {
       setSecondaryColor(newColor);
-      setActiveColorInput("secondary");
-      console.log("Picker usado - Input SECUNDARIO activo:", newColor);
+      setActiveColorInput("secondary")
     } else {
       // Si ningún input tiene foco, usar el último activo
       if (activeColorInput === "primary") {

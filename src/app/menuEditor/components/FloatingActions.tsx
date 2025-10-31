@@ -9,10 +9,14 @@ import {
   TooltipContent,
 } from "@/common/components/ui/tooltip";
 import { usePathname, useSearchParams } from "next/navigation";
+import { newMenu } from "@/interfaces/menu";
 
 
+interface FloatingActionsProps {
+  newMenu: newMenu;
+}
 
-const FloatingActions = () => {
+const FloatingActions: React.FC<FloatingActionsProps> = ({ newMenu }) => {
 
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -30,7 +34,14 @@ const FloatingActions = () => {
         }
       }
     }, [pathname]);
-  
+
+    
+ 
+
+  const handleSave = () => {
+    console.log("📝 Datos del menú al guardar:", newMenu);
+  };
+
   return (
     <div className="fixed bottom-0 left-0 right-0 p-6 bg-gradient-to-b from-white via-[#FFF3EC] to-[#FFE6D3] backdrop-blur-md shadow-[0_-4px_24px_rgba(0,0,0,0.4)]">
   <div className="max-w-4xl mx-auto flex gap-4">
@@ -54,7 +65,9 @@ const FloatingActions = () => {
       <Tooltip>
         <TooltipTrigger asChild>
           <div className="flex-1">
-            <Button className="h-14 
+            <Button 
+            onClick={handleSave}
+            className="h-14 
         bg-gradient-to-br from-orange-400 to-orange-500 hover:from-orange-500 hover:to-orange-600
         text-white font-semibold text-base 
         rounded-2xl transition-all duration-300 
