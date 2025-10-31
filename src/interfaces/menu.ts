@@ -41,7 +41,6 @@ export interface Category {
   createdAt: string;
   updatedAt: string;
   items: MenuItem[];
-  isNew?: boolean;
 }
 export interface MenuItem {
   id: number;
