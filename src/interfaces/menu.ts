@@ -29,6 +29,7 @@ export interface newMenu {
 }
 
 export interface newCategory {
+  id: number;
   title: string;
   items?: [];
 }
