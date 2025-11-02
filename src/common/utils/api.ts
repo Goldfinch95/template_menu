@@ -1,11 +1,11 @@
-import { Menues, Category, newCategoryPayload } from "@/interfaces/menu";
+import { Menu, newMenu  } from "@/interfaces/menu";
 
 const BASE_URL = "http://localhost:3000/api/menus";
 const CATEGORIES_BASE_URL = "http://localhost:3000/api/categories";
-const TENANT_HEADER = { "x-tenant-subdomain": "amaxlequeano" };
+const TENANT_HEADER = { "x-tenant-subdomain": "amax" };
 
 // --- 🔹 Obtener todos los menús (para Home)
-export const getMenus = async (): Promise<Menues[]> => {
+export const getMenus = async (): Promise<Menu[]> => {
   try {
     const response = await fetch(BASE_URL, {
       method: "GET",
@@ -20,7 +20,8 @@ export const getMenus = async (): Promise<Menues[]> => {
       throw new Error(`Error al cargar los menús: ${response.status}`);
     }
 
-    const data: Menues[] = await response.json();
+    const data: Menu[] = await response.json();
+    console.log("✅ Menús cargados:", data);
     return data;
   } catch (error) {
     console.error(
@@ -32,7 +33,7 @@ export const getMenus = async (): Promise<Menues[]> => {
 };
 
 // --- 🔹 Obtener un menú específico (menuEditor)
-export const getMenu = async (id: string | number): Promise<Menues> => {
+export const getMenu = async (id: string | number): Promise<Menu> => {
   try {
     const response = await fetch(`${BASE_URL}/${id}`, {
       method: "GET",
@@ -52,7 +53,7 @@ export const getMenu = async (id: string | number): Promise<Menues> => {
 };
 
 // --- 🔹 Crear un nuevo menú (menuEditor)
-export const createMenu = async (data: Partial<Menues>): Promise<Menues> => {
+export const createMenu = async (data: newMenu): Promise<Menu> => {
   try {
     const response = await fetch(BASE_URL, {
       method: "POST",
@@ -75,8 +76,8 @@ export const createMenu = async (data: Partial<Menues>): Promise<Menues> => {
 // --- 🔹 Actualizar un menú existente
 export const updateMenu = async (
   id: string | number,
-  data: Partial<Menues>
-): Promise<Menues> => {
+  data: Partial<Menu>
+): Promise<Menu> => {
   try {
     const response = await fetch(`${BASE_URL}/${id}`, {
       method: "PUT",

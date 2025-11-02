@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { Card } from "@/common/components/ui/card";
 import { Button } from "@/common/components/ui/button";
 import { Plus, UtensilsCrossed, ChevronRight, LogOut } from "lucide-react";
-import { Menues } from "@/interfaces/menu";
+import { Menu } from "@/interfaces/menu";
 import Image from "next/image";
 import { Manrope } from "next/font/google";
 import { getMenus } from "@/common/utils/api";
@@ -23,7 +23,7 @@ const hexToGradient = (primaryHex: string, secondaryHex: string) => {
 };
 
 export default function Home() {
-  const [menus, setMenus] = useState<Menues[]>([]);
+  const [menus, setMenus] = useState<Menu[]>([]);
   const [error, setError] = useState("");
   const router = useRouter();
 

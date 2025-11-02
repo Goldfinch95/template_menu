@@ -16,11 +16,13 @@ import { Menues, newCategoryPayload } from "@/interfaces/menu";
 interface FloatingActionsProps {
   newMenu: newMenu;
   categories: newCategoryPayload[];
+  newCategoryPayload?: newCategoryPayload;
 }
 
 const FloatingActions: React.FC<FloatingActionsProps> = ({
   newMenu,
   categories,
+  newCategoryPayload,
 }) => {
   const pathname = usePathname();
   const searchParams = useSearchParams();

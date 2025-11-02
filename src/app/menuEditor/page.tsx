@@ -2,7 +2,7 @@
 
 import React, { useCallback, useState, useEffect } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import { Menues, newMenu, newCategoryPayload } from "@/interfaces/menu";
+import { Menu, newMenu, newCategory } from "@/interfaces/menu";
 import {
   deleteMenu,
   getMenu,
@@ -10,10 +10,7 @@ import {
   createCategory,
 } from "@/common/utils/api";
 import { Alert, AlertDescription } from "@/common/components/ui/alert";
-import {
-  validateFormData,
-  handleInputChange as handleInputChangeUtil,
-} from "@/app/menuEditor/utils/auxiliaryFunctions";
+
 import NavbarEditor from "@/app/menuEditor/components/NavbarEditor";
 import ImagesEditor from "./components/ImagesEditor";
 import InfoEditor from "./components/InfoEditor";
@@ -24,48 +21,21 @@ import { AlertCircle, Trash2, Plus, GripVertical } from "lucide-react";
 import { title } from "process";
 
 const MenuEditorContent = () => {
+
+  //Estado para el menu
+  const [menu, setMenu] = useState<Menu>({} as Menu);
   // estado para nuevo menú
-  const [newMenu, setNewMenu] = useState<newMenu>({
-    title: "",
-    logo: "",
-    backgroundImage: "",
-    color: {
-      primary: "",
-      secondary: "",
-    },
-    pos: "",
-  });
-  const [menuData, setMenuData] = useState<Menues>({
-    id: 0,
-    userId: 0,
-    title: "",
-    active: false,
-    logo: "",
-    backgroundImage: "",
-    color: {
-      primary: "#000000",
-      secondary: "#ffffff",
-    },
-    pos: "",
-    createdAt: "",
-    updatedAt: "",
-    categories: [],
-  });
-  const [newCategoryPayload, setNewCategoryPayload] = useState<newCategoryPayload>({
-    menuId: 0,
-    title: "",
-    description: null,
-    active: true,
-    items: [],
-  });
+  const [newMenu, setNewMenu] = useState<newMenu[]>([]);
+  // estado para nueva categoria
+  const [newCategory, setNewCategory] = useState<newCategory[]>([]);
+
+  
 
   //Estado para obtener id del menú
   const searchParams = useSearchParams();
   // estado para el router
   const router = useRouter();
 
-  // estado para almacenar los datos de categorías payload
-  const [categories, setCategories] = useState<newCategoryPayload[]>([]);
   //cargar menú existente si hay id en los parámetros
   useEffect(() => {
     const menuId = searchParams.get("id");
@@ -73,9 +43,9 @@ const MenuEditorContent = () => {
 
     const loadMenu = async () => {
       try {
-        const menu = await getMenu(menuId);
-        console.log("✅ Menú cargado:", menu);
-        setMenuData(menu);
+        const menuData  = await getMenu(menuId);
+        console.log("✅ Menú cargado:", menuData);
+        setMenu(menuData);
       } catch (error) {
         console.error("❌ Error al cargar el menú:", error);
       }
@@ -83,12 +53,10 @@ const MenuEditorContent = () => {
     loadMenu();
   }, [searchParams]);
 
-  
-
   // recibir datos de los componentes hijos
   const reciveRestaurantImages = useCallback(
     (images: { logo: string; backgroundImage: string }) => {
-      setNewMenu((prevMenu) => ({
+      setMenu((prevMenu) => ({
         ...prevMenu,
         logo: images.logo,
         backgroundImage: images.backgroundImage,
@@ -120,10 +88,10 @@ const MenuEditorContent = () => {
   };
 
   //funcion para recibir las categorías del componente hijo
-  const reciveRestaurantCategories = (updatedCategories: newCategoryPayload[]) => {
-    
-    setCategories(updatedCategories);
-  }
+  const receiveRestaurantCategories = (categories: newCategory[]) => {
+    console.log("Categorías recibidas del hijo:", categories);
+    setNewCategory(categories);
+  };
 
   // funcion que elimina el menú
   const handleDeleteMenu = async () => {
@@ -140,8 +108,6 @@ const MenuEditorContent = () => {
       alert("Error al eliminar el menú");
     }
   };
-
- 
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-white via-[#FFF3EC] to-[#FFE6D3] w-full  pb-25">
@@ -162,16 +128,29 @@ const MenuEditorContent = () => {
           )}
 
           {/*Sección de URLs de imágenes*/}
-          <ImagesEditor logo={menuData.logo} background={menuData.backgroundImage} onImagesSubmit={reciveRestaurantImages} />
+          <ImagesEditor
+            logo={menu.logo}
+            background={menu.backgroundImage}
+            onImagesSubmit={reciveRestaurantImages}
+          />
 
           {/*Información básica */}
-          <InfoEditor title={menuData.title} pos={menuData.pos} onInfoSubmit={reciveRestaurantInformation} />
+          <InfoEditor
+            title={menu.title}
+            pos={menu.pos}
+            onInfoSubmit={reciveRestaurantInformation}
+          />
           {/* Colores */}
-          <ColorEditor primary={menuData.color.primary} secondary={menuData.color.secondary} onColorsChange={reciveRestaurantColors} />
+          <ColorEditor
+            primary={menu.color?.primary}
+            secondary={menu.color?.secondary}
+            onColorsChange={reciveRestaurantColors}
+          />
           <div className="py-1"></div>
-          <CategoryEditor reciveRestaurantCategories={reciveRestaurantCategories} categories={menuData.categories} />
-         
-  
+          <CategoryEditor
+            onCategoriesChange={receiveRestaurantCategories}
+            categories={menu.categories}
+          />
 
           {/* Eliminar menu */}
           <button
@@ -185,7 +164,7 @@ const MenuEditorContent = () => {
       </main>
 
       {/* Botones flotantes */}
-      <FloatingActions newMenu={newMenu} categories={categories} />
+      {/*<FloatingActions newMenu={newMenu} categories={categories} newCategoryPayload={newCategoryPayload} />*/}
 
       {/* Modal de Preview 
       {showPreview && (

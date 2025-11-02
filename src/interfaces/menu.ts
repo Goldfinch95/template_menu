@@ -1,11 +1,14 @@
-// menu con categorias e items
-export interface Menues {
+//  INTERFAZ GENERAL
+
+// menu
+export interface Menu {
+  active: boolean;
+  backgroundImage: string;
+  categories: Categories[];
   id: number;
   userId: number;
   title: string;
-  active: boolean;
   logo: string;
-  backgroundImage: string;
   color: {
     primary: string;
     secondary: string;
@@ -13,88 +16,73 @@ export interface Menues {
   pos: string;
   createdAt: string;
   updatedAt: string;
-  categories?: Category[];
+  
 }
+
+// categorias del menu
+export interface Categories {
+  active: boolean;
+  createdAt: string;
+  id: number;
+  items: Items[];
+  menuId: number;
+  title: string;
+  updatedAt: string;
+}
+
+// items de las categorias
+
+export interface Items {
+  active: boolean;
+  categoryId: number;
+  createdAt: string;
+  description: string;
+  id: number;
+  images: ImageItems[];
+  price: string;
+  title: string;
+  updatedAt: string;
+}
+
+// imagenes de los items
+export interface ImageItems {
+  active: boolean;
+  alt: string;
+  createdAt: string;
+  id: number;
+  itemId: number;
+  sortOrder: number;
+  updatedAt: string;
+  url: string;
+}
+
+
+// INTERFAZ PARA CREACION
 
 // nuevo menu
 
 export interface newMenu {
-  title: string;
-  logo: string;
+  userId: 1; // temporalmente lo fijo en 1
   backgroundImage: string;
   color: {
     primary: string;
     secondary: string;
   };
+  logo: string;
   pos: string;
+  title: string;
+  categories: [];
 }
+
+
 
 // nueva categoria
 export interface newCategory {
   id: number;
-  menuId: number;
+  menuId: 1; // temporalmente lo fijo en 1
   title: string;
   items?: [];
 }
 
 
 
-// categoria con items
-export interface Category {
-  id: number;
-  menuId: number;
-  title: string;
-  active: boolean;
-  createdAt: string;
-  updatedAt: string;
-  items: MenuItem[];
-}
-// item del menu
-export interface MenuItem {
-  id: number;
-  categoryId: number;
-  title: string;
-  description: string;
-  price: string; // La API devuelve "7500.00" como string
-  active: boolean;
-  createdAt: string;
-  updatedAt: string;
-  images: MenuItemImage[];
-}
-// item de las imagenes del menu
-export interface MenuItemImage {
-  id: number;
-  itemId: number;
-  url: string;
-  alt: string;
-  sortOrder: number;
-  active: boolean;
-  createdAt: string;
-  updatedAt: string;
-}
-
-
-// payload de categoria
-
-export interface newCategoryPayload {
-  menuId: number;
-  title: string;
-  description?: string | null;
-  active?: boolean;
-  items?: NewItem[];
-}
-// payload de nuevo item
-export interface NewItem {
-  title: string;
-  description?: string | null;
-  price: string;
-  active?: boolean;
-  images?: NewImage[];
-}
-
-export interface NewImage {
-  url: string;
-  alt?: string | null;
-  sortOrder?: number;
-  active?: boolean;
-}

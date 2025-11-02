@@ -2,74 +2,18 @@
 
 import React, { useEffect, useRef } from "react";
 import { Plus, GripVertical, Trash2 } from "lucide-react";
-import { Category, newCategory } from "@/interfaces/menu";
+import { Categories, newCategory, } from "@/interfaces/menu";
 
 interface CategoryEditorProps {
-  categories: Category[];
-   reciveRestaurantCategories?: (updatedCategories: Category[]) => void;
+  onCategoriesChange: (categories: newCategory[]) => void;
+  categories: Categories[];
 }
 
 const CategoryEditor = ({
-  categories: initialCategories,
-  reciveRestaurantCategories,
+  onCategoriesChange,
+  categories = [],
 }: CategoryEditorProps) => {
-  // Estado local para las categorías contando las ya establecidas y las nuevas
-  const [categories, setCategories] =
-    React.useState<Category[]>(initialCategories);
-
-    // Ref para almacenar el timeout del debounce
-  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
-
-  // Sincronizar cuando initialCategories cambie desde el backend
-  useEffect(() => {
-    setCategories(initialCategories);
-  }, [initialCategories]);
-
-  // Función para agregar categoría y añadirlo a las otras categorías
-  const addCategory = () => {
-    const newCategory: newCategory = {
-    menuId: 1, // Temporalmente asignado, debería ser dinámico
-      title: "",
-      items: [],
-    };
-    setCategories([...categories, newCategory as any]);
-  };
-
-  // Función para actualizar el título de una categoría recorriendo las categorías y viendo cual cambiar.
-  const updateCategoryTitle = (id: number, newTitle: string) => {
-    setCategories(
-      categories.map((category) =>
-        category.id === id ? { ...category, title: newTitle } : category
-      )
-    );
-  };
-
-  // Debounce: Enviar cambios al padre después de 500ms de inactividad
-  useEffect(() => {
-    // Limpiar el timer anterior si existe
-    if (debounceTimerRef.current) {
-      clearTimeout(debounceTimerRef.current);
-    }
-
-    // Crear nuevo timer
-    debounceTimerRef.current = setTimeout(() => {
-      if (reciveRestaurantCategories) {
-        reciveRestaurantCategories(categories);
-      }
-    }, 500);
-
-    // Cleanup: limpiar el timer cuando el componente se desmonte
-    return () => {
-      if (debounceTimerRef.current) {
-        clearTimeout(debounceTimerRef.current);
-      }
-    };
-  }, [categories]); // ✅ Solo observa categories, NO reciveRestaurantCategories
-
-  // Función para eliminar una categoría
-  const deleteCategory = (id: number) => {
-    setCategories(categories.filter((category) => category.id !== id));
-  };
+  
 
   return (
     <div className="bg-white/80 backdrop-blur-xl border border-slate-200 rounded-xl shadow-md overflow-hidden sm:rounded-2xl sm:shadow-lg">
@@ -79,7 +23,7 @@ const CategoryEditor = ({
           Categorías y Platos
         </h3>
         <button
-          onClick={addCategory}
+          
           className="flex items-center justify-center gap-2 px-3 py-2 bg-gradient-to-br from-orange-400 to-orange-500 
               hover:from-orange-500 hover:to-orange-600 active:scale-[0.97]
               text-white rounded-lg text-sm font-semibold shadow-md hover:shadow-lg transition-all"
@@ -102,13 +46,11 @@ const CategoryEditor = ({
               <input
                 type="text"
                 value={category.title}
-                onChange={(e) =>
-                  updateCategoryTitle(category.id, e.target.value)
-                }
+               
                 placeholder="Ej: Entradas, Postres..."
                 className="flex-1 bg-white border border-slate-200 text-slate-800 text-sm rounded-lg px-3 py-2 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-orange-400 transition-all"
               />
-              <button onClick={() => deleteCategory(category.id)} className="p-2 text-red-500 hover:bg-red-100 rounded-md transition-all">
+              <button  className="p-2 text-red-500 hover:bg-red-100 rounded-md transition-all">
                 <Trash2 className="w-4 h-4" />
               </button>
             </div>
