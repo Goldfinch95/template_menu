@@ -9,20 +9,18 @@ import {
   TooltipContent,
 } from "@/common/components/ui/tooltip";
 import { usePathname, useSearchParams, useRouter } from "next/navigation";
-import { newMenu } from "@/interfaces/menu";
 import { createMenu, createCategory } from "@/common/utils/api";
-import { Menues, newCategoryPayload } from "@/interfaces/menu";
+
+import { newMenu, newCategory } from "@/interfaces/menu";
 
 interface FloatingActionsProps {
   newMenu: newMenu;
-  categories: newCategoryPayload[];
-  newCategoryPayload?: newCategoryPayload;
+  newCategory: newCategory[];
 }
 
 const FloatingActions: React.FC<FloatingActionsProps> = ({
   newMenu,
-  categories,
-  newCategoryPayload,
+  newCategory,
 }) => {
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -46,19 +44,18 @@ const FloatingActions: React.FC<FloatingActionsProps> = ({
   }, [pathname]);
 
   const handleSave = async () => {
-    try {
-      await createMenu(newMenu);
-      if (categories && categories.length > 0) {
-        const categoryPromises = categories.map(category => 
-        createCategory(category)
-      );
-       await Promise.all(categoryPromises);
-      }
-      router.push("/");
-    } catch (error) {
-      console.error("❌ Error al crear el menú:", error);
-    }
-  };
+  try {
+    // Crear el menú
+     await createMenu(newMenu);
+     // 2. Extraer el menuId de las categorías existentes o usar el id del menú
+    const menuId = searchParams.get("id");
+    console.log("📌 MenuID a usar:", menuId);
+    // Redirigir después de crear
+    router.push("/");
+  } catch (error) {
+    console.error("❌ Error al crear el menú:", error);
+  }
+};
 
   return (
     <div className="fixed bottom-0 left-0 right-0 p-6 bg-gradient-to-b from-white via-[#FFF3EC] to-[#FFE6D3] backdrop-blur-md shadow-[0_-4px_24px_rgba(0,0,0,0.4)]">

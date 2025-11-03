@@ -44,7 +44,6 @@ const MenuEditorContent = () => {
     const loadMenu = async () => {
       try {
         const menuData  = await getMenu(menuId);
-        console.log("✅ Menú cargado:", menuData);
         setMenu(menuData);
       } catch (error) {
         console.error("❌ Error al cargar el menú:", error);
@@ -89,7 +88,7 @@ const MenuEditorContent = () => {
 
   //funcion para recibir las categorías del componente hijo
   const receiveRestaurantCategories = (categories: newCategory[]) => {
-    console.log("Categorías recibidas del hijo:", categories);
+    console.log("Categorías recibidas en el padre:", categories);
     setNewCategory(categories);
   };
 
@@ -164,7 +163,7 @@ const MenuEditorContent = () => {
       </main>
 
       {/* Botones flotantes */}
-      {/*<FloatingActions newMenu={newMenu} categories={categories} newCategoryPayload={newCategoryPayload} />*/}
+      <FloatingActions newMenu={newMenu} newCategory={newCategory}  />
 
       {/* Modal de Preview 
       {showPreview && (

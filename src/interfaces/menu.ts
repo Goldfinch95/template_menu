@@ -79,7 +79,7 @@ export interface newMenu {
 // nueva categoria
 export interface newCategory {
   id: number;
-  menuId: 1; // temporalmente lo fijo en 1
+  menuId: number; // temporalmente lo fijo en 1
   title: string;
   items?: [];
 }

@@ -1,4 +1,4 @@
-import { Menu, newMenu  } from "@/interfaces/menu";
+import { Menu, newMenu, Categories, newCategory  } from "@/interfaces/menu";
 
 const BASE_URL = "http://localhost:3000/api/menus";
 const CATEGORIES_BASE_URL = "http://localhost:3000/api/categories";
@@ -121,8 +121,8 @@ export const deleteMenu = async (id: string | number): Promise<void> => {
 
 // Crear una nueva categoría
 export const createCategory = async (
-  categoryData: newCategoryPayload
-): Promise<Category> => {
+  categoryData: newCategory
+): Promise<Categories> => {
   try {
     const response = await fetch(CATEGORIES_BASE_URL, {
       method: "POST",
