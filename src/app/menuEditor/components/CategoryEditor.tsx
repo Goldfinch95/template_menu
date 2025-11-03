@@ -1,8 +1,9 @@
 "use client";
 
-import React, { useEffect, useRef } from "react";
+import React, {useEffect, useState} from "react";
 import { Plus, GripVertical, Trash2 } from "lucide-react";
 import { Categories, newCategory, } from "@/interfaces/menu";
+
 
 interface CategoryEditorProps {
   onCategoriesChange: (categories: newCategory[]) => void;
@@ -13,7 +14,54 @@ const CategoryEditor = ({
   onCategoriesChange,
   categories = [],
 }: CategoryEditorProps) => {
-  
+//estado de nueva categoria
+const [newCategories, setNewCategories] = useState<newCategory[]>([]);
+//estado de categorias + nuevas categorias
+ const [allCategories, setAllCategories] = useState<(Categories | newCategory)[]>([]);
+
+
+  useEffect(() => {
+    const combined = [...categories, ...newCategories];
+    setAllCategories(combined);
+  }, [categories, newCategories]);
+
+//Crear una nueva categoria
+
+const createNewCategory = () => {
+  const newCat: newCategory = {
+    id: Date.now(),
+    menuId: 1, // Usar timestamp como ID temporal
+    title: "",
+    items: [],
+  };
+  const updatedNewCategories = [...newCategories, newCat];
+  setNewCategories(updatedNewCategories);
+  onCategoriesChange(updatedNewCategories);
+}
+
+//Actualizar el título de la categoría
+const UpdateCategoryTitle = (id: number, newTitle: string) => {
+  const isNewCategory = newCategories.some((cat) => cat.id === id);
+
+  if (isNewCategory) {
+    const update = newCategories.map((cat) =>
+      cat.id === id ? { ...cat, title: newTitle } : cat
+    );
+    setNewCategories(update);
+    onCategoriesChange(update);
+  }
+};
+
+// Eliminar una categoría
+  const deleteCategory = (id: number) => {
+    const isNewCategory = newCategories.some(cat => cat.id === id);
+    
+    if (isNewCategory) {
+      const updated = newCategories.filter(cat => cat.id !== id);
+      setNewCategories(updated);
+      onCategoriesChange(updated);
+    }
+  };
 
   return (
     <div className="bg-white/80 backdrop-blur-xl border border-slate-200 rounded-xl shadow-md overflow-hidden sm:rounded-2xl sm:shadow-lg">
@@ -23,7 +71,7 @@ const CategoryEditor = ({
           Categorías y Platos
         </h3>
         <button
-          
+          onClick={createNewCategory}
           className="flex items-center justify-center gap-2 px-3 py-2 bg-gradient-to-br from-orange-400 to-orange-500 
               hover:from-orange-500 hover:to-orange-600 active:scale-[0.97]
               text-white rounded-lg text-sm font-semibold shadow-md hover:shadow-lg transition-all"
@@ -35,7 +83,7 @@ const CategoryEditor = ({
 
       {/* Contenido */}
       <div className="p-3 sm:p-5 space-y-4">
-        {categories.map((category) => (
+        {allCategories.map((category) => (
           <div
             key={category.id}
             className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden"
@@ -46,11 +94,11 @@ const CategoryEditor = ({
               <input
                 type="text"
                 value={category.title}
-               
+               onChange={(e) => UpdateCategoryTitle(category.id, e.target.value)}
                 placeholder="Ej: Entradas, Postres..."
                 className="flex-1 bg-white border border-slate-200 text-slate-800 text-sm rounded-lg px-3 py-2 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-orange-400 transition-all"
               />
-              <button  className="p-2 text-red-500 hover:bg-red-100 rounded-md transition-all">
+              <button onClick={() => deleteCategory(category.id)}   className="p-2 text-red-500 hover:bg-red-100 rounded-md transition-all">
                 <Trash2 className="w-4 h-4" />
               </button>
             </div>
