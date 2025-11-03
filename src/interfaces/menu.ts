@@ -78,10 +78,9 @@ export interface newMenu {
 
 // nueva categoria
 export interface newCategory {
-  id: number;
-  menuId: number; // temporalmente lo fijo en 1
+  menuId: number;
   title: string;
-  items?: [];
+  items?: any[];
 }
 
 

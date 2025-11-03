@@ -25,7 +25,7 @@ const MenuEditorContent = () => {
   //Estado para el menu
   const [menu, setMenu] = useState<Menu>({} as Menu);
   // estado para nuevo menú
-  const [newMenu, setNewMenu] = useState<newMenu[]>([]);
+  const [newMenu, setNewMenu] = useState<newMenu>({} as newMenu);
   // estado para nueva categoria
   const [newCategory, setNewCategory] = useState<newCategory[]>([]);
 

@@ -46,11 +46,24 @@ const FloatingActions: React.FC<FloatingActionsProps> = ({
   const handleSave = async () => {
   try {
     // Crear el menú
-     await createMenu(newMenu);
-     // 2. Extraer el menuId de las categorías existentes o usar el id del menú
-    const menuId = searchParams.get("id");
-    console.log("📌 MenuID a usar:", menuId);
-    // Redirigir después de crear
+      const createdMenu = await createMenu(newMenu);
+    //  Obtener el menuId del menú recién creado
+    const menuId = createdMenu.id; 
+  
+    // añadir categorias con menuID
+    if (newCategory && newCategory.length > 0) {
+      await Promise.all(
+        newCategory.map(category => 
+          createCategory({
+            title: category.title,
+            items: category.items || [],
+            menuId: menuId,
+            
+          })
+        )
+      );
+    }
+    // Redirigir a pagina de menues después de crear
     router.push("/");
   } catch (error) {
     console.error("❌ Error al crear el menú:", error);

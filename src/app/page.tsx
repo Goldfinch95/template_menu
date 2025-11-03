@@ -124,7 +124,7 @@ export default function Home() {
             >
               <div
                 className="relative h-44 lg:h-64 rounded-3xl p-5 lg:p-6 flex flex-col justify-between shadow-xl hover:shadow-2xl transition-shadow duration-300"
-                style={hexToGradient(menu.color.primary, menu.color.secondary)}
+                style={hexToGradient(menu.color?.primary, menu.color?.secondary)}
               >
                 {/* Patrón de fondo */}
                 <div className="absolute inset-0 bg-black/10 rounded-3xl" />
