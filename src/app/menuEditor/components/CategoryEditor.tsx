@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState, useRef } from "react";
 import { Plus, GripVertical, Trash2 } from "lucide-react";
-import { Categories, newCategory, EditedCategory } from "@/interfaces/menu";
+import { Categories, newCategory, EditedCategory, newItem } from "@/interfaces/menu";
 
 interface CategoryEditorProps {
   categories: Categories[];
@@ -148,6 +148,29 @@ const CategoryEditor = ({
     }
   };
 
+  // añadir un plato
+  const addItem = () =>{
+    console.log("crear un nuevo item")
+    // Crear nuevo item vacío
+  const newItem: newItem = {
+    id: Date.now(), // ID temporal único
+    title: "",
+    description: "",
+    price: "",
+    images: [],
+  };
+
+  
+    
+    //acceder a la categoria seleccionada
+    console.log(visibleCategories[1].id)
+    //acceder a los items de la categoria
+    console.log(visibleCategories[1].id.items)
+    //añadir el item dentro de los items de categoria
+
+    //mostrar en consola el resultado
+
+  }
   
 
   return (
@@ -197,7 +220,7 @@ const CategoryEditor = ({
 
             {/* Items */}
             <div className="p-3 space-y-3">
-              {category.items.map((item) => (
+              {category.items?.map((item) => (
                 <div
                   key={item.id}
                   className="bg-slate-50 rounded-lg p-3 border border-slate-200"
@@ -248,7 +271,7 @@ const CategoryEditor = ({
               ))}
 
               {/* Agregar plato */}
-              <button className="w-full py-3 border-2 border-dashed border-slate-300 text-slate-500 hover:text-orange-500 hover:border-orange-400 rounded-lg transition-all text-sm font-medium flex items-center justify-center gap-2 bg-white">
+              <button onClick={addItem} className="w-full py-3 border-2 border-dashed border-slate-300 text-slate-500 hover:text-orange-500 hover:border-orange-400 rounded-lg transition-all text-sm font-medium flex items-center justify-center gap-2 bg-white">
                 <Plus className="w-4 h-4" />
                 Agregar Plato
               </button>

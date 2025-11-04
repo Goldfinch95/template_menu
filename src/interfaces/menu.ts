@@ -80,16 +80,25 @@ export interface newMenu {
 export interface newCategory {
   menuId: number;
   title: string;
-  items?: any[];
+  items?: Items[];
 }
+
+// nuevo item
+export interface newItem{
+  description: string;
+  id: number;
+  images: ImageItems[];
+  price: string;
+  title: string;
+}
+
 
 // INTERFAZ PARA EDICION
 
+// editar categoria
 export interface EditedCategory {
   id: number;
   title: string;
   items?: Items[];
 }
-
-
 
