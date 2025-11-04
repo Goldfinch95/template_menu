@@ -21,15 +21,14 @@ import { AlertCircle, Trash2, Plus, GripVertical } from "lucide-react";
 import { title } from "process";
 
 const MenuEditorContent = () => {
-
   //Estado para el menu
   const [menu, setMenu] = useState<Menu>({} as Menu);
   // estado para nuevo menú
   const [newMenu, setNewMenu] = useState<newMenu>({} as newMenu);
   // estado para nueva categoria
   const [newCategory, setNewCategory] = useState<newCategory[]>([]);
-
-  
+  //Estado para categorías marcadas para eliminar
+  const [categoriesToDelete, setCategoriesToDelete] = useState<number[]>([]);
 
   //Estado para obtener id del menú
   const searchParams = useSearchParams();
@@ -43,7 +42,7 @@ const MenuEditorContent = () => {
 
     const loadMenu = async () => {
       try {
-        const menuData  = await getMenu(menuId);
+        const menuData = await getMenu(menuId);
         setMenu(menuData);
       } catch (error) {
         console.error("❌ Error al cargar el menú:", error);
@@ -91,6 +90,22 @@ const MenuEditorContent = () => {
     console.log("Categorías recibidas en el padre:", categories);
     setNewCategory(categories);
   };
+
+  //Función para recibir las categorías marcadas para eliminar
+
+  // 🆕 Función para recibir las categorías marcadas para eliminar
+  const receiveCategoryForDelete = useCallback((categoryId: number) => {
+    setCategoriesToDelete((prev) => {
+      console.log("categorias enviadas al padre para eliminar" , categoryId )
+      return [...prev, categoryId];
+    });
+  }, []);
+
+  // 🆕 Función para limpiar las categorías marcadas después de guardar
+  const clearCategoriesToDelete = useCallback(() => {
+    
+    setCategoriesToDelete([]);
+  }, []);
 
   // funcion que elimina el menú
   const handleDeleteMenu = async () => {
@@ -148,6 +163,8 @@ const MenuEditorContent = () => {
           <div className="py-1"></div>
           <CategoryEditor
             onCategoriesChange={receiveRestaurantCategories}
+            onDeleteCategory={receiveCategoryForDelete}
+            categoriesToDelete={categoriesToDelete}
             categories={menu.categories}
           />
 
@@ -163,7 +180,7 @@ const MenuEditorContent = () => {
       </main>
 
       {/* Botones flotantes */}
-      <FloatingActions newMenu={newMenu} newCategory={newCategory}  />
+      <FloatingActions newMenu={newMenu} newCategory={newCategory} categoriesToDelete={categoriesToDelete} onDeleteComplete={clearCategoriesToDelete} />
 
       {/* Modal de Preview 
       {showPreview && (

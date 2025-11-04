@@ -9,22 +9,27 @@ import {
   TooltipContent,
 } from "@/common/components/ui/tooltip";
 import { usePathname, useSearchParams, useRouter } from "next/navigation";
-import { createMenu, createCategory } from "@/common/utils/api";
+import { createMenu, createCategory, deleteCategory  } from "@/common/utils/api";
 
 import { newMenu, newCategory } from "@/interfaces/menu";
 
 interface FloatingActionsProps {
   newMenu: newMenu;
   newCategory: newCategory[];
+  categoriesToDelete: number[];
+  onDeleteComplete: () => void;
 }
 
 const FloatingActions: React.FC<FloatingActionsProps> = ({
   newMenu,
   newCategory,
+  categoriesToDelete,
+  onDeleteComplete,
 }) => {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const [title, setTitle] = useState("");
+  const [isSaving, setIsSaving] = useState(false); // 🆕 Estado de carga
 
   const router = useRouter();
 
@@ -44,12 +49,28 @@ const FloatingActions: React.FC<FloatingActionsProps> = ({
   }, [pathname]);
 
   const handleSave = async () => {
+    setIsSaving(true);
   try {
-    // Crear el menú
+    //obtener el valor id
+    const menuId = searchParams.get("id");
+    // si se esta editando un menu...
+    if (menuId) {
+      // Eliminar categorías marcadas
+      if (categoriesToDelete.length > 0) {
+        console.log("categorias a eliminar", categoriesToDelete)
+        await Promise.all(
+            categoriesToDelete.map((categoryId) => deleteCategory(categoryId))
+          );
+          onDeleteComplete();
+          console.log ("categorias eliminadas de la base de datos", categoriesToDelete)
+      }
+    }
+    // si se esta creando un menu..
+    else{
+      // Crear el menú
       const createdMenu = await createMenu(newMenu);
     //  Obtener el menuId del menú recién creado
     const menuId = createdMenu.id; 
-  
     // añadir categorias con menuID
     if (newCategory && newCategory.length > 0) {
       await Promise.all(
@@ -62,6 +83,8 @@ const FloatingActions: React.FC<FloatingActionsProps> = ({
           })
         )
       );
+    }
+    
     }
     // Redirigir a pagina de menues después de crear
     router.push("/");

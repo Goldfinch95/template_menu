@@ -145,3 +145,26 @@ export const createCategory = async (
     throw error;
   }
 };
+
+// Eliminar una categoría
+export const deleteCategory = async (categoryId: number): Promise<void> => {
+  try {
+    const response = await fetch(`${CATEGORIES_BASE_URL}/${categoryId}`, {
+      method: "DELETE",
+      headers: {
+        ...TENANT_HEADER,
+      },
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Error al eliminar categoría: ${response.status} - ${errorText}`);
+    }
+    
+    // Como el backend responde con 204 (No Content), no hay body que parsear
+    console.log("✅ Categoría eliminada correctamente");
+  } catch (error) {
+    console.error("❌ Error al eliminar categoría:", error);
+    throw error;
+  }
+};

@@ -7,21 +7,30 @@ import { Categories, newCategory } from "@/interfaces/menu";
 interface CategoryEditorProps {
   onCategoriesChange: (categories: newCategory[]) => void;
   categories: Categories[];
+  onDeleteCategory: (categoryId: number) => void; 
+  categoriesToDelete: number[]; 
 }
 
 const CategoryEditor = ({
   onCategoriesChange,
   categories = [],
+  onDeleteCategory, 
+  categoriesToDelete, 
 }: CategoryEditorProps) => {
   //estado de nueva categoria
   const [newCategories, setNewCategories] = useState<newCategory[]>([]);
 
    // Referencia para el timeout del debounce
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  // 🔄 Filtrar categorías que NO están marcadas para eliminar
+  const visibleCategories = categories.filter(
+    (cat) => !categoriesToDelete.includes(cat.id)
+  );
   
 
   // mostrar las categorias combinadas
-  const allCategories = [...categories, ...newCategories];
+  const allCategories = [...visibleCategories, ...newCategories];
 
   // funcion para notificar al padre de los cambios en categorias con debounce
   const notifyNewCategoriesAdd = (updatedCategories: newCategory[]) => {
@@ -77,11 +86,18 @@ const CategoryEditor = ({
     const isNewCategory = newCategories.some((cat) => cat.id === id);
 
     if (isNewCategory) {
+      // Si es una categoría nueva (local), la eliminamos del estado
       const updated = newCategories.filter((cat) => cat.id !== id);
       setNewCategories(updated);
       onCategoriesChange(updated); // ← Notificar solo con las nuevas actualizadas
+    }else{
+       // Si es una categoría existente (de la BD), la marcamos para eliminar
+       console.log("categorias a eliminar", id)
+      onDeleteCategory(id);
     }
   };
+
+  
 
   return (
     <div className="bg-white/80 backdrop-blur-xl border border-slate-200 rounded-xl shadow-md overflow-hidden sm:rounded-2xl sm:shadow-lg">
