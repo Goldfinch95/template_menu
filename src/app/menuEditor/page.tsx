@@ -2,7 +2,7 @@
 
 import React, { useCallback, useState, useEffect } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import { Menu, newMenu, newCategory } from "@/interfaces/menu";
+import { Menu, newMenu, newCategory, EditedCategory } from "@/interfaces/menu";
 import {
   deleteMenu,
   getMenu,
@@ -27,6 +27,8 @@ const MenuEditorContent = () => {
   const [newMenu, setNewMenu] = useState<newMenu>({} as newMenu);
   // estado para nueva categoria
   const [newCategory, setNewCategory] = useState<newCategory[]>([]);
+  // Estado para categorias editadas
+  const [editedCategories, setEditedCategories] = useState<EditedCategory[]>([]);
   //Estado para categorías marcadas para eliminar
   const [categoriesToDelete, setCategoriesToDelete] = useState<number[]>([]);
 
@@ -87,16 +89,40 @@ const MenuEditorContent = () => {
 
   //funcion para recibir las categorías del componente hijo
   const receiveRestaurantCategories = (categories: newCategory[]) => {
-    console.log("Categorías recibidas en el padre:", categories);
     setNewCategory(categories);
   };
 
-  //Función para recibir las categorías marcadas para eliminar
+    // 🆕 Función para recibir categorías editadas desde el hijo
+  const receiveEditedCategory = useCallback((editedCategory: EditedCategory) => {
+    setEditedCategories((prev) => {
+      
+      // Si la categoría ya está en el array, actualízala; si no, agrégala
+      const existingIndex = prev.findIndex(cat => cat.id === editedCategory.id);
+      
+      if (existingIndex !== -1) {
+        const updated = [...prev];
+        updated[existingIndex] = editedCategory;
+        
+        return updated;
+      } else {
+        
+        return [...prev, editedCategory];
+      }
+    });
+  }, []);
+
+  // 🆕 Función para limpiar las categorías después de guardar
+  const clearCategoriesAfterSave = useCallback(() => {
+    console.log("🧹 Limpiando categorías después de guardar");
+    setCategoriesToDelete([]);
+    setEditedCategories([]);
+  }, []);
+
 
   // 🆕 Función para recibir las categorías marcadas para eliminar
   const receiveCategoryForDelete = useCallback((categoryId: number) => {
     setCategoriesToDelete((prev) => {
-      console.log("categorias enviadas al padre para eliminar" , categoryId )
+     
       return [...prev, categoryId];
     });
   }, []);
@@ -163,6 +189,7 @@ const MenuEditorContent = () => {
           <div className="py-1"></div>
           <CategoryEditor
             onCategoriesChange={receiveRestaurantCategories}
+            onEditCategory={receiveEditedCategory}
             onDeleteCategory={receiveCategoryForDelete}
             categoriesToDelete={categoriesToDelete}
             categories={menu.categories}
@@ -180,7 +207,7 @@ const MenuEditorContent = () => {
       </main>
 
       {/* Botones flotantes */}
-      <FloatingActions newMenu={newMenu} newCategory={newCategory} categoriesToDelete={categoriesToDelete} onDeleteComplete={clearCategoriesToDelete} />
+      <FloatingActions newMenu={newMenu} newCategory={newCategory} editedCategories={editedCategories} categoriesToDelete={categoriesToDelete} onDeleteComplete={clearCategoriesToDelete} />
 
       {/* Modal de Preview 
       {showPreview && (

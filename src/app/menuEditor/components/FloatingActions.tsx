@@ -9,13 +9,14 @@ import {
   TooltipContent,
 } from "@/common/components/ui/tooltip";
 import { usePathname, useSearchParams, useRouter } from "next/navigation";
-import { createMenu, createCategory, deleteCategory  } from "@/common/utils/api";
+import { createMenu, createCategory, updateCategory, deleteCategory  } from "@/common/utils/api";
 
-import { newMenu, newCategory } from "@/interfaces/menu";
+import { newMenu, newCategory, EditedCategory } from "@/interfaces/menu";
 
 interface FloatingActionsProps {
   newMenu: newMenu;
   newCategory: newCategory[];
+  editedCategories: EditedCategory[];
   categoriesToDelete: number[];
   onDeleteComplete: () => void;
 }
@@ -23,6 +24,7 @@ interface FloatingActionsProps {
 const FloatingActions: React.FC<FloatingActionsProps> = ({
   newMenu,
   newCategory,
+  editedCategories,
   categoriesToDelete,
   onDeleteComplete,
 }) => {
@@ -55,7 +57,7 @@ const FloatingActions: React.FC<FloatingActionsProps> = ({
     const menuId = searchParams.get("id");
     // si se esta editando un menu...
     if (menuId) {
-      // Eliminar categorías marcadas
+      // Eliminar categorías
       if (categoriesToDelete.length > 0) {
         console.log("categorias a eliminar", categoriesToDelete)
         await Promise.all(
@@ -64,6 +66,19 @@ const FloatingActions: React.FC<FloatingActionsProps> = ({
           onDeleteComplete();
           console.log ("categorias eliminadas de la base de datos", categoriesToDelete)
       }
+      // Editar categorias
+      if (editedCategories && editedCategories.length > 0) {
+        
+        await Promise.all(
+            editedCategories.map((category) =>
+              updateCategory(category.id, {
+                title: category.title,
+                items: category.items || [],
+              })
+            )
+          );
+          
+        }
     }
     // si se esta creando un menu..
     else{

@@ -1,4 +1,4 @@
-import { Menu, Categories, newCategory, newMenu  } from "@/interfaces/menu";
+import { Menu, Categories, Items, newCategory, newMenu  } from "@/interfaces/menu";
 
 const BASE_URL = "http://localhost:3000/api/menus";
 const CATEGORIES_BASE_URL = "http://localhost:3000/api/categories";
@@ -21,7 +21,7 @@ export const getMenus = async (): Promise<Menu[]> => {
     }
 
     const data: Menu[] = await response.json();
-    console.log("✅ Menús cargados:", data);
+    
     return data;
   } catch (error) {
     console.error(
@@ -138,13 +138,43 @@ export const createCategory = async (
       throw new Error(`Error al crear categoría: ${response.status} - ${errorText}`);
     } 
     const data = await response.json();
-    console.log("✅ Categoría creada:", data);
+   
     return data;
   } catch (error) {
     console.error("❌ Error al crear categoría:", error);
     throw error;
   }
 };
+
+// Editar una categoria
+export const updateCategory = async (
+  categoryId: number, 
+  categoryData: { title: string; items?: Items[] }
+): Promise<Categories> => {
+  try {
+    const response = await fetch(`${CATEGORIES_BASE_URL}/${categoryId}`, {
+      method: "PUT",
+      headers: {
+        ...TENANT_HEADER,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(categoryData),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Error al editar categoría: ${response.status} - ${errorText}`);
+    }
+    
+    const updatedCategory: Categories = await response.json();
+    
+    return updatedCategory;
+  } catch (error) {
+    console.error("❌ Error al editar categoría:", error);
+    throw error;
+  }
+};
+
 
 // Eliminar una categoría
 export const deleteCategory = async (categoryId: number): Promise<void> => {

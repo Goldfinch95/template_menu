@@ -2,17 +2,19 @@
 
 import React, { useEffect, useState, useRef } from "react";
 import { Plus, GripVertical, Trash2 } from "lucide-react";
-import { Categories, newCategory } from "@/interfaces/menu";
+import { Categories, newCategory, EditedCategory } from "@/interfaces/menu";
 
 interface CategoryEditorProps {
-  onCategoriesChange: (categories: newCategory[]) => void;
   categories: Categories[];
+  onCategoriesChange: (categories: newCategory[]) => void;
+  onEditCategory: (editedCategory: EditedCategory) => void;
   onDeleteCategory: (categoryId: number) => void; 
   categoriesToDelete: number[]; 
 }
 
 const CategoryEditor = ({
   onCategoriesChange,
+   onEditCategory,
   categories = [],
   onDeleteCategory, 
   categoriesToDelete, 
@@ -20,17 +22,38 @@ const CategoryEditor = ({
   //estado de nueva categoria
   const [newCategories, setNewCategories] = useState<newCategory[]>([]);
 
+    // 🆕 Estado local para los títulos editados de categorías existentes
+    const [localTitles, setLocalTitles] = useState<{ [key: number]: string }>({});
+
    // Referencia para el timeout del debounce
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
 
-  // 🔄 Filtrar categorías que NO están marcadas para eliminar
+  // 🆕 Referencia para el timeout del debounce de edición
+  const editDebounceTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  // 🆕 Inicializar títulos locales cuando cambian las categorías
+  useEffect(() => {
+    const titles: { [key: number]: string } = {};
+    categories.forEach(cat => {
+      titles[cat.id] = cat.title;
+    });
+    setLocalTitles(titles);
+  }, [categories]);
+
+  // Filtrar categorías que NO están marcadas para eliminar
   const visibleCategories = categories.filter(
     (cat) => !categoriesToDelete.includes(cat.id)
   );
   
 
   // mostrar las categorias combinadas
-  const allCategories = [...visibleCategories, ...newCategories];
+  const allCategories = [
+    ...visibleCategories.map(cat => ({
+      ...cat,
+      title: localTitles[cat.id] ?? cat.title, // 🆕 Usar título local si existe
+    })),
+    ...newCategories
+  ];
 
   // funcion para notificar al padre de los cambios en categorias con debounce
   const notifyNewCategoriesAdd = (updatedCategories: newCategory[]) => {
@@ -42,6 +65,20 @@ const CategoryEditor = ({
     // Crear nuevo timer
     debounceTimerRef.current = setTimeout(() => {
       onCategoriesChange(updatedCategories);
+    }, 500); // 500ms de espera
+  };
+
+  // 🆕 Función para notificar al padre de categorías editadas con debounce
+  const notifyEditedCategory = (editedCategory: EditedCategory) => {
+    // Limpiar el timer anterior si existe
+    if (editDebounceTimerRef.current) {
+      clearTimeout(editDebounceTimerRef.current);
+    }
+
+    // Crear nuevo timer
+    editDebounceTimerRef.current = setTimeout(() => {
+      
+      onEditCategory(editedCategory);
     }, 500); // 500ms de espera
   };
 
@@ -73,11 +110,26 @@ const CategoryEditor = ({
     const isNewCategory = newCategories.some((cat) => cat.id === id);
 
     if (isNewCategory) {
-      const update = newCategories.map((cat) =>
+     const update = newCategories.map((cat) =>
         cat.id === id ? { ...cat, title: newTitle } : cat
       );
       setNewCategories(update);
       notifyNewCategoriesAdd(update);
+    }
+    // 🆕 Si es una categoría EXISTENTE, actualizar estado local y notificar al padre
+    else{
+      
+      setLocalTitles(prev => ({
+        ...prev,
+        [id]: newTitle
+      }));
+      
+      // Y notificar al padre con debounce
+      const editedCategory: EditedCategory = {
+        id: id,
+        title: newTitle,
+      };
+      notifyEditedCategory(editedCategory);
     }
   };
 
@@ -92,7 +144,6 @@ const CategoryEditor = ({
       onCategoriesChange(updated); // ← Notificar solo con las nuevas actualizadas
     }else{
        // Si es una categoría existente (de la BD), la marcamos para eliminar
-       console.log("categorias a eliminar", id)
       onDeleteCategory(id);
     }
   };

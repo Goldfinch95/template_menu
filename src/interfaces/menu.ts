@@ -83,5 +83,13 @@ export interface newCategory {
   items?: any[];
 }
 
+// INTERFAZ PARA EDICION
+
+export interface EditedCategory {
+  id: number;
+  title: string;
+  items?: Items[];
+}
+
 
 
