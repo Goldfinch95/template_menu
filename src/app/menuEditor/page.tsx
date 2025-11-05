@@ -110,6 +110,7 @@ const MenuEditorContent = () => {
         return [...prev, editedCategory];
       }
     });
+     
   }, []);
 
   // 🆕 Función para limpiar las categorías después de guardar

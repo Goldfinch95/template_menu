@@ -54,9 +54,10 @@ const FloatingActions: React.FC<FloatingActionsProps> = ({
     setIsSaving(true);
   try {
     //obtener el valor id
-    const menuId = searchParams.get("id");
+    const menuIdParam  = searchParams.get("id");
+    const menuId = Number(menuIdParam);
     // si se esta editando un menu...
-    if (menuId) {
+    if (menuIdParam ) {
       // Eliminar categorías
       if (categoriesToDelete.length > 0) {
         console.log("categorias a eliminar", categoriesToDelete)
@@ -68,7 +69,7 @@ const FloatingActions: React.FC<FloatingActionsProps> = ({
       }
       // Editar categorias
       if (editedCategories && editedCategories.length > 0) {
-        
+        console.log('enviando', newCategory)
         await Promise.all(
             editedCategories.map((category) =>
               updateCategory(category.id, {
@@ -79,13 +80,26 @@ const FloatingActions: React.FC<FloatingActionsProps> = ({
           );
           
         }
+      // crando una nueva categoria
+      if (newCategory && newCategory.length > 0) {
+      await Promise.all(
+        newCategory.map(category => 
+          createCategory({
+            title: category.title,
+            items: category.items || [],
+            menuId: menuId,
+            
+          })
+        )
+      );
+    }
     }
     // si se esta creando un menu..
     else{
       // Crear el menú
       const createdMenu = await createMenu(newMenu);
     //  Obtener el menuId del menú recién creado
-    const menuId = createdMenu.id; 
+    const newMenuId = createdMenu.id; 
     // añadir categorias con menuID
     if (newCategory && newCategory.length > 0) {
       await Promise.all(
@@ -93,7 +107,7 @@ const FloatingActions: React.FC<FloatingActionsProps> = ({
           createCategory({
             title: category.title,
             items: category.items || [],
-            menuId: menuId,
+            menuId: newMenuId,
             
           })
         )

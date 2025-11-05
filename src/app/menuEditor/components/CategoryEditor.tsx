@@ -2,94 +2,93 @@
 
 import React, { useEffect, useState, useRef } from "react";
 import { Plus, GripVertical, Trash2 } from "lucide-react";
-import { Categories, newCategory, EditedCategory, newItem } from "@/interfaces/menu";
+import {
+  Categories,
+  newCategory,
+  EditedCategory,
+  newItem,
+  Items,
+} from "@/interfaces/menu";
 
 interface CategoryEditorProps {
   categories: Categories[];
   onCategoriesChange: (categories: newCategory[]) => void;
   onEditCategory: (editedCategory: EditedCategory) => void;
-  onDeleteCategory: (categoryId: number) => void; 
-  categoriesToDelete: number[]; 
+  onDeleteCategory: (categoryId: number) => void;
+  categoriesToDelete: number[];
 }
 
 const CategoryEditor = ({
   onCategoriesChange,
-   onEditCategory,
+  onEditCategory,
   categories = [],
-  onDeleteCategory, 
-  categoriesToDelete, 
+  onDeleteCategory,
+  categoriesToDelete,
 }: CategoryEditorProps) => {
-  //estado de nueva categoria
+  // Estado de nueva categoria
   const [newCategories, setNewCategories] = useState<newCategory[]>([]);
+  // Estado local para los títulos editados de categorías existentes
+  const [localTitles, setLocalTitles] = useState<{ [key: number]: string }>({});
+  // Estado local para los items
+  const [localItems, setLocalItems] = useState<{ [key: number]: Items[] }>({});
 
-    // 🆕 Estado local para los títulos editados de categorías existentes
-    const [localTitles, setLocalTitles] = useState<{ [key: number]: string }>({});
-
-   // Referencia para el timeout del debounce
+  // Referencia para el timeout del debounce
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
-
-  // 🆕 Referencia para el timeout del debounce de edición
+  // Referencia para el timeout del debounce de edición
   const editDebounceTimerRef = useRef<NodeJS.Timeout | null>(null);
 
-  // 🆕 Inicializar títulos locales cuando cambian las categorías
+  //  Inicializar títulos locales cuando cambian las categorías
   useEffect(() => {
     const titles: { [key: number]: string } = {};
-    categories.forEach(cat => {
+    const items: { [key: number]: Items[] } = {};
+    categories.forEach((cat) => {
       titles[cat.id] = cat.title;
+      items[cat.id] = cat.items || [];
     });
     setLocalTitles(titles);
+    setLocalItems(items);
   }, [categories]);
 
-  // Filtrar categorías que NO están marcadas para eliminar
+  // Limpiar timers al desmontar
+  useEffect(() => {
+    return () => {
+      if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
+      if (editDebounceTimerRef.current)
+        clearTimeout(editDebounceTimerRef.current);
+    };
+  }, []);
+
+  // Categorías visibles (no marcadas para eliminar)
   const visibleCategories = categories.filter(
     (cat) => !categoriesToDelete.includes(cat.id)
   );
-  
 
   // mostrar las categorias combinadas
   const allCategories = [
-    ...visibleCategories.map(cat => ({
+    ...visibleCategories.map((cat) => ({
       ...cat,
-      title: localTitles[cat.id] ?? cat.title, // 🆕 Usar título local si existe
+      title: localTitles[cat.id] ?? cat.title,
+      items: localItems[cat.id] ?? cat.items,
     })),
-    ...newCategories
+    ...newCategories,
   ];
 
-  // funcion para notificar al padre de los cambios en categorias con debounce
+  // Función para notificar al padre de los cambios en categorias con debounce
   const notifyNewCategoriesAdd = (updatedCategories: newCategory[]) => {
-    // Limpiar el timer anterior si existe
-    if (debounceTimerRef.current) {
-      clearTimeout(debounceTimerRef.current);
-    }
-
-    // Crear nuevo timer
+    if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
     debounceTimerRef.current = setTimeout(() => {
       onCategoriesChange(updatedCategories);
-    }, 500); // 500ms de espera
+    }, 500);
   };
 
-  // 🆕 Función para notificar al padre de categorías editadas con debounce
+  // Función para notificar al padre de categorías editadas con debounce
   const notifyEditedCategory = (editedCategory: EditedCategory) => {
-    // Limpiar el timer anterior si existe
-    if (editDebounceTimerRef.current) {
+    if (editDebounceTimerRef.current)
       clearTimeout(editDebounceTimerRef.current);
-    }
-
-    // Crear nuevo timer
     editDebounceTimerRef.current = setTimeout(() => {
-      
       onEditCategory(editedCategory);
-    }, 500); // 500ms de espera
+    }, 500);
   };
-
-  // Limpiar el timer cuando el componente se desmonte
-  useEffect(() => {
-    return () => {
-      if (debounceTimerRef.current) {
-        clearTimeout(debounceTimerRef.current);
-      }
-    };
-  }, []);
 
   //Crear una nueva categoria
 
@@ -100,78 +99,70 @@ const CategoryEditor = ({
       title: "",
       items: [],
     };
-    const updatedNewCategories = [...newCategories, newCat];
-    setNewCategories(updatedNewCategories);
-    onCategoriesChange(updatedNewCategories);
+    const updated = [...newCategories, newCat];
+    setNewCategories(updated);
+    onCategoriesChange(updated);
   };
 
   //Actualizar el título de la categoría
-  const UpdateCategoryTitle = (id: number, newTitle: string) => {
+  const updateCategoryTitle = (id: number, newTitle: string) => {
     const isNewCategory = newCategories.some((cat) => cat.id === id);
-
     if (isNewCategory) {
-     const update = newCategories.map((cat) =>
+      const updated = newCategories.map((cat) =>
         cat.id === id ? { ...cat, title: newTitle } : cat
       );
-      setNewCategories(update);
-      notifyNewCategoriesAdd(update);
+      setNewCategories(updated);
+      notifyNewCategoriesAdd(updated);
     }
     // 🆕 Si es una categoría EXISTENTE, actualizar estado local y notificar al padre
-    else{
-      
-      setLocalTitles(prev => ({
-        ...prev,
-        [id]: newTitle
-      }));
-      
-      // Y notificar al padre con debounce
-      const editedCategory: EditedCategory = {
-        id: id,
-        title: newTitle,
-      };
-      notifyEditedCategory(editedCategory);
+    else {
+      setLocalTitles((prev) => ({ ...prev, [id]: newTitle }));
+      notifyEditedCategory({ id, title: newTitle });
     }
   };
 
-  // Eliminar una categoría
+  // Eliminar categoría
   const deleteCategory = (id: number) => {
     const isNewCategory = newCategories.some((cat) => cat.id === id);
 
     if (isNewCategory) {
-      // Si es una categoría nueva (local), la eliminamos del estado
       const updated = newCategories.filter((cat) => cat.id !== id);
       setNewCategories(updated);
-      onCategoriesChange(updated); // ← Notificar solo con las nuevas actualizadas
-    }else{
-       // Si es una categoría existente (de la BD), la marcamos para eliminar
+      onCategoriesChange(updated);
+    } else {
       onDeleteCategory(id);
     }
   };
 
   // añadir un plato
-  const addItem = () =>{
-    console.log("crear un nuevo item")
-    // Crear nuevo item vacío
-  const newItem: newItem = {
-    id: Date.now(), // ID temporal único
-    title: "",
-    description: "",
-    price: "",
-    images: [],
+  const addItem = (categoryId: number) => {
+    const newItemObj: newItem = {
+      id: Date.now(), // ID temporal único
+      title: "",
+      description: "",
+      price: "",
+      images: [],
+    };
+
+    const isNewCategory = newCategories.some((cat) => cat.id === categoryId);
+
+    if (isNewCategory) {
+      // Agregar a categoría nueva
+      const updated = newCategories.map((cat) =>
+        cat.id === categoryId
+          ? { ...cat, items: [...(cat.items || []), newItemObj as any] }
+          : cat
+      );
+      setNewCategories(updated);
+      notifyNewCategoriesAdd(updated);
+    } else {
+      // Agregar a categoría existente (localmente)
+     setLocalItems((prev) => ({
+        ...prev,
+        [categoryId]: [...(prev[categoryId] || []), newItemObj as any],
+      }));
+    }
   };
-
-  
-    
-    //acceder a la categoria seleccionada
-    console.log(visibleCategories[1].id)
-    //acceder a los items de la categoria
-    console.log(visibleCategories[1].id.items)
-    //añadir el item dentro de los items de categoria
-
-    //mostrar en consola el resultado
-
-  }
-  
 
   return (
     <div className="bg-white/80 backdrop-blur-xl border border-slate-200 rounded-xl shadow-md overflow-hidden sm:rounded-2xl sm:shadow-lg">
@@ -205,7 +196,7 @@ const CategoryEditor = ({
                 type="text"
                 value={category.title}
                 onChange={(e) =>
-                  UpdateCategoryTitle(category.id, e.target.value)
+                  updateCategoryTitle(category.id, e.target.value)
                 }
                 placeholder="Ej: Entradas, Postres..."
                 className="flex-1 bg-white border border-slate-200 text-slate-800 text-sm rounded-lg px-3 py-2 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-orange-400 transition-all"
@@ -228,14 +219,14 @@ const CategoryEditor = ({
                   {/* Nombre del plato */}
                   <input
                     type="text"
-                    defaultValue={item.title}
+                    value={item.title}
                     placeholder="Nombre del plato"
                     className="w-full bg-white border border-slate-200 text-slate-800 text-sm rounded-lg px-3 py-2 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-orange-400 transition-all"
                   />
 
                   {/* Descripción */}
                   <textarea
-                    defaultValue={item.description}
+                    value={item.description}
                     placeholder="Descripción (ingredientes, detalles...)"
                     rows={2}
                     className="w-full mt-2 bg-white border border-slate-200 text-slate-800 text-sm rounded-lg px-3 py-2 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-orange-400 resize-none transition-all"
@@ -248,7 +239,7 @@ const CategoryEditor = ({
                     </span>
                     <input
                       type="text"
-                      defaultValue={item.price}
+                      value={item.price}
                       placeholder="Precio"
                       className="w-full bg-white border border-slate-200 text-slate-800 text-sm rounded-lg pl-7 pr-3 py-2 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-orange-400 transition-all"
                     />
@@ -257,7 +248,7 @@ const CategoryEditor = ({
                   {/* Imagen */}
                   <input
                     type="url"
-                    defaultValue={item.images[0]?.url || ""}
+                    value={item.images[0]?.url || ""}
                     placeholder="URL de imagen..."
                     className="w-full mt-2 bg-white border border-slate-200 text-slate-800 text-sm rounded-lg px-3 py-2 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-orange-400 transition-all"
                   />
@@ -271,7 +262,10 @@ const CategoryEditor = ({
               ))}
 
               {/* Agregar plato */}
-              <button onClick={addItem} className="w-full py-3 border-2 border-dashed border-slate-300 text-slate-500 hover:text-orange-500 hover:border-orange-400 rounded-lg transition-all text-sm font-medium flex items-center justify-center gap-2 bg-white">
+              <button
+                onClick={() => addItem(category.id)}
+                className="w-full py-3 border-2 border-dashed border-slate-300 text-slate-500 hover:text-orange-500 hover:border-orange-400 rounded-lg transition-all text-sm font-medium flex items-center justify-center gap-2 bg-white"
+              >
                 <Plus className="w-4 h-4" />
                 Agregar Plato
               </button>
