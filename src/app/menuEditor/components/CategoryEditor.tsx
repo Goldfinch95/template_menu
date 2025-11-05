@@ -73,6 +73,8 @@ const CategoryEditor = ({
     ...newCategories,
   ];
 
+  console.log("todos los items", allCategories);
+
   // Función para notificar al padre de los cambios en categorias con debounce
   const notifyNewCategoriesAdd = (updatedCategories: newCategory[]) => {
     if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
@@ -94,7 +96,6 @@ const CategoryEditor = ({
 
   const createNewCategory = () => {
     const newCat: newCategory = {
-      id: Date.now(),
       menuId: 1, // Usar timestamp como ID temporal
       title: "",
       items: [],
@@ -135,16 +136,20 @@ const CategoryEditor = ({
   };
 
   // añadir un plato
+  // añadir un plato
   const addItem = (categoryId: number) => {
-    const newItemObj: newItem = {
-      id: Date.now(), // ID temporal único
+    const newItemObj: newItem & { tempId: number } = {
+      tempId: Date.now(),
+      categoryId: 1, // ID temporal único
       title: "",
       description: "",
       price: "",
       images: [],
     };
 
-    const isNewCategory = newCategories.some((cat) => cat.id === categoryId);
+    const isNewCategory = !categoryId;
+
+    console.log(isNewCategory);
 
     if (isNewCategory) {
       // Agregar a categoría nueva
@@ -157,10 +162,75 @@ const CategoryEditor = ({
       notifyNewCategoriesAdd(updated);
     } else {
       // Agregar a categoría existente (localmente)
-     setLocalItems((prev) => ({
+      const updatedItems = [
+        ...(localItems[categoryId] || []),
+        newItemObj as any,
+      ];
+      setLocalItems((prev) => ({
         ...prev,
-        [categoryId]: [...(prev[categoryId] || []), newItemObj as any],
+        [categoryId]: updatedItems,
       }));
+
+      // Notificar al padre del cambio
+      notifyEditedCategory({
+        id: categoryId,
+        title: localTitles[categoryId],
+        items: updatedItems,
+      });
+    }
+  };
+
+  // Actualizar un plato
+  const updateItem = (
+    categoryId: number,
+    itemId: number,
+    field: keyof newItem,
+    value: string
+  ) => {
+    const isNewCategory = newCategories.some((cat) => cat.id === categoryId);
+
+    if (isNewCategory) {
+      const updated = newCategories.map((cat) => {
+        if (cat.id === categoryId) {
+          const updatedItems = (cat.items || []).map((item) =>
+            item.id === itemId
+              ? field === "images"
+                ? { ...item, images: [{ url: value }] }
+                : { ...item, [field]: value }
+              : item
+          );
+          return { ...cat, items: updatedItems };
+        }
+        return cat;
+      });
+      setNewCategories(updated);
+      notifyNewCategoriesAdd(updated);
+    } else {
+      setLocalItems((prev) => {
+        const categoryItems = prev[categoryId] || [];
+        const updatedItems = categoryItems.map((item) =>
+          item.id === itemId
+            ? field === "images"
+              ? { ...item, images: [{ url: value }] }
+              : { ...item, [field]: value }
+            : item
+        );
+        return { ...prev, [categoryId]: updatedItems };
+      });
+
+      // Notificar al backend
+      const updatedItemsList = (localItems[categoryId] || []).map((item) =>
+        item.id === itemId
+          ? field === "images"
+            ? { ...item, images: [{ url: value }] }
+            : { ...item, [field]: value }
+          : item
+      );
+      notifyEditedCategory({
+        id: categoryId,
+        title: localTitles[categoryId],
+        items: updatedItemsList,
+      });
     }
   };
 
@@ -211,55 +281,94 @@ const CategoryEditor = ({
 
             {/* Items */}
             <div className="p-3 space-y-3">
-              {category.items?.map((item) => (
-                <div
-                  key={item.id}
-                  className="bg-slate-50 rounded-lg p-3 border border-slate-200"
-                >
-                  {/* Nombre del plato */}
-                  <input
-                    type="text"
-                    value={item.title}
-                    placeholder="Nombre del plato"
-                    className="w-full bg-white border border-slate-200 text-slate-800 text-sm rounded-lg px-3 py-2 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-orange-400 transition-all"
-                  />
-
-                  {/* Descripción */}
-                  <textarea
-                    value={item.description}
-                    placeholder="Descripción (ingredientes, detalles...)"
-                    rows={2}
-                    className="w-full mt-2 bg-white border border-slate-200 text-slate-800 text-sm rounded-lg px-3 py-2 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-orange-400 resize-none transition-all"
-                  />
-
-                  {/* Precio */}
-                  <div className="relative mt-2">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">
-                      $
-                    </span>
+              {[...(category.items || [])]
+                .sort((a, b) => {
+                  if (a.id && b.id) return a.id - b.id;
+                  if (a.id && !b.id) return -1;
+                  if (!a.id && b.id) return 1;
+                  return 0;
+                })
+                .map((item) => (
+                  <div
+                    key={item.id}
+                    className="bg-slate-50 rounded-lg p-3 border border-slate-200"
+                  >
+                    {/* Nombre del plato */}
                     <input
                       type="text"
-                      value={item.price}
-                      placeholder="Precio"
-                      className="w-full bg-white border border-slate-200 text-slate-800 text-sm rounded-lg pl-7 pr-3 py-2 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-orange-400 transition-all"
+                      value={item.title}
+                      onChange={(e) =>
+                        updateItem(
+                          category.id,
+                          item.id,
+                          "title",
+                          e.target.value
+                        )
+                      }
+                      placeholder="Nombre del plato"
+                      className="w-full bg-white border border-slate-200 text-slate-800 text-sm rounded-lg px-3 py-2 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-orange-400 transition-all"
                     />
+
+                    {/* Descripción */}
+                    <textarea
+                      value={item.description}
+                      onChange={(e) =>
+                        updateItem(
+                          category.id,
+                          item.id,
+                          "description",
+                          e.target.value
+                        )
+                      }
+                      placeholder="Descripción (ingredientes, detalles...)"
+                      rows={2}
+                      className="w-full mt-2 bg-white border border-slate-200 text-slate-800 text-sm rounded-lg px-3 py-2 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-orange-400 resize-none transition-all"
+                    />
+
+                    {/* Precio */}
+                    <div className="relative mt-2">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">
+                        $
+                      </span>
+                      <input
+                        type="text"
+                        value={item.price}
+                        onChange={(e) =>
+                          updateItem(
+                            category.id,
+                            item.id,
+                            "price",
+                            e.target.value
+                          )
+                        }
+                        placeholder="Precio"
+                        className="w-full bg-white border border-slate-200 text-slate-800 text-sm rounded-lg pl-7 pr-3 py-2 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-orange-400 transition-all"
+                      />
+                    </div>
+
+                    {/* Imagen */}
+                    <input
+                      type="url"
+                      value={item.images[0]?.url || ""}
+                      onChange={(e) =>
+                        updateItem(
+                          category.id,
+                          item.id,
+                          "images",
+                          e.target.value
+                        )
+                      }
+                      placeholder="URL de imagen..."
+                      className="w-full mt-2 bg-white border border-slate-200 text-slate-800 text-sm rounded-lg px-3 py-2 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-orange-400 transition-all"
+                    />
+
+                    {/* Eliminar plato */}
+                    <button className="w-full mt-3 py-2 text-red-500 hover:bg-red-100 rounded-lg transition-all text-xs font-medium flex items-center justify-center gap-2">
+                      <Trash2 className="w-4 h-4" />
+                      Eliminar plato
+                    </button>
                   </div>
-
-                  {/* Imagen */}
-                  <input
-                    type="url"
-                    value={item.images[0]?.url || ""}
-                    placeholder="URL de imagen..."
-                    className="w-full mt-2 bg-white border border-slate-200 text-slate-800 text-sm rounded-lg px-3 py-2 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-orange-400 transition-all"
-                  />
-
-                  {/* Eliminar plato */}
-                  <button className="w-full mt-3 py-2 text-red-500 hover:bg-red-100 rounded-lg transition-all text-xs font-medium flex items-center justify-center gap-2">
-                    <Trash2 className="w-4 h-4" />
-                    Eliminar plato
-                  </button>
-                </div>
-              ))}
+                ))}
 
               {/* Agregar plato */}
               <button

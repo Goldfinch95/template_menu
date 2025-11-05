@@ -86,7 +86,7 @@ export interface newCategory {
 // nuevo item
 export interface newItem{
   description: string;
-  id: number;
+  categoryId: number;
   images: ImageItems[];
   price: string;
   title: string;

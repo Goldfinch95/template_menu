@@ -81,6 +81,7 @@ const FloatingActions: React.FC<FloatingActionsProps> = ({
           
         }
       // crando una nueva categoria
+      console.log('creando', newCategory)
       if (newCategory && newCategory.length > 0) {
       await Promise.all(
         newCategory.map(category => 
@@ -92,6 +93,7 @@ const FloatingActions: React.FC<FloatingActionsProps> = ({
           })
         )
       );
+      console.log("creado exitosamente")
     }
     }
     // si se esta creando un menu..
