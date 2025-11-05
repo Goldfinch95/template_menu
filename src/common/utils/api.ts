@@ -167,6 +167,7 @@ export const updateCategory = async (
     }
     
     const updatedCategory: Categories = await response.json();
+    console.log(updatedCategory)
     
     return updatedCategory;
   } catch (error) {

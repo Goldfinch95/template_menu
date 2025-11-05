@@ -73,8 +73,6 @@ const CategoryEditor = ({
     ...newCategories,
   ];
 
-  console.log("todos los items", allCategories);
-
   // Función para notificar al padre de los cambios en categorias con debounce
   const notifyNewCategoriesAdd = (updatedCategories: newCategory[]) => {
     if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
@@ -148,8 +146,6 @@ const CategoryEditor = ({
     };
 
     const isNewCategory = !categoryId;
-
-    console.log(isNewCategory);
 
     if (isNewCategory) {
       // Agregar a categoría nueva
@@ -234,6 +230,39 @@ const CategoryEditor = ({
     }
   };
 
+  // 🆕 Eliminar plato
+ const deleteItem = (categoryId: number, itemId: number) => {
+    const isNewCategory = newCategories.some((cat) => cat.id === categoryId);
+
+    if (isNewCategory) {
+      const updated = newCategories.map((cat) =>
+        cat.id === categoryId
+          ? { ...cat, items: (cat.items || []).filter((item) => item.id !== itemId) }
+          : cat
+      );
+      setNewCategories(updated);
+      notifyNewCategoriesAdd(updated);
+    } else {
+      // Calcular los items actualizados ANTES de actualizar el estado
+      const updatedItems = (localItems[categoryId] || []).filter(
+        (item) => item.id !== itemId
+      );
+      
+      // Actualizar estado local
+      setLocalItems((prev) => ({
+        ...prev,
+        [categoryId]: updatedItems,
+      }));
+
+      // Notificar al padre con los items ya filtrados
+      notifyEditedCategory({
+        id: categoryId,
+        title: localTitles[categoryId],
+        items: updatedItems,
+      });
+    }
+  };
+
   return (
     <div className="bg-white/80 backdrop-blur-xl border border-slate-200 rounded-xl shadow-md overflow-hidden sm:rounded-2xl sm:shadow-lg">
       {/* Header */}
@@ -283,10 +312,20 @@ const CategoryEditor = ({
             <div className="p-3 space-y-3">
               {[...(category.items || [])]
                 .sort((a, b) => {
-                  if (a.id && b.id) return a.id - b.id;
-                  if (a.id && !b.id) return -1;
-                  if (!a.id && b.id) return 1;
-                  return 0;
+                  // No ordenar items nuevos (sin id o con tempId)
+                  const isANew = !a.id || 'tempId' in a;
+                  const isBNew = !b.id || 'tempId' in b;
+                  
+                  // Si ambos son nuevos, mantener orden original
+                  if (isANew && isBNew) return 0;
+                  // Items nuevos siempre al final
+                  if (isANew) return 1;
+                  if (isBNew) return -1;
+                  
+                  // Solo ordenar items existentes alfabéticamente
+                  const titleA = a.title?.toLowerCase() || "";
+                  const titleB = b.title?.toLowerCase() || "";
+                  return titleA.localeCompare(titleB);
                 })
                 .map((item) => (
                   <div
@@ -363,7 +402,7 @@ const CategoryEditor = ({
                     />
 
                     {/* Eliminar plato */}
-                    <button className="w-full mt-3 py-2 text-red-500 hover:bg-red-100 rounded-lg transition-all text-xs font-medium flex items-center justify-center gap-2">
+                    <button onClick={() => deleteItem(category.id, item.id)} className="w-full mt-3 py-2 text-red-500 hover:bg-red-100 rounded-lg transition-all text-xs font-medium flex items-center justify-center gap-2">
                       <Trash2 className="w-4 h-4" />
                       Eliminar plato
                     </button>

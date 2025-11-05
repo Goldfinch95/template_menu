@@ -51,78 +51,93 @@ const FloatingActions: React.FC<FloatingActionsProps> = ({
   }, [pathname]);
 
   const handleSave = async () => {
-    setIsSaving(true);
+  setIsSaving(true);
   try {
-    //obtener el valor id
-    const menuIdParam  = searchParams.get("id");
+    // Obtener el valor id
+    const menuIdParam = searchParams.get("id");
     const menuId = Number(menuIdParam);
-    // si se esta editando un menu...
-    if (menuIdParam ) {
+
+    // Si se está editando un menú...
+    if (menuIdParam) {
       // Eliminar categorías
       if (categoriesToDelete.length > 0) {
-        console.log("categorias a eliminar", categoriesToDelete)
+        console.log("categorias a eliminar", categoriesToDelete);
         await Promise.all(
-            categoriesToDelete.map((categoryId) => deleteCategory(categoryId))
-          );
-          onDeleteComplete();
-          console.log ("categorias eliminadas de la base de datos", categoriesToDelete)
+          categoriesToDelete.map((categoryId) => deleteCategory(categoryId))
+        );
+        onDeleteComplete();
+        console.log("categorias eliminadas de la base de datos", categoriesToDelete);
       }
-      // Editar categorias
+
+      // Editar categorías
       if (editedCategories && editedCategories.length > 0) {
-        console.log('enviando', newCategory)
+        console.log("enviando categorías editadas", editedCategories);
         await Promise.all(
-            editedCategories.map((category) =>
-              updateCategory(category.id, {
-                title: category.title,
-                items: category.items || [],
-              })
-            )
-          );
-          
-        }
-      // crando una nueva categoria
-      console.log('creando', newCategory)
-      if (newCategory && newCategory.length > 0) {
-      await Promise.all(
-        newCategory.map(category => 
-          createCategory({
-            title: category.title,
-            items: category.items || [],
-            menuId: menuId,
-            
+          editedCategories.map((category) => {
+            // Limpiar items: remover tempId y asegurar que items nuevos no tengan id
+            const cleanedItems = (category.items || []).map((item) => {
+              const { tempId, ...itemWithoutTempId } = item as any;
+              // Si el item tiene tempId, es nuevo, así que removemos el id también
+              if (tempId) {
+                const { id, ...newItem } = itemWithoutTempId;
+                return newItem;
+              }
+              return itemWithoutTempId;
+            });
+            console.log("removiendo id temporal",cleanedItems)
+            return updateCategory(category.id, {
+              title: category.title,
+              items: cleanedItems,
+            });
           })
-        )
-      );
-      console.log("creado exitosamente")
+        );
+      }
+
+      // Crear nuevas categorías (si las hay)
+      if (newCategory && newCategory.length > 0) {
+        await Promise.all(
+          newCategory.map((category) =>
+            createCategory({
+              title: category.title,
+              items: category.items || [],
+              menuId: menuId,
+            })
+          )
+        );
+        console.log("creado exitosamente");
+      }
     }
-    }
-    // si se esta creando un menu..
-    else{
+
+    // Si se está creando un menú nuevo...
+    else {
       // Crear el menú
       const createdMenu = await createMenu(newMenu);
-    //  Obtener el menuId del menú recién creado
-    const newMenuId = createdMenu.id; 
-    // añadir categorias con menuID
-    if (newCategory && newCategory.length > 0) {
-      await Promise.all(
-        newCategory.map(category => 
-          createCategory({
-            title: category.title,
-            items: category.items || [],
-            menuId: newMenuId,
-            
-          })
-        )
-      );
+      // Obtener el menuId del menú recién creado
+      const newMenuId = createdMenu.id;
+
+      // Añadir categorías con el nuevo menuId
+      if (newCategory && newCategory.length > 0) {
+        await Promise.all(
+          newCategory.map((category) =>
+            createCategory({
+              title: category.title,
+              items: category.items || [],
+              menuId: newMenuId,
+            })
+          )
+        );
+      }
     }
-    
-    }
-    // Redirigir a pagina de menues después de crear
+
+    // Redirigir a página de menús después de crear/editar
     router.push("/");
   } catch (error) {
-    console.error("❌ Error al crear el menú:", error);
+    console.error("❌ Error al crear o editar el menú:", error);
+  } finally {
+    setIsSaving(false);
   }
 };
+
 
   return (
     <div className="fixed bottom-0 left-0 right-0 p-6 bg-gradient-to-b from-white via-[#FFF3EC] to-[#FFE6D3] backdrop-blur-md shadow-[0_-4px_24px_rgba(0,0,0,0.4)]">
