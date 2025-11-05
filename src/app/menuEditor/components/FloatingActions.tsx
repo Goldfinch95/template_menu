@@ -9,11 +9,18 @@ import {
   TooltipContent,
 } from "@/common/components/ui/tooltip";
 import { usePathname, useSearchParams, useRouter } from "next/navigation";
-import { createMenu, createCategory, updateCategory, deleteCategory  } from "@/common/utils/api";
+import {
+  createMenu,
+  createCategory,
+  updateCategory,
+  deleteCategory,
+  deleteItem,
+} from "@/common/utils/api";
 
-import { newMenu, newCategory, EditedCategory } from "@/interfaces/menu";
+import { Menu, newMenu, newCategory, EditedCategory } from "@/interfaces/menu";
 
 interface FloatingActionsProps {
+  menu: Menu;
   newMenu: newMenu;
   newCategory: newCategory[];
   editedCategories: EditedCategory[];
@@ -22,122 +29,167 @@ interface FloatingActionsProps {
 }
 
 const FloatingActions: React.FC<FloatingActionsProps> = ({
+  menu,
   newMenu,
   newCategory,
   editedCategories,
   categoriesToDelete,
   onDeleteComplete,
 }) => {
+  
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const [title, setTitle] = useState("");
-  const [isSaving, setIsSaving] = useState(false); // 🆕 Estado de carga
-
   const router = useRouter();
 
-  /*const [isSaving, setIsSaving] = useState(false);*/
+  const [title, setTitle] = useState("");
+  const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
-    // Detectar si estamos creando nuevo menu o editando menu.
-
+    // Detectar si estamos creando o editando un menú
     if (pathname === "/menuEditor") {
       const id = searchParams.get("id");
-      if (id) {
-        setTitle("Guardar Cambios");
-      } else {
-        setTitle("Crear Menu");
-      }
+      setTitle(id ? "Guardar Cambios" : "Crear Menú");
     }
-  }, [pathname]);
+  }, [pathname, searchParams]);
 
   const handleSave = async () => {
-  setIsSaving(true);
-  try {
-    // Obtener el valor id
-    const menuIdParam = searchParams.get("id");
-    const menuId = Number(menuIdParam);
+    setIsSaving(true);
+    try {
+      //obtener id del menu
+      const menuIdParam = searchParams.get("id");
+      const menuId = Number(menuIdParam);
 
-    // Si se está editando un menú...
-    if (menuIdParam) {
-      // Eliminar categorías
-      if (categoriesToDelete.length > 0) {
-        console.log("categorias a eliminar", categoriesToDelete);
-        await Promise.all(
-          categoriesToDelete.map((categoryId) => deleteCategory(categoryId))
-        );
-        onDeleteComplete();
-        console.log("categorias eliminadas de la base de datos", categoriesToDelete);
-      }
+      // Si se está editando un menú existente
+      if (menuIdParam) {
+        const categoriesToCheck = menu.categories || [];
 
-      // Editar categorías
-      if (editedCategories && editedCategories.length > 0) {
-        console.log("enviando categorías editadas", editedCategories);
-        await Promise.all(
-          editedCategories.map((category) => {
-            // Limpiar items: remover tempId y asegurar que items nuevos no tengan id
-            const cleanedItems = (category.items || []).map((item) => {
-              const { tempId, ...itemWithoutTempId } = item as any;
-              // Si el item tiene tempId, es nuevo, así que removemos el id también
-              if (tempId) {
-                const { id, ...newItem } = itemWithoutTempId;
-                return newItem;
+        //Detectar y eliminar items individuales dentro de categorías
+        const itemsToDelete: number[] = [];
+
+        // 🧩 Comparar categorías e items
+        editedCategories.forEach((editedCat) => {
+          const originalCat = categoriesToCheck.find(
+            (cat) => cat.id === editedCat.id
+          );
+          if (originalCat) {
+            const originalItemsCount = originalCat.items?.length || 0;
+            const editedItemsCount = editedCat.items?.length || 0;
+            // Si se eliminaron items
+            if (editedItemsCount < originalItemsCount) {
+              // Obtener IDs de items editados
+              const editedItemIds =
+                editedCat.items?.map((item) => item.id).filter((id) => id) ||
+                [];
+
+              // Encontrar items que estaban en original pero no están en editado
+              originalCat.items?.forEach((originalItem) => {
+                if (
+                  originalItem.id &&
+                  !editedItemIds.includes(originalItem.id)
+                ) {
+                  itemsToDelete.push(originalItem.id);
+                }
+              });
+            }  else {
+              const itemsAreEqual = originalCat.items?.every(
+                (originalItem, index) => {
+                  const editedItem = editedCat.items?.[index];
+                  return (
+                    originalItem.id === editedItem?.id &&
+                    originalItem.title === editedItem?.title &&
+                    originalItem.description === editedItem?.description &&
+                    originalItem.price === editedItem?.price
+                  );
+                }
+              );
+
+              if (itemsAreEqual) {
+                
+              } else {
+                
               }
-              return itemWithoutTempId;
-            });
-            console.log("removiendo id temporal",cleanedItems)
-            return updateCategory(category.id, {
-              title: category.title,
-              items: cleanedItems,
-            });
-          })
-        );
-      }
+            }
+          }
+        });
 
-      // Crear nuevas categorías (si las hay)
-      if (newCategory && newCategory.length > 0) {
-        await Promise.all(
-          newCategory.map((category) =>
-            createCategory({
-              title: category.title,
-              items: category.items || [],
-              menuId: menuId,
+        // 🆕 PASO 2: Eliminar items de la base de datos
+        if (itemsToDelete.length > 0) {
+          
+          await Promise.all(itemsToDelete.map((itemId) => deleteItem(itemId)));
+          
+        }
+
+        // 🗑️ Eliminar categorías
+        if (categoriesToDelete.length > 0) {
+          
+          await Promise.all(
+            categoriesToDelete.map((categoryId) => deleteCategory(categoryId))
+          );
+          onDeleteComplete();
+          
+        }
+
+        // ✏️ Editar categorías existentes
+        if (editedCategories && editedCategories.length > 0) {
+          
+          await Promise.all(
+            editedCategories.map((category) => {
+              const cleanedItems = (category.items || []).map((item) => {
+                const { tempId, ...rest } = item as any;
+                if (tempId) {
+                  const { id, ...newItem } = rest;
+                  return newItem;
+                }
+                return rest;
+              });
+              
+              return updateCategory(category.id, {
+                title: category.title,
+                items: cleanedItems,
+              });
             })
-          )
-        );
-        console.log("creado exitosamente");
+          );
+        }
+
+        //  Crear nuevas categorías
+        if (newCategory && newCategory.length > 0) {
+          await Promise.all(
+            newCategory.map((category) =>
+              createCategory({
+                title: category.title,
+                items: category.items || [],
+                menuId,
+              })
+            )
+          );
+          
+        }
+      } else {
+        //  Crear un nuevo menú
+        const createdMenu = await createMenu(newMenu);
+        const newMenuId = createdMenu.id;
+
+        if (newCategory && newCategory.length > 0) {
+          await Promise.all(
+            newCategory.map((category) =>
+              createCategory({
+                title: category.title,
+                items: category.items || [],
+                menuId: newMenuId,
+              })
+            )
+          );
+        }
       }
+
+      // ✅ Redirigir después de guardar
+      router.push("/");
+    } catch (error) {
+      console.error("❌ Error al crear o editar el menú:", error);
+    } finally {
+      setIsSaving(false);
     }
-
-    // Si se está creando un menú nuevo...
-    else {
-      // Crear el menú
-      const createdMenu = await createMenu(newMenu);
-      // Obtener el menuId del menú recién creado
-      const newMenuId = createdMenu.id;
-
-      // Añadir categorías con el nuevo menuId
-      if (newCategory && newCategory.length > 0) {
-        await Promise.all(
-          newCategory.map((category) =>
-            createCategory({
-              title: category.title,
-              items: category.items || [],
-              menuId: newMenuId,
-            })
-          )
-        );
-      }
-    }
-
-    // Redirigir a página de menús después de crear/editar
-    router.push("/");
-  } catch (error) {
-    console.error("❌ Error al crear o editar el menú:", error);
-  } finally {
-    setIsSaving(false);
-  }
-};
-
+  };
 
   return (
     <div className="fixed bottom-0 left-0 right-0 p-6 bg-gradient-to-b from-white via-[#FFF3EC] to-[#FFE6D3] backdrop-blur-md shadow-[0_-4px_24px_rgba(0,0,0,0.4)]">
@@ -145,13 +197,12 @@ const FloatingActions: React.FC<FloatingActionsProps> = ({
         {/* Botón Vista Previa */}
         <Button
           className="
-        flex-1 h-14 
-        bg-gradient-to-br from-orange-400 to-orange-500 hover:from-orange-500 hover:to-orange-600
-        text-white font-semibold text-base 
-        rounded-2xl transition-all duration-300 
-        
-        hover:scale-[1.02] active:scale-[0.98]
-      "
+            flex-1 h-14 
+            bg-gradient-to-br from-orange-400 to-orange-500 hover:from-orange-500 hover:to-orange-600
+            text-white font-semibold text-base 
+            rounded-2xl transition-all duration-300 
+            hover:scale-[1.02] active:scale-[0.98]
+          "
         >
           Vista Previa
         </Button>
@@ -163,19 +214,17 @@ const FloatingActions: React.FC<FloatingActionsProps> = ({
               <div className="flex-1">
                 <Button
                   onClick={handleSave}
+                  disabled={isSaving}
                   className="h-14 
-        bg-gradient-to-br from-orange-400 to-orange-500 hover:from-orange-500 hover:to-orange-600
-        text-white font-semibold text-base 
-        rounded-2xl transition-all duration-300 
-        
-        hover:scale-[1.02] active:scale-[0.98]"
+                    bg-gradient-to-br from-orange-400 to-orange-500 hover:from-orange-500 hover:to-orange-600
+                    text-white font-semibold text-base 
+                    rounded-2xl transition-all duration-300 
+                    hover:scale-[1.02] active:scale-[0.98]"
                 >
-                  {title}
+                  {isSaving ? "Guardando..." : title}
                 </Button>
               </div>
             </TooltipTrigger>
-
-            {/* Tooltip */}
 
             <TooltipContent className="bg-slate-800 border border-slate-700 text-slate-300 text-xs">
               Completa el nombre y URLs válidas

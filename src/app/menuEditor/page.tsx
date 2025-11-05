@@ -31,6 +31,8 @@ const MenuEditorContent = () => {
   const [editedCategories, setEditedCategories] = useState<EditedCategory[]>([]);
   //Estado para categorías marcadas para eliminar
   const [categoriesToDelete, setCategoriesToDelete] = useState<number[]>([]);
+  //Estado para items marcados para eliminar
+
 
   //Estado para obtener id del menú
   const searchParams = useSearchParams();
@@ -52,6 +54,8 @@ const MenuEditorContent = () => {
     };
     loadMenu();
   }, [searchParams]);
+
+  //
 
   // recibir datos de los componentes hijos
   const reciveRestaurantImages = useCallback(
@@ -110,7 +114,8 @@ const MenuEditorContent = () => {
         return [...prev, editedCategory];
       }
     });
-     console.log(editedCategory)
+    
+     //console.log(editedCategory)
   }, []);
 
   // 🆕 Función para limpiar las categorías después de guardar
@@ -209,7 +214,7 @@ const MenuEditorContent = () => {
       </main>
 
       {/* Botones flotantes */}
-      <FloatingActions newMenu={newMenu} newCategory={newCategory} editedCategories={editedCategories} categoriesToDelete={categoriesToDelete} onDeleteComplete={clearCategoriesToDelete} />
+      <FloatingActions menu={menu} newMenu={newMenu} newCategory={newCategory} editedCategories={editedCategories} categoriesToDelete={categoriesToDelete} onDeleteComplete={clearCategoriesToDelete} />
 
       {/* Modal de Preview 
       {showPreview && (

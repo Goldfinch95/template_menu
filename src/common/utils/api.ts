@@ -2,6 +2,7 @@ import { Menu, Categories, Items, newCategory, newMenu  } from "@/interfaces/men
 
 const BASE_URL = "http://localhost:3000/api/menus";
 const CATEGORIES_BASE_URL = "http://localhost:3000/api/categories";
+const ITEM_BASE_URL = "http://localhost:3000/api/items"
 const TENANT_HEADER = { "x-tenant-subdomain": "amax" };
 
 // --- 🔹 Obtener todos los menús (para Home)
@@ -167,8 +168,6 @@ export const updateCategory = async (
     }
     
     const updatedCategory: Categories = await response.json();
-    console.log(updatedCategory)
-    
     return updatedCategory;
   } catch (error) {
     console.error("❌ Error al editar categoría:", error);
@@ -196,6 +195,29 @@ export const deleteCategory = async (categoryId: number): Promise<void> => {
     console.log("✅ Categoría eliminada correctamente");
   } catch (error) {
     console.error("❌ Error al eliminar categoría:", error);
+    throw error;
+  }
+};
+
+// ITEMS
+
+// Eliminar un item
+export const deleteItem = async (itemId: number): Promise<void> => {
+  try {
+    const response = await fetch(`${ITEM_BASE_URL}/${itemId}`, {
+      method: "DELETE",
+      headers: {
+        ...TENANT_HEADER,
+      },
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Error al eliminar item: ${response.status} - ${errorText}`);
+    }
+    
+  } catch (error) {
+    console.error("❌ Error al eliminar item:", error);
     throw error;
   }
 };
