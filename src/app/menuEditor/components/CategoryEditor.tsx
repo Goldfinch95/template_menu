@@ -31,6 +31,7 @@ const CategoryEditor = ({
   const [localTitles, setLocalTitles] = useState<{ [key: number]: string }>({});
   // Estado local para los items
   const [localItems, setLocalItems] = useState<{ [key: number]: Items[] }>({});
+  
 
   // Referencia para el timeout del debounce
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -413,8 +414,7 @@ const CategoryEditor = ({
                       />
                     </div>
 
-                    {/* Imagen */}
-                    <input
+{/*<input
                       type="url"
                       value={item.images[0]?.url || ""}
                       onChange={(e) =>
@@ -422,8 +422,39 @@ const CategoryEditor = ({
       }
                       placeholder="URL de imagen..."
                       className="w-full mt-2 bg-white border border-slate-200 text-slate-800 text-sm rounded-lg px-3 py-2 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-orange-400 transition-all"
-                    />
+                    /> */}
+                    {/* Imagen con preview */}
+<div className="mt-2 space-y-2">
+  <label className="block text-sm font-medium text-slate-700">
+    Imagen del plato
+  </label>
 
+  {/* Input URL */}
+  <input
+    type="url"
+    value={item.images?.[0]?.url || ""}
+    onChange={(e) =>
+      updateItem(category.id, item.id ?? item.tempId, "images", e.target.value)
+    }
+    placeholder="https://ejemplo.com/imagen.jpg"
+    className="w-full bg-white border border-slate-200 text-slate-800 text-sm rounded-lg px-3 py-2 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-orange-400 transition-all"
+  />
+
+  {/* Preview */}
+  {item.images?.[0]?.url && (
+    <div className="relative w-full aspect-video bg-slate-100 rounded-xl overflow-hidden border border-slate-200">
+      <img
+        src={item.images[0].url}
+        alt="Preview"
+        className="w-full h-full object-cover"
+        onError={(e) => {
+          e.currentTarget.src =
+            "https://via.placeholder.com/400x300?text=Imagen+no+disponible";
+        }}
+      />
+    </div>
+  )}
+</div>
                     {/* Eliminar plato */}
                     <button
                       onClick={() => deleteItem(category.id ?? category.tempId, item.id ?? item.tempId)}
