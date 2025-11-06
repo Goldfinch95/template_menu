@@ -41,20 +41,18 @@ const CategoryEditor = ({
   useEffect(() => {
     const titles: { [key: number]: string } = {};
     const items: { [key: number]: Items[] } = {};
-    
+
     categories.forEach((cat) => {
       titles[cat.id] = cat.title;
       items[cat.id] = cat.items || [];
     });
-    
+
     // Solo actualizar si realmente hay cambios
     setLocalTitles((prev) => {
-      const hasChanges = categories.some(
-        (cat) => prev[cat.id] !== cat.title
-      );
+      const hasChanges = categories.some((cat) => prev[cat.id] !== cat.title);
       return hasChanges ? titles : prev;
     });
-    
+
     setLocalItems((prev) => {
       const hasChanges = categories.some(
         (cat) => JSON.stringify(prev[cat.id]) !== JSON.stringify(cat.items)
@@ -107,7 +105,7 @@ const CategoryEditor = ({
   //Crear una nueva categoria
 
   const createNewCategory = () => {
-     const newCat: newCategory & { tempId: number } = {
+    const newCat: newCategory & { tempId: number } = {
       tempId: Date.now(),
       menuId: 1, // Usar timestamp como ID temporal
       title: "",
@@ -119,164 +117,179 @@ const CategoryEditor = ({
   };
 
   //Actualizar el título de la categoría
-  const updateCategoryTitle = (id: number, newTitle: string) => {
-    const isNewCategory = newCategories.some((cat) => cat.id === id);
-    if (isNewCategory) {
-      const updated = newCategories.map((cat) =>
-        cat.id === id ? { ...cat, title: newTitle } : cat
-      );
-      setNewCategories(updated);
-      notifyNewCategoriesAdd(updated);
-    }
-    // 🆕 Si es una categoría EXISTENTE, actualizar estado local y notificar al padre
-    else {
-      setLocalTitles((prev) => ({ ...prev, [id]: newTitle }));
-      notifyEditedCategory({ id, title: newTitle });
-    }
-  };
+  const updateCategoryTitle = (categoryKey: number, newTitle: string) => {
+  const isNewCategory = newCategories.some(
+    (cat) => cat.id === categoryKey || cat.tempId === categoryKey
+  );
+
+  if (isNewCategory) {
+    const updated = newCategories.map((cat) =>
+      cat.id === categoryKey || cat.tempId === categoryKey
+        ? { ...cat, title: newTitle }
+        : cat
+    );
+    setNewCategories(updated);
+    notifyNewCategoriesAdd(updated);
+  } else {
+    setLocalTitles((prev) => ({ ...prev, [categoryKey]: newTitle }));
+    notifyEditedCategory({ id: categoryKey, title: newTitle });
+  }
+};
 
   // Eliminar categoría
-  const deleteCategory = (id: number) => {
-    const isNewCategory = newCategories.some((cat) => cat.id === id);
+  const deleteCategory = (categoryKey: number) => {
+  const isNewCategory = newCategories.some(
+    (cat) => cat.id === categoryKey || cat.tempId === categoryKey
+  );
 
-    if (isNewCategory) {
-      const updated = newCategories.filter((cat) => cat.id !== id);
-      setNewCategories(updated);
-      onCategoriesChange(updated);
-    } else {
-      onDeleteCategory(id);
-    }
-  };
+  if (isNewCategory) {
+    const updated = newCategories.filter(
+      (cat) => cat.id !== categoryKey && cat.tempId !== categoryKey
+    );
+    setNewCategories(updated);
+    onCategoriesChange(updated);
+  } else {
+    onDeleteCategory(categoryKey);
+  }
+};
 
   // añadir un plato
   // añadir un plato
-  const addItem = (categoryId: number) => {
-    const newItemObj: newItem & { tempId: number } = {
-      tempId: Date.now(),
-      categoryId: 1, // ID temporal único
-      title: "",
-      description: "",
-      price: "",
-      images: [],
-    };
-
-    const isNewCategory = !categoryId;
-
-    if (isNewCategory) {
-      // Agregar a categoría nueva
-      const updated = newCategories.map((cat) =>
-        cat.id === categoryId
-          ? { ...cat, items: [...(cat.items || []), newItemObj as any] }
-          : cat
-      );
-      setNewCategories(updated);
-      notifyNewCategoriesAdd(updated);
-    } else {
-      // Agregar a categoría existente (localmente)
-      const updatedItems = [
-        ...(localItems[categoryId] || []),
-        newItemObj as any,
-      ];
-      setLocalItems((prev) => ({
-        ...prev,
-        [categoryId]: updatedItems,
-      }));
-
-      // Notificar al padre del cambio
-      notifyEditedCategory({
-        id: categoryId,
-        title: localTitles[categoryId],
-        items: updatedItems,
-      });
-    }
+  const addItem = (categoryKey: number) => {
+  const newItemObj: newItem & { tempId: number } = {
+    tempId: Date.now(),
+    categoryId: 1, // el menuId del restaurante, NO la categoría
+    title: "",
+    description: "",
+    price: "",
+    images: [],
   };
+
+  const isNewCategory = newCategories.some(
+    (cat) => cat.id === categoryKey || cat.tempId === categoryKey
+  );
+
+  if (isNewCategory) {
+    // ✅ Categoría nueva
+    const updated = newCategories.map((cat) =>
+      cat.id === categoryKey || cat.tempId === categoryKey
+        ? { ...cat, items: [...(cat.items || []), newItemObj] }
+        : cat
+    );
+    setNewCategories(updated);
+    notifyNewCategoriesAdd(updated);
+  } else {
+    // ✅ Categoría existente
+    const updatedItems = [
+      ...(localItems[categoryKey] || []),
+      newItemObj,
+    ];
+    setLocalItems((prev) => ({
+      ...prev,
+      [categoryKey]: updatedItems,
+    }));
+
+    notifyEditedCategory({
+      id: categoryKey,
+      title: localTitles[categoryKey],
+      items: updatedItems,
+    });
+  }
+};
 
   // Actualizar un plato
   const updateItem = (
-    categoryId: number,
-    itemId: number,
-    field: keyof newItem,
-    value: string
-  ) => {
-    const isNewCategory = newCategories.some((cat) => cat.id === categoryId);
+  categoryId: number,
+  itemKey: number, // puede ser id o tempId
+  field: keyof newItem,
+  value: string
+) => {
+  const isNewCategory = newCategories.some((cat) => cat.id === categoryId);
 
     if (isNewCategory) {
-      const updated = newCategories.map((cat) => {
-        if (cat.id === categoryId) {
-          const updatedItems = (cat.items || []).map((item) =>
-            item.id === itemId
-              ? field === "images"
-                ? { ...item, images: [{ url: value }] }
-                : { ...item, [field]: value }
-              : item
-          );
-          return { ...cat, items: updatedItems };
-        }
-        return cat;
-      });
-      setNewCategories(updated);
-      notifyNewCategoriesAdd(updated);
-    } else {
-      setLocalItems((prev) => {
-        const categoryItems = prev[categoryId] || [];
-        const updatedItems = categoryItems.map((item) =>
-          item.id === itemId
+    const updated = newCategories.map((cat) => {
+      if (cat.id === categoryId) {
+        const updatedItems = (cat.items || []).map((item) =>
+          (item.id === itemKey || item.tempId === itemKey)
             ? field === "images"
               ? { ...item, images: [{ url: value }] }
               : { ...item, [field]: value }
             : item
         );
-        return { ...prev, [categoryId]: updatedItems };
-      });
-
-      // Notificar al backend
-      const updatedItemsList = (localItems[categoryId] || []).map((item) =>
-        item.id === itemId
+        return { ...cat, items: updatedItems };
+      }
+      return cat;
+    });
+       setNewCategories(updated);
+    notifyNewCategoriesAdd(updated);
+    } else {
+    setLocalItems((prev) => {
+      const categoryItems = prev[categoryId] || [];
+      const updatedItems = categoryItems.map((item) =>
+        (item.id === itemKey || item.tempId === itemKey)
           ? field === "images"
             ? { ...item, images: [{ url: value }] }
             : { ...item, [field]: value }
           : item
       );
+      return { ...prev, [categoryId]: updatedItems };
+    });
+
+      // Notificar al backend
+      const currentItems = localItems[categoryId] || [];
+    const updatedItemsList = currentItems.map((item) =>
+      (item.id === itemKey || item.tempId === itemKey)
+        ? field === "images"
+          ? { ...item, images: [{ url: value }] }
+          : { ...item, [field]: value }
+        : item
+    );
       notifyEditedCategory({
-        id: categoryId,
-        title: localTitles[categoryId],
-        items: updatedItemsList,
-      });
+      id: categoryId,
+      title: localTitles[categoryId],
+      items: updatedItemsList,
+    });
     }
   };
 
   // 🆕 Eliminar plato
- const deleteItem = (categoryId: number, itemId: number) => {
-    const isNewCategory = newCategories.some((cat) => cat.id === categoryId);
+  const deleteItem = (categoryKey: number, itemKey: number) => {
+  const isNewCategory = newCategories.some(
+    (cat) => cat.id === categoryKey || cat.tempId === categoryKey
+  );
 
-    if (isNewCategory) {
-      const updated = newCategories.map((cat) =>
-        cat.id === categoryId
-          ? { ...cat, items: (cat.items || []).filter((item) => item.id !== itemId) }
-          : cat
-      );
-      setNewCategories(updated);
-      notifyNewCategoriesAdd(updated);
-    } else {
-      // Calcular los items actualizados ANTES de actualizar el estado
-      const updatedItems = (localItems[categoryId] || []).filter(
-        (item) => item.id !== itemId
-      );
-      
-      // Actualizar estado local
-      setLocalItems((prev) => ({
-        ...prev,
-        [categoryId]: updatedItems,
-      }));
+  if (isNewCategory) {
+    // ✅ Categoría nueva → eliminar item usando id o tempId
+    const updated = newCategories.map((cat) =>
+      cat.id === categoryKey || cat.tempId === categoryKey
+        ? {
+            ...cat,
+            items: (cat.items || []).filter(
+              (item) => item.id !== itemKey && item.tempId !== itemKey
+            ),
+          }
+        : cat
+    );
+    setNewCategories(updated);
+    notifyNewCategoriesAdd(updated);
+  } else {
+    // ✅ Categoría existente → eliminar del estado local
+    const updatedItems = (localItems[categoryKey] || []).filter(
+      (item) => item.id !== itemKey && item.tempId !== itemKey
+    );
 
-      // Notificar al padre con los items ya filtrados
-      notifyEditedCategory({
-        id: categoryId,
-        title: localTitles[categoryId],
-        items: updatedItems,
-      });
-    }
-  };
+    setLocalItems((prev) => ({
+      ...prev,
+      [categoryKey]: updatedItems,
+    }));
+
+    notifyEditedCategory({
+      id: categoryKey,
+      title: localTitles[categoryKey],
+      items: updatedItems,
+    });
+  }
+};
 
   return (
     <div className="bg-white/80 backdrop-blur-xl border border-slate-200 rounded-xl shadow-md overflow-hidden sm:rounded-2xl sm:shadow-lg">
@@ -300,7 +313,7 @@ const CategoryEditor = ({
       <div className="p-3 sm:p-5 space-y-4">
         {allCategories.map((category) => (
           <div
-            key={category.id}
+            key={category.id ?? category.tempId}
             className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden"
           >
             {/* Nombre categoría */}
@@ -310,13 +323,13 @@ const CategoryEditor = ({
                 type="text"
                 value={category.title}
                 onChange={(e) =>
-                  updateCategoryTitle(category.id, e.target.value)
-                }
+      updateCategoryTitle(category.id ?? category.tempId, e.target.value)
+    }
                 placeholder="Ej: Entradas, Postres..."
                 className="flex-1 bg-white border border-slate-200 text-slate-800 text-sm rounded-lg px-3 py-2 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-orange-400 transition-all"
               />
               <button
-                onClick={() => deleteCategory(category.id)}
+                 onClick={() => deleteCategory(category.id ?? category.tempId)}
                 className="p-2 text-red-500 hover:bg-red-100 rounded-md transition-all"
               >
                 <Trash2 className="w-4 h-4" />
@@ -328,24 +341,23 @@ const CategoryEditor = ({
               {[...(category.items || [])]
                 .sort((a, b) => {
                   // No ordenar items nuevos (sin id o con tempId)
-                  const isANew = !a.id || 'tempId' in a;
-                  const isBNew = !b.id || 'tempId' in b;
-                  
+                  const isANew = !a.id || "tempId" in a;
+                  const isBNew = !b.id || "tempId" in b;
+
                   // Si ambos son nuevos, mantener orden original
                   if (isANew && isBNew) return 0;
                   // Items nuevos siempre al final
                   if (isANew) return 1;
                   if (isBNew) return -1;
-                  
+
                   // Solo ordenar items existentes alfabéticamente
                   const titleA = a.title?.toLowerCase() || "";
                   const titleB = b.title?.toLowerCase() || "";
                   return titleA.localeCompare(titleB);
                 })
                 .map((item) => (
-                  
                   <div
-                    key={item.id}
+                    key={item.id ?? item.tempId}
                     className="bg-slate-50 rounded-lg p-3 border border-slate-200"
                   >
                     {/* Nombre del plato */}
@@ -355,7 +367,7 @@ const CategoryEditor = ({
                       onChange={(e) =>
                         updateItem(
                           category.id,
-                          item.id,
+                          item.id ?? item.tempId,
                           "title",
                           e.target.value
                         )
@@ -370,7 +382,7 @@ const CategoryEditor = ({
                       onChange={(e) =>
                         updateItem(
                           category.id,
-                          item.id,
+                          item.id ?? item.tempId,
                           "description",
                           e.target.value
                         )
@@ -391,7 +403,7 @@ const CategoryEditor = ({
                         onChange={(e) =>
                           updateItem(
                             category.id,
-                            item.id,
+                            item.id ?? item.tempId,
                             "price",
                             e.target.value
                           )
@@ -406,19 +418,17 @@ const CategoryEditor = ({
                       type="url"
                       value={item.images[0]?.url || ""}
                       onChange={(e) =>
-                        updateItem(
-                          category.id,
-                          item.id,
-                          "images",
-                          e.target.value
-                        )
-                      }
+        updateItem(category.id, item.id ?? item.tempId, "images", e.target.value)
+      }
                       placeholder="URL de imagen..."
                       className="w-full mt-2 bg-white border border-slate-200 text-slate-800 text-sm rounded-lg px-3 py-2 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-orange-400 transition-all"
                     />
 
                     {/* Eliminar plato */}
-                    <button onClick={() => deleteItem(category.id, item.id)} className="w-full mt-3 py-2 text-red-500 hover:bg-red-100 rounded-lg transition-all text-xs font-medium flex items-center justify-center gap-2">
+                    <button
+                      onClick={() => deleteItem(category.id ?? category.tempId, item.id ?? item.tempId)}
+                      className="w-full mt-3 py-2 text-red-500 hover:bg-red-100 rounded-lg transition-all text-xs font-medium flex items-center justify-center gap-2"
+                    >
                       <Trash2 className="w-4 h-4" />
                       Eliminar plato
                     </button>
@@ -427,7 +437,7 @@ const CategoryEditor = ({
 
               {/* Agregar plato */}
               <button
-                onClick={() => addItem(category.id)}
+                onClick={() => addItem(category.id ?? category.tempId)}
                 className="w-full py-3 border-2 border-dashed border-slate-300 text-slate-500 hover:text-orange-500 hover:border-orange-400 rounded-lg transition-all text-sm font-medium flex items-center justify-center gap-2 bg-white"
               >
                 <Plus className="w-4 h-4" />
