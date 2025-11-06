@@ -53,21 +53,56 @@ export const getMenu = async (id: string | number): Promise<Menu> => {
   }
 };
 
-// --- 🔹 Crear un nuevo menú (menuEditor)
+
+
+/// 🔹 Crear un nuevo menú (menuEditor)
 export const createMenu = async (data: newMenu): Promise<Menu> => {
   try {
+    const formData = new FormData();
+    
+    // Campos obligatorios
+    formData.append("title", data.title);
+    
+    // Campos opcionales
+   
+    
+    if (data.userId !== undefined) {
+      formData.append("userId", String(data.userId));
+    }
+    
+    if (data.pos) {
+      formData.append("pos", data.pos);
+    }
+    
+    // Color (si existe, convertir a JSON string)
+    if (data.color) {
+      formData.append("color", JSON.stringify(data.color));
+    }
+    // Archivos
+    if (data.logo) {
+      formData.append("logo", data.logo);
+    }
+    
+    if (data.backgroundImage) {
+      formData.append("backgroundImage", data.backgroundImage);
+    }
+
     const response = await fetch(BASE_URL, {
       method: "POST",
       headers: {
-        "Content-Type": "application/json",
+        // ⚠️ NO incluir Content-Type con FormData
         ...TENANT_HEADER,
       },
-      body: JSON.stringify(data),
+      body: formData,
     });
 
-    if (!response.ok) throw new Error("Error al crear menú");
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Error al crear menú: ${response.status} - ${errorText}`);
+    }
 
     return response.json();
+    
   } catch (error) {
     console.error("❌ Error al crear menú:", error);
     throw error;

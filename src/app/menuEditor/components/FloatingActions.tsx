@@ -167,6 +167,7 @@ const FloatingActions: React.FC<FloatingActionsProps> = ({
       } else {
         //  Crear un nuevo menú
         const createdMenu = await createMenu(newMenu);
+        console.log(createdMenu)
         const newMenuId = createdMenu.id;
 
         if (newCategory && newCategory.length > 0) {

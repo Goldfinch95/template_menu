@@ -41,12 +41,26 @@ const CategoryEditor = ({
   useEffect(() => {
     const titles: { [key: number]: string } = {};
     const items: { [key: number]: Items[] } = {};
+    
     categories.forEach((cat) => {
       titles[cat.id] = cat.title;
       items[cat.id] = cat.items || [];
     });
-    setLocalTitles(titles);
-    setLocalItems(items);
+    
+    // Solo actualizar si realmente hay cambios
+    setLocalTitles((prev) => {
+      const hasChanges = categories.some(
+        (cat) => prev[cat.id] !== cat.title
+      );
+      return hasChanges ? titles : prev;
+    });
+    
+    setLocalItems((prev) => {
+      const hasChanges = categories.some(
+        (cat) => JSON.stringify(prev[cat.id]) !== JSON.stringify(cat.items)
+      );
+      return hasChanges ? items : prev;
+    });
   }, [categories]);
 
   // Limpiar timers al desmontar
@@ -93,7 +107,8 @@ const CategoryEditor = ({
   //Crear una nueva categoria
 
   const createNewCategory = () => {
-    const newCat: newCategory = {
+     const newCat: newCategory & { tempId: number } = {
+      tempId: Date.now(),
       menuId: 1, // Usar timestamp como ID temporal
       title: "",
       items: [],
@@ -328,6 +343,7 @@ const CategoryEditor = ({
                   return titleA.localeCompare(titleB);
                 })
                 .map((item) => (
+                  
                   <div
                     key={item.id}
                     className="bg-slate-50 rounded-lg p-3 border border-slate-200"

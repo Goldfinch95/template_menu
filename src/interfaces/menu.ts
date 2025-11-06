@@ -1,5 +1,6 @@
 //  INTERFAZ GENERAL
 
+
 // menu
 export interface Menu {
   active: boolean;
@@ -63,13 +64,13 @@ export interface ImageItems {
 
 export interface newMenu {
   userId: 1; // temporalmente lo fijo en 1
-  backgroundImage: string;
-  color: {
+  backgroundImage?: File;
+  color?: {
     primary: string;
     secondary: string;
   };
-  logo: string;
-  pos: string;
+  logo?: File;
+  pos?: string;
   title: string;
   categories: [];
 }

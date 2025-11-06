@@ -59,15 +59,21 @@ const MenuEditorContent = () => {
 
   // recibir datos de los componentes hijos
   const reciveRestaurantImages = useCallback(
-    (images: { logo: string; backgroundImage: string }) => {
-      setMenu((prevMenu) => ({
-        ...prevMenu,
-        logo: images.logo,
-        backgroundImage: images.backgroundImage,
-      }));
-    },
-    []
-  );
+  (images: { logo: File | null; backgroundImage: File | null }) => {
+    console.log("📥 Imágenes recibidas al padre:", {
+      logo: images.logo?.name,
+      background: images.backgroundImage?.name
+    });
+  
+    // ✅ TAMBIÉN actualizar newMenu (para modo creación)
+    setNewMenu((prevMenu) => ({
+      ...prevMenu,
+      logo: images.logo as File,  // Asegurar tipo File
+      backgroundImage: images.backgroundImage as File,
+    }));
+  },
+  []
+);
   const reciveRestaurantInformation = useCallback(
     (info: { title: string; pos: string }) => {
       setNewMenu((prevMenu) => ({
