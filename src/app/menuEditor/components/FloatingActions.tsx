@@ -26,6 +26,7 @@ interface FloatingActionsProps {
   editedCategories: EditedCategory[];
   categoriesToDelete: number[];
   onDeleteComplete: () => void;
+  onPreviewClick: () => void;
 }
 
 const FloatingActions: React.FC<FloatingActionsProps> = ({
@@ -35,6 +36,7 @@ const FloatingActions: React.FC<FloatingActionsProps> = ({
   editedCategories,
   categoriesToDelete,
   onDeleteComplete,
+  onPreviewClick,
 }) => {
   
   const pathname = usePathname();
@@ -197,6 +199,7 @@ const FloatingActions: React.FC<FloatingActionsProps> = ({
       <div className="max-w-4xl mx-auto flex gap-4">
         {/* Botón Vista Previa */}
         <Button
+        onClick={onPreviewClick}
           className="
             flex-1 h-14 
             bg-gradient-to-br from-orange-400 to-orange-500 hover:from-orange-500 hover:to-orange-600
