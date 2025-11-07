@@ -28,27 +28,28 @@ const ImagesEditor = ({
   const [backgroundPreview, setBackgroundPreview] = useState(null);
 
   //estados de carga de logo e inputs
-  const [loadingLogo, setLoadingLogo] = useState(true);
-  const [loadingBackground, setLoadingBackground] = useState(true);
+  const [loadingLogo, setLoadingLogo] = useState(false);
+  const [loadingBackground, setLoadingBackground] = useState(false);
 
   //preview del logo y backgound
   useEffect(() => {
-    setLoadingLogo(true);
-    setLoadingBackground(true);
+  // Si existe alguno, activar los estados de carga
+  if (logo) setLoadingLogo(true);
+  if (background) setLoadingBackground(true);
 
-    const timer = setTimeout(() => {
-      if (logo) {
-        setLogoPreview(logo);
-      }
-      if (background) {
-        setBackgroundPreview(background);
-      }
+  const timer = setTimeout(() => {
+    if (logo) {
+      setLogoPreview(logo);
       setLoadingLogo(false);
+    }
+    if (background) {
+      setBackgroundPreview(background);
       setLoadingBackground(false);
-    }, 700); // ⏱️ 2 segundos de “carga”
+    }
+  }, 700); // ⏱️ simulamos 0.7s de carga
 
-    return () => clearTimeout(timer);
-  }, [logo, background]);
+  return () => clearTimeout(timer);
+}, [logo, background]);
 
   // Enviar valores al padre cuando cambien los archivos
   useEffect(() => {
