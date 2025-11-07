@@ -2,6 +2,9 @@
 
 import React, { useState, useEffect } from "react";
 import { Card } from "@/common/components/ui/card";
+import { Label } from "@radix-ui/react-label";
+import { Input } from "@/common/components/ui/input";
+import { Button } from "@/common/components/ui/button";
 
 interface InfoEditorProps {
   title: string;
@@ -18,10 +21,10 @@ const InfoEditor = ({ title, pos, onInfoSubmit }: InfoEditorProps) => {
   const [debouncedPos, setDebouncedPos] = useState("");
 
   // Inicializar con los valores del padre cuando lleguen
-    useEffect(() => {
-      if (title) setInputTitle(title);
-      if (pos) setInputPos(pos);
-    }, [title, pos]);
+  useEffect(() => {
+    if (title) setInputTitle(title);
+    if (pos) setInputPos(pos);
+  }, [title, pos]);
 
   // Debounce: espera 500ms después de que el usuario deja de escribir
   useEffect(() => {
@@ -29,66 +32,76 @@ const InfoEditor = ({ title, pos, onInfoSubmit }: InfoEditorProps) => {
       setDebouncedTitle(inputTitle);
       setDebouncedPos(inputPos);
     }, 500);
-  
+
     return () => clearTimeout(timer);
   }, [inputTitle, inputPos]);
-  
-    // Enviar valores al padre cuando cambien los valores debounced
-    useEffect(() => {
+
+  // Enviar valores al padre cuando cambien los valores debounced
+  useEffect(() => {
     if (debouncedTitle && debouncedPos) {
-      onInfoSubmit?.({ 
-          title: debouncedTitle,
-          pos: debouncedPos
-        });
+      onInfoSubmit?.({
+        title: debouncedTitle,
+        pos: debouncedPos,
+      });
     }
   }, [debouncedTitle, debouncedPos, onInfoSubmit]);
 
   return (
-    <Card className="bg-white/70 backdrop-blur-xl border border-white/40 rounded-2xl p-6 shadow-lg">
+    <Card className="bg-gradient-to-b from-white/80 to-white/60 backdrop-blur-xl border border-white/30 rounded-3xl p-6 shadow-[0_8px_30px_rgb(0,0,0,0.05)] transition-all hover:shadow-[0_8px_40px_rgb(0,0,0,0.08)] duration-300">
       <div className="space-y-6">
         {/* Título */}
-        <h3 className="font-semibold text-slate-800 text-lg">
-          Información del Restaurante
-        </h3>
-
+          <h3 className="text-center font-semibold text-slate-800 text-lg tracking-tight">
+            Información del Restaurante
+          </h3>
         {/* Inputs */}
         <div className="space-y-5">
           {/* Nombre del Menú */}
-          <div>
-            <label
+          <div className="flex flex-col gap-3">
+            <Label
               htmlFor="title"
-              className="block text-sm font-medium text-slate-700 mb-2"
+              className="text-slate-600 text-sm font-medium"
             >
-              Nombre del Menú *
-            </label>
-            <input
+              Nombre del Menú
+            </Label>
+            <div className="relative">
+              <Input
               id="title"
               name="title"
               type="text"
               value={inputTitle}
               onChange={(e) => setInputTitle(e.target.value)}
               placeholder="Ej: Restaurante El Buen Sabor"
-              className="w-full px-4 py-2 border border-slate-300 rounded-lg placeholder:text-slate-400 focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+              className="pr-9 bg-white/70 border-slate-200 focus-visible:ring-orange-400 text-sm"
             />
+            <span className="absolute right-3 top-2.5 text-slate-400 text-sm">
+                🍽️
+              </span>
+            </div>
           </div>
 
           {/* Ubicación / Puntos de Venta */}
-          <div>
-            <label
+          <div className="flex flex-col gap-3">
+            <Label
               htmlFor="pos"
-              className="block text-sm font-medium text-slate-700 mb-2"
+              className="text-slate-600 text-sm font-medium"
             >
               Ubicación / Puntos de Venta
-            </label>
-            <input
+            </Label>
+            <div className="relative">
+              <Input
               id="pos"
               name="pos"
               type="text"
               value={inputPos}
               onChange={(e) => setInputPos(e.target.value)}
               placeholder="Ej: Av. Principal 123, Centro"
-              className="w-full px-4 py-2 border border-slate-300 rounded-lg placeholder:text-slate-400 focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+              className="pr-9 bg-white/70 border-slate-200 focus-visible:ring-orange-400 text-sm"
             />
+            <span className="absolute right-3 top-2.5 text-slate-400 text-sm">
+                📍
+              </span>
+            </div>
+            
           </div>
         </div>
       </div>
