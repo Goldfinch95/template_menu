@@ -19,8 +19,10 @@ const FoodMenuItem: React.FC<MenuItem> = ({
   // Convertir price de string a number para mostrar
   const priceNumber = parseFloat(price);
 
+  //funcion para detectar color claro o oscuro para el borde
+  
   return (
-    <div className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+    <div className="border border-black rounded-lg p-4 hover:shadow-md transition-shadow">
       <div className="flex justify-between items-center gap-4">
         <div className="flex-1 min-w-0">
           <h3 className="font-semibold text-gray-800 mb-1">{title}</h3>

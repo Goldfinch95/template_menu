@@ -11,6 +11,7 @@ const NavbarEditor = () => {
   const [title, setTitle] = useState("");
   const [showMenu, setShowMenu] = useState(false);
   const router = useRouter();
+  const [menuId, setMenuId] = useState<number | null>(null);
 
   useEffect(() => {
     // Detectar si estamos creando nuevo menu o editando menu.
@@ -20,6 +21,7 @@ const NavbarEditor = () => {
       if (id) {
         setTitle("Editando Menu");
         setShowMenu(true);
+        setMenuId(Number(id))
       } else {
         setTitle("Creando Menu");
       }
@@ -27,8 +29,10 @@ const NavbarEditor = () => {
   }, [pathname]);
 
   // ir al menu seleccionado
-  const goToMenu = () => {
-    router.push("/menu");
+  const goToMenu = (id: number | null) => {
+    if (id) {
+      router.push(`/menu?id=${id}`);
+    }
   };
 
   return (
@@ -55,7 +59,7 @@ const NavbarEditor = () => {
           {/* Botón ver menú */}
           {showMenu ? (
             <Button
-              onClick={goToMenu}
+               onClick={() => goToMenu(menuId)}
               className="p-2 bg-gradient-to-br from-orange-400 to-orange-500 hover:from-orange-500 hover:to-orange-600 text-white rounded-xl shadow-md transition-all duration-200 active:scale-[0.97]"
             >
               <Eye className="w-5 h-5" />

@@ -401,7 +401,13 @@ const MenuEditorContent = () => {
             </div>
             {/* Scroll de Categorías */}
             {previewData.categories && previewData.categories.length > 0 && (
-              <div className="sticky top-[57px] z-20 bg-white/95 backdrop-blur-sm border-b border-gray-200 shadow-md">
+              <div
+                className="flex justify-center sticky top-[57px] z-20"
+                style={{
+                  backgroundColor:
+                    previewData.color?.primary || "rgba(255,255,255,0.95)",
+                }}
+              >
                 <div
                   ref={scrollContainerRef}
                   className="flex overflow-x-auto scrollbar-hide px-6 py-3 gap-2"
@@ -411,11 +417,11 @@ const MenuEditorContent = () => {
                     <button
                       key={category.id || `cat-${index}`}
                       onClick={() => scrollToCategory(index)}
-                      className={`flex-shrink-0 px-5 py-2.5 rounded-full font-medium text-sm transition-all duration-300 whitespace-nowrap
+                      className={`flex-shrink-0 px-3 py-2 rounded-lg text-base font-semibold transition-all whitespace-nowrap
                         ${
                           activeCategory === index
-                            ? "text-white shadow-lg transform scale-105"
-                            : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                            ? "bg-slate-600 text-white"
+                            : "bg-gray-800 text-gray-400 hover:bg-gray-700"
                         }`}
                       style={{
                         backgroundColor:
@@ -450,7 +456,7 @@ const MenuEditorContent = () => {
                   >
                     {category.title && (
                       <h2
-                        className="text-2xl font-bold mb-6"
+                        className="text-xl text-black font-bold mb-4"
                         style={{ color: previewData.color.secondary }}
                       >
                         {category.title}
@@ -480,7 +486,9 @@ const MenuEditorContent = () => {
                                 {item.price && (
                                   <p
                                     className="text-xl font-bold"
-                                    style={{ color: previewData.color.secondary }}
+                                    style={{
+                                      color: previewData.color.secondary,
+                                    }}
                                   >
                                     ${item.price}
                                   </p>

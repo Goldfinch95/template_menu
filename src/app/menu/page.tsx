@@ -3,52 +3,41 @@
 import React, { useState, useEffect, useRef, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import FoodMenuItem from "@/app/components/FoodMenuItem";
-import type { Category } from "@/interfaces/menu";
+import type { Menu, Categories } from "@/interfaces/menu";
+import { getMenu } from "@/common/utils/api";
 
 // Componente interno que usa useSearchParams
 function MenuContent() {
+  //Estado para el menu
+  const [menu, setMenu] = useState<Menu>({} as Menu);
+  // Estado para las categorias
+  const [categories, setCategories] = useState<Categories[]>([]);
+  //obtener el id
   const searchParams = useSearchParams();
   const menuId = searchParams.get("id");
-  const menuTitle = searchParams.get("title");
 
-  const [categories, setCategories] = useState<Category[]>([]);
+  //estados para el scroll
   const [activeCategory, setActiveCategory] = useState(1);
   const [isScrolling, setIsScrolling] = useState(false);
   const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // GET de categorías
   useEffect(() => {
-    const fetchCategories = async () => {
-      if (!menuId) {
-        console.error("No menu ID provided");
-        return;
-      }
+    if (!menuId) return;
+
+    const loadMenu = async () => {
       try {
-        const response = await fetch(
-          `http://localhost:3000/api/menus/${menuId}`, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          "x-tenant-subdomain": "amaxlote",
-        },
-      
-});
-        const data = await response.json();
-        console.log(data.categories);
-        setCategories(data.categories);
-        // Establecer la primera categoría como activa por defecto
-        if (data.categories.length > 0) {
-          setActiveCategory(data.categories[0].id);
-        }
+        const menuData = await getMenu(menuId);
+        setMenu(menuData);
+        setCategories(menuData.categories);
       } catch (error) {
-        console.error("Error fetching categories:", error);
+        console.error("❌ Error al cargar el menú:", error);
       }
     };
+    loadMenu();
+  }, [searchParams]);
 
-    fetchCategories();
-  }, [menuId]);
-
-   useEffect(() => {
+  useEffect(() => {
     if (categories.length === 0) return;
 
     const handleScroll = () => {
@@ -57,10 +46,12 @@ function MenuContent() {
 
       const categoryIds = categories.map((cat) => cat.id);
       const navHeight = 80;
-      
+
       // Verificar si estamos exactamente al final de la página (no puede hacer más scroll)
-      const isAtBottom = Math.ceil(window.innerHeight + window.scrollY) >= document.documentElement.scrollHeight;
-      
+      const isAtBottom =
+        Math.ceil(window.innerHeight + window.scrollY) >=
+        document.documentElement.scrollHeight;
+
       if (isAtBottom) {
         // Si estamos al final, activar la última categoría
         setActiveCategory(categoryIds[categoryIds.length - 1]);
@@ -89,21 +80,22 @@ function MenuContent() {
   const scrollToCategory = (categoryId: number) => {
     setActiveCategory(categoryId);
     setIsScrolling(true);
-    
+
     // Limpiar timeout anterior si existe
     if (scrollTimeoutRef.current) {
       clearTimeout(scrollTimeoutRef.current);
     }
-    
+
     const element = document.getElementById(categoryId.toString());
     if (element) {
       const navHeight = 80;
-      const elementPosition = element.getBoundingClientRect().top + window.pageYOffset;
+      const elementPosition =
+        element.getBoundingClientRect().top + window.pageYOffset;
       const offsetPosition = elementPosition - navHeight;
 
       window.scrollTo({
         top: offsetPosition,
-        behavior: "smooth"
+        behavior: "smooth",
       });
 
       // Esperar a que termine la animación de scroll (aprox 800ms para estar seguros)
@@ -112,10 +104,12 @@ function MenuContent() {
         // Forzar una actualización de la categoría activa después del scroll
         const categoryIds = categories.map((cat) => cat.id);
         const navHeight = 80;
-        
+
         // Verificar si estamos exactamente al final de la página
-        const isAtBottom = Math.ceil(window.innerHeight + window.scrollY) >= document.documentElement.scrollHeight - 5;
-        
+        const isAtBottom =
+          Math.ceil(window.innerHeight + window.scrollY) >=
+          document.documentElement.scrollHeight - 5;
+
         if (isAtBottom) {
           setActiveCategory(categoryIds[categoryIds.length - 1]);
         } else {
@@ -136,31 +130,43 @@ function MenuContent() {
     }
   };
 
-  
-
   return (
     <div className="min-h-screen">
       {/* Header del menú con imagen de fondo */}
-      <header className="relative h-64 overflow-hidden">
+      <header className="relative h-72 overflow-hidden">
         <div
           className="absolute inset-0 bg-cover bg-center"
           style={{
-            backgroundImage:
-              "url('https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=800&h=400&fit=crop')",
+            backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.6)), url(${menu.backgroundImage})`,
           }}
         />
         {/* Contenido del header */}
-        <div className="relative h-full flex flex-col items-center justify-center px-4">
-          <div className="text-center">
-            <h1 className="text-white text-3xl font-bold text-center drop-shadow-lg mb-2">
-              {menuTitle ? decodeURIComponent(menuTitle) : "Menú"}
+        <div className="relative h-full flex flex-col items-center justify-center px-6">
+          <div className="w-28 h-28 mb-4  rounded-3xl flex items-center justify-center shadow-2xl overflow-hidden ">
+            <img
+              src={menu.logo}
+              alt="Logo"
+              className="w-full h-full object-cover"
+            />
+          </div>
+          <div>
+            <h1 className="text-white text-4xl font-bold text-center drop-shadow-lg mb-2">
+              {menu.title}
             </h1>
+            <h2 className="text-white text-lg">{menu.pos}</h2>
           </div>
         </div>
       </header>
-      <div className="bg-white pb-8 min-h-screen">
+      <div className="pb-8 min-h-screen" style={{
+            backgroundColor: menu.color?.primary || "rgba(255,255,255,0.95)",
+          }}>
         {/* Category Navigation */}
-        <nav className="flex justify-center sticky top-0 z-10 bg-white shadow-md">
+        <nav
+          className="flex justify-center sticky top-0 z-10 shadow-md"
+          style={{
+            backgroundColor: menu.color?.primary || "rgba(255,255,255,0.95)",
+          }}
+        >
           <div className="max-w-2xl mx-auto px-2 py-3">
             <div className="flex gap-1.5 overflow-x-auto scrollbar-hide">
               {categories.map((category) => (
@@ -179,31 +185,31 @@ function MenuContent() {
             </div>
           </div>
         </nav>
-<div className="bg-white px-4 py-6">
-        {/* Menu Content */}
-        <main className="space-y-4">
-          {categories.map((category) => (
-            <section key={category.id} id={category.id.toString()}>
-              <h2 className="text-xl text-black font-bold mb-4">
-                {category.title}
-              </h2>
-              <div className="space-y-4">
-                {category.items && category.items.length > 0 ? (
-                  category.items.map((item) => (
-                    <div key={item.id} className="space-y-4">
-                      <FoodMenuItem key={item.id} {...item} />
-                    </div>
-                  ))
-                ) : (
-                  <p className="text-gray-400 text-sm">
-                    No hay items en esta categoría
-                  </p>
-                )}
-              </div>
-            </section>
-          ))}
-        </main>
-      </div>
+        <div className=" px-4 py-6" >
+          {/* Menu Content */}
+          <main className="space-y-4 ">
+            {categories.map((category) => (
+              <section key={category.id} id={category.id.toString()}>
+                <h2 className="text-xl text-black font-bold mb-4 ">
+                  {category.title}
+                </h2>
+                <div className="space-y-4 ">
+                  {category.items && category.items.length > 0 ? (
+                    category.items.map((item) => (
+                      <div key={item.id} className="space-y-4">
+                        <FoodMenuItem key={item.id} {...item} />
+                      </div>
+                    ))
+                  ) : (
+                    <p className="text-gray-400 text-sm">
+                      No hay items en esta categoría
+                    </p>
+                  )}
+                </div>
+              </section>
+            ))}
+          </main>
+        </div>
       </div>
     </div>
   );
