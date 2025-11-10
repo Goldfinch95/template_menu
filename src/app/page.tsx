@@ -25,9 +25,8 @@ const hexToGradient = (primaryHex: string, secondaryHex: string) => {
 };
 
 export default function Home() {
-  // estados del menu, de error y de carga
+  // estados del menu y de carga
   const [menus, setMenus] = useState<Menu[]>([]);
-  const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   
   const router = useRouter();
@@ -45,11 +44,7 @@ export default function Home() {
         const data = await getMenus();
         setMenus(data);
       } catch (err) {
-        setError(
-          err instanceof Error
-            ? err.message
-            : "No se reciben los Menus de la base de datos"
-        );
+        console.log(err)
       } finally {
         setIsLoading(false);
       }
@@ -100,9 +95,9 @@ export default function Home() {
                 </p>
               </div>
               {/* boton para deslogear */}
-              <button className="p-3 rounded-lg active:scale-95 transition">
+              <Button className="p-3 rounded-lg bg-transparent active:scale-95 transition">
                 <LogOut className="w-5 h-5 text-slate-700 group-hover:text-red-500 transition-colors" />
-              </button>
+              </Button>
             </div>
           </div>
         </header>

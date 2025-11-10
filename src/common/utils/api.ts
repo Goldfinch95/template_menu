@@ -3,7 +3,7 @@ import { Menu, Categories, Items, newCategory, newMenu  } from "@/interfaces/men
 const BASE_URL = "http://localhost:3000/api/menus";
 const CATEGORIES_BASE_URL = "http://localhost:3000/api/categories";
 const ITEM_BASE_URL = "http://localhost:3000/api/items"
-const TENANT_HEADER = { "x-tenant-subdomain": "amaxito" };
+const TENANT_HEADER = { "x-tenant-subdomain": "amaxlote" };
 
 // --- 🔹 Obtener todos los menús (para Home)
 export const getMenus = async (): Promise<Menu[]> => {
