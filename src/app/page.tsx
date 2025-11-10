@@ -42,10 +42,13 @@ export default function Home() {
       try {
         setIsLoading(true);
         const data = await getMenus();
-        setMenus(data);
+        // Espera al menos 1.5s antes de mostrar los datos
+        setTimeout(() => {
+          setMenus(data);
+          setIsLoading(false);
+        }, 1000);
       } catch (err) {
-        console.log(err)
-      } finally {
+        console.log(err);
         setIsLoading(false);
       }
     };
