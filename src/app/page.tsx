@@ -42,7 +42,7 @@ export default function Home() {
       try {
         setIsLoading(true);
         const data = await getMenus();
-        // Espera al menos 1.5s antes de mostrar los datos
+        // Espera al menos 1s antes de mostrar los datos
         setTimeout(() => {
           setMenus(data);
           setIsLoading(false);

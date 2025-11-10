@@ -294,25 +294,27 @@ const MenuEditorContent = () => {
   const previewData = getPreviewData;
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-white via-[#FFF3EC] to-[#FFE6D3]
-          flex flex-col items-center">
+    <main className="min-h-screen w-full
+        bg-gradient-to-b from-white via-[#FFF3EC] to-[#FFE6D3]
+        flex flex-col">
       {/* Navbar */}
       <NavbarEditor />
       {/* Contenido principal */}
-      <main className="max-w-3xl mx-auto w-full px-5 sm:px-6 lg:px-8 py-10 space-y-8">
-        <div className="space-y-6">
-          {/* Alert de error 
-          {saveError && (
-            <Alert
-              variant="destructive"
-              className="bg-red-950/50 border border-red-900/70 backdrop-blur-sm"
-            >
-              <AlertCircle className="h-4 w-4" />
-              <AlertDescription>{saveError}</AlertDescription>
-            </Alert>
-          )}
-
-          {/*Sección de URLs de imágenes*/}
+      <motion.section
+        initial={{ opacity: 0, y: 15 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, ease: "easeOut" }}
+        className="
+          flex-1 w-full
+          max-w-3xl mx-auto
+          px-5 sm:px-6 lg:px-8
+          pt-6 pb-24
+          space-y-8
+        "
+      >
+        <div className="space-y-8">
+          {/* AQUI DEBE IR UNA ALERTA DE ERROR EN CASO DE QUE EL FORMULARIO NO ESTE COMPLETO /*}
+          {/*Sección de imagenes del menú*/}
           <ImagesEditor
             logo={menu.logo}
             background={menu.backgroundImage}
@@ -349,7 +351,7 @@ const MenuEditorContent = () => {
             Eliminar Menú
           </button>
         </div>
-      </main>
+      </motion.section>
 
       {/* Botones flotantes */}
       <FloatingActions

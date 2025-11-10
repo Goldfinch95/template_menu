@@ -2,7 +2,8 @@
 
 import React, { useEffect, useState } from "react";
 import { Card } from "@/common/components/ui/card";
-import { Upload, Info } from "lucide-react";
+import { Label } from "@/common/components/ui/label";
+import { Upload } from "lucide-react";
 import { Spinner } from "@/common/components/ui/spinner";
 
 interface ImagesEditorProps {
@@ -19,39 +20,43 @@ const ImagesEditor = ({
   background,
   onImagesSubmit,
 }: ImagesEditorProps) => {
-  // Estados locales para los inputs
+  // Estados para el logo y la imagen de fondo
   const [logoFile, setLogoFile] = useState<File | null>(logo || null);
-  const [logoPreview, setLogoPreview] = useState(null);
   const [backgroundFile, setBackgroundFile] = useState<File | null>(
     background || null
   );
-  const [backgroundPreview, setBackgroundPreview] = useState(null);
+  //estados para el PREVIEW del logo y la imagen de fondo
+  const [logoPreview, setLogoPreview] = useState<string | null>(null);
+  const [backgroundPreview, setBackgroundPreview] = useState<string | null>(
+    null
+  );
 
-  //estados de carga de logo e inputs
+  //estados de CARGA de logo y la imagen de fondo.
   const [loadingLogo, setLoadingLogo] = useState(false);
   const [loadingBackground, setLoadingBackground] = useState(false);
 
-  //preview del logo y backgound
+  //cargar logo y imagen de fondo.
   useEffect(() => {
-  // Si existe alguno, activar los estados de carga
-  if (logo) setLoadingLogo(true);
-  if (background) setLoadingBackground(true);
+    // Si existe alguno, activar los estados de carga
+    if (logo) setLoadingLogo(true);
+    if (background) setLoadingBackground(true);
 
-  const timer = setTimeout(() => {
-    if (logo) {
-      setLogoPreview(logo);
-      setLoadingLogo(false);
-    }
-    if (background) {
-      setBackgroundPreview(background);
-      setLoadingBackground(false);
-    }
-  }, 700); // ⏱️ simulamos 0.7s de carga
+    // Espera al menos 0.7s antes de mostrarlos.
+    const timer = setTimeout(() => {
+      if (logo) {
+        setLogoPreview(logo);
+        setLoadingLogo(false);
+      }
+      if (background) {
+        setBackgroundPreview(background);
+        setLoadingBackground(false);
+      }
+    }, 700);
 
-  return () => clearTimeout(timer);
-}, [logo, background]);
+    return () => clearTimeout(timer);
+  }, [logo, background]);
 
-  // Enviar valores al padre cuando cambien los archivos
+  //al cargar, detectar si cambiaron los archivos y enviar los cambios al componente padre.
   useEffect(() => {
     onImagesSubmit?.({
       logo: logoFile,
@@ -86,7 +91,11 @@ const ImagesEditor = ({
   };
 
   return (
-    <Card className="bg-white/80 backdrop-blur-xl border border-white/30 rounded-2xl p-5 shadow-lg max-w-md mx-auto space-y-6">
+    // card imagenes del menú
+    <Card
+      className="bg-white/80 backdrop-blur-xl border border-white/30 rounded-2xl 
+        p-5 shadow-lg max-w-md mx-auto space-y-6"
+    >
       <h3 className="text-lg font-bold text-slate-900 text-center mb-2">
         Imágenes del Menú
       </h3>
@@ -99,10 +108,17 @@ const ImagesEditor = ({
           onChange={handleLogoChange}
           className="hidden"
         />
-        <label
+        <Label
           htmlFor="logo"
-          className="w-28 h-28 rounded-full overflow-hidden border-2 border-dashed border-slate-300 bg-slate-50 flex items-center justify-center cursor-pointer hover:border-orange-500 transition-all"
+          className={`w-28 h-28 rounded-full overflow-hidden 
+            ${
+              logoPreview
+                ? "border-0"
+                : "border-2 border-dashed border-slate-300"
+            } 
+            bg-slate-50 flex items-center justify-center cursor-pointer hover:border-orange-500 transition-all`}
         >
+          {/* carga del logo */}
           {loadingLogo ? (
             <Spinner className="w-6 h-6 text-orange-500" />
           ) : logoPreview ? (
@@ -114,11 +130,14 @@ const ImagesEditor = ({
           ) : (
             <Upload className="w-8 h-8 text-slate-400" />
           )}
-        </label>
-        <p className="text-sm text-slate-600 font-medium">Sube tu logo</p>
+        </Label>
+        {/* titulo y subtitulo sin logo */}
+        <p className="text-sm text-slate-600 font-medium">
+          {logoPreview ? "Toca la imagen para cambiarlo" : "Carga tu imagen"}
+        </p>
         <p className="text-xs text-slate-400">PNG, JPG, SVG hasta 10MB</p>
       </div>
-      {/* imagen de fondo */}
+      {/* fondo */}
       <div className="flex flex-col items-center text-center space-y-3">
         <input
           id="background"
@@ -127,10 +146,17 @@ const ImagesEditor = ({
           onChange={handleBackgroundChange}
           className="hidden"
         />
-        <label
+        <Label
           htmlFor="background"
-          className="w-full aspect-[16/9] rounded-2xl overflow-hidden border-2 border-dashed border-slate-300 bg-slate-50 flex items-center justify-center cursor-pointer hover:border-orange-500 transition-all"
+          className={`w-full aspect-[16/9] rounded-2xl overflow-hidden 
+            ${
+              backgroundPreview
+                ? "border-0"
+                : "border-2 border-dashed border-slate-300"
+            } 
+            bg-slate-50 flex items-center justify-center cursor-pointer hover:border-orange-500 transition-all`}
         >
+          {/* carga del fondo */}
           {loadingBackground ? (
             <Spinner className="w-6 h-6 text-orange-500" />
           ) : backgroundPreview ? (
@@ -142,10 +168,20 @@ const ImagesEditor = ({
           ) : (
             <div className="flex flex-col items-center">
               <Upload className="w-8 h-8 text-slate-400 mb-1" />
-              <p className="text-sm text-slate-500">Sube tu imagen de fondo</p>
+              {/* titulo sin fondo */}
+              <p className="text-sm text-slate-500">
+                {" "}
+                Carga la imagen de fondo
+              </p>
             </div>
           )}
-        </label>
+        </Label>
+        {backgroundPreview && (
+          <p className="text-sm text-slate-600 font-medium">
+            Toca la imagen para cambiarlo
+          </p>
+        )}
+        {/* subtitulo sin fondo */}
         <p className="text-xs text-slate-400">PNG, JPG hasta 10MB</p>
       </div>
     </Card>
