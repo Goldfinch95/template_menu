@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+import Image from "next/image";
 import { Card } from "@/common/components/ui/card";
 import { Label } from "@/common/components/ui/label";
 import { Upload } from "lucide-react";
@@ -122,9 +123,12 @@ const ImagesEditor = ({
           {loadingLogo ? (
             <Spinner className="w-6 h-6 text-orange-500" />
           ) : logoPreview ? (
-            <img
+            <Image
               src={logoPreview}
               alt="Logo preview"
+              priority
+              width={100}
+              height={100}
               className="w-full h-full object-cover"
             />
           ) : (
@@ -160,9 +164,11 @@ const ImagesEditor = ({
           {loadingBackground ? (
             <Spinner className="w-6 h-6 text-orange-500" />
           ) : backgroundPreview ? (
-            <img
+            <Image
               src={backgroundPreview}
               alt="Background preview"
+              width={600} 
+              height={340} 
               className="w-full h-full object-cover"
             />
           ) : (
@@ -176,12 +182,13 @@ const ImagesEditor = ({
             </div>
           )}
         </Label>
+        {/* titulo con fondo */}
         {backgroundPreview && (
           <p className="text-sm text-slate-600 font-medium">
             Toca la imagen para cambiarlo
           </p>
         )}
-        {/* subtitulo sin fondo */}
+        {/* subtitulo con/sin fondo */}
         <p className="text-xs text-slate-400">PNG, JPG hasta 10MB</p>
       </div>
     </Card>
