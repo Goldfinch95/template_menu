@@ -73,9 +73,7 @@ const InfoEditor = ({ title, pos, onInfoSubmit }: InfoEditorProps) => {
               placeholder="Ej: Restaurante El Buen Sabor"
               className="pr-9 bg-white/70 border-slate-200 focus-visible:ring-orange-400 text-sm"
             />
-            <span className="absolute right-3 top-2.5 text-slate-400 text-sm">
-                🍽️
-              </span>
+            
             </div>
           </div>
 
@@ -97,9 +95,7 @@ const InfoEditor = ({ title, pos, onInfoSubmit }: InfoEditorProps) => {
               placeholder="Ej: Av. Principal 123, Centro"
               className="pr-9 bg-white/70 border-slate-200 focus-visible:ring-orange-400 text-sm"
             />
-            <span className="absolute right-3 top-2.5 text-slate-400 text-sm">
-                📍
-              </span>
+            
             </div>
             
           </div>

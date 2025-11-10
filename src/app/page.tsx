@@ -5,11 +5,13 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Card } from "@/common/components/ui/card";
 import { Button } from "@/common/components/ui/button";
+import { Skeleton } from "@/common/components/ui/skeleton";
 import { Plus, UtensilsCrossed, ChevronRight, LogOut } from "lucide-react";
 import { Menu } from "@/interfaces/menu";
 import Image from "next/image";
 import { Manrope } from "next/font/google";
 import { getMenus } from "@/common/utils/api";
+import { AnimatePresence, motion } from "framer-motion";
 
 // fuente para titulos
 const manrope = Manrope({ subsets: ["latin"] });
@@ -23,35 +25,48 @@ const hexToGradient = (primaryHex: string, secondaryHex: string) => {
 };
 
 export default function Home() {
+  // estados del menu, de error y de carga
   const [menus, setMenus] = useState<Menu[]>([]);
   const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
+  
   const router = useRouter();
 
+  //dirigirte a crear un nuevo menú
+  const handleCreateNewMenu = () => {
+    router.push("/menuEditor");
+  };
+
+  //cargar menus
   useEffect(() => {
     const fetchMenus = async () => {
       try {
+        setIsLoading(true);
         const data = await getMenus();
-        setMenus(data)
+        setMenus(data);
       } catch (err) {
-        setError(err instanceof Error ? err.message : "No se reciben los Menus de la base de datos");
-        
+        setError(
+          err instanceof Error
+            ? err.message
+            : "No se reciben los Menus de la base de datos"
+        );
+      } finally {
+        setIsLoading(false);
       }
     };
 
     fetchMenus();
   }, []);
 
+  // dirigirte a un menú especifico al seleccionarlo.
   const handleMenuClick = (menuId: number, menuTitle: string) => {
     router.push(
       `/menuEditor?id=${menuId}&title=${encodeURIComponent(menuTitle)}`
     );
   };
 
-  const handleCreateNewMenu = () => {
-    router.push("/menuEditor");
-  };
-
   return (
+    /*{ contenedor principal}*/
     <main
       className="
       min-h-screen  
@@ -63,76 +78,163 @@ export default function Home() {
       shadow-[0_8px_24px_rgba(0,0,0,0.08)]
     "
     >
-      {/* Contenedor flex para el footer */}
       <div className="min-h-[calc(100vh-3rem)] flex flex-col">
         {/* Header */}
         <header className="px-5 pt-4 pb-4">
           <div className="max-w-4xl mx-auto">
             <div className="flex items-center justify-between">
+              {/* perfil para mostrar */}
               <div className="w-10 h-10 bg-gradient-to-br from-orange-400 to-orange-500 rounded-xl flex items-center justify-center shadow-md">
                 <UtensilsCrossed className="w-5 h-5 text-white" />
               </div>
               <div className="flex-1 text-center mx-4">
-                <h1 className={`${manrope.className} text-lg font-bold text-slate-900`}>Mis Menús</h1>
+                {/* titulo principal */}
+                <h1
+                  className={`${manrope.className} text-lg font-bold text-slate-900`}
+                >
+                  Mis Menús
+                </h1>
+                {/* subtitulo */}
                 <p className="text-xs text-slate-500">
                   Gestiona tus menús digitales
                 </p>
               </div>
-              <button className="p-2 hover:bg-red-50 rounded-lg transition-colors group">
+              {/* boton para deslogear */}
+              <button className="p-3 rounded-lg active:scale-95 transition">
                 <LogOut className="w-5 h-5 text-slate-700 group-hover:text-red-500 transition-colors" />
               </button>
             </div>
           </div>
         </header>
 
-        {/* Content */}
-        <section className="max-w-4xl mx-auto w-full px-5 py-4">
-          {/* button create new menu */}
-          <div className="mb-6">
-            <div
-              onClick={handleCreateNewMenu}
-              className="w-full relative bg-gradient-to-r from-orange-400 to-orange-500 rounded-2xl p-6 cursor-pointer transition-all duration-300 hover:shadow-xl active:scale-[0.98] overflow-hidden"
-            >
-              <div className="absolute right-0 top-0 bottom-0 w-32 opacity-20">
-                <div className="w-24 h-24 bg-white rounded-full absolute -right-8 -top-8" />
-                <div className="w-20 h-20 bg-white rounded-full absolute right-4 bottom-0" />
-              </div>
-              <div className="relative z-10 flex items-center">
-                <Plus className="w-8 h-8 text-white mr-3" strokeWidth={3} />
-                <p className="text-white text-base font-semibold">
-                  Crear nuevo menú
-                </p>
+        {/* Contenido */}
+        <section className="max-w-md mx-auto w-full px-4 py-3">
+          {/* boton para crear nuevo menú animado */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.97 }}
+            transition={{ duration: 0.3 }}
+          >
+            <div className="mb-6">
+              <div
+                onClick={handleCreateNewMenu}
+                className="w-full relative bg-gradient-to-r from-orange-400 to-orange-500 rounded-2xl p-6 cursor-pointer transition-all duration-300 hover:shadow-xl active:scale-[0.98] overflow-hidden"
+              >
+                <div className="absolute right-0 top-0 bottom-0 w-32 opacity-20">
+                  <div className="w-24 h-24 bg-white rounded-full absolute -right-8 -top-8" />
+                  <div className="w-20 h-20 bg-white rounded-full absolute right-4 bottom-0" />
+                </div>
+                <div className="relative z-10 flex items-center">
+                  <Plus className="w-8 h-8 text-white mr-3" strokeWidth={3} />
+                  <p className="text-white text-base font-semibold">
+                    Crear nuevo menú
+                  </p>
+                </div>
               </div>
             </div>
-          </div>
+          </motion.div>
         </section>
 
-        {/* menus */}
+        {/* contenedor de menús */}
         <div className="mb-6">
           <div className="flex items-center justify-between max-w-4xl mx-auto px-5">
-            <h2 className={`${manrope.className} text-lg font-bold text-slate-900`}>Tus menús</h2>
+            {/* titulo principal */}
+            <h2
+              className={`${manrope.className} text-lg font-bold text-slate-900`}
+            >
+              Tus menús
+            </h2>
           </div>
         </div>
 
-        <section className="max-w-4xl mx-auto w-full px-5">
-          <div className="grid grid-cols-2 gap-7">
-          {menus.map((menu) => (
+        <section className="max-w-md mx-auto w-full px-4 py-3">
+          {/* animacion de carga */}
+  <AnimatePresence>
+    {isLoading ? (
+      // --- esqueleto de menús ---
+      <div className="grid grid-cols-2 gap-4 sm:gap-6 md:gap-7">
+        {Array.from({ length: 6 }).map((_, i) => (
+          <div
+            key={i}
+            className="rounded-3xl overflow-hidden shadow-md bg-white/10 backdrop-blur-sm p-4 sm:p-5"
+          >
+            <div className="flex flex-col items-center space-y-3">
+              <Skeleton className="w-16 h-16 sm:w-20 sm:h-20 rounded-full" />
+              <Skeleton className="w-24 h-4 sm:w-28 sm:h-5 rounded-md" />
+            </div>
+          </div>
+        ))}
+      </div>
+      // si NO hay menús, mostrar estado vacio animado.
+    ) : menus.length === 0 ? (
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, ease: "easeOut" }}
+        className="flex flex-col items-center justify-center text-center py-16 px-6 bg-white/50 backdrop-blur-md rounded-3xl shadow-inner border border-white/30"
+      >
+        <div className="w-16 h-16 mb-4 rounded-full bg-gradient-to-br from-orange-400 to-orange-500 flex items-center justify-center shadow-md">
+          <UtensilsCrossed className="w-8 h-8 text-white" />
+        </div>
+        <h3
+          className={`${manrope.className} text-lg font-bold text-slate-800 mb-2`}
+        >
+          Aún no tienes menús
+        </h3>
+        <p className="text-slate-500 text-sm mb-6">
+          Crea tu primer menú digital para empezar a personalizarlo y
+          compartirlo con tus clientes.
+        </p>
+        
+      </motion.div>
+      // SI hay menús, desplegarlos animado
+    ) : (
+      // --- LISTA DE MENÚS ---
+      <div className="grid grid-cols-2 gap-4 sm:gap-6 md:gap-7">
+        {menus.map((menu, i) => (
+          <motion.div
+            key={menu.id}
+            initial={{ opacity: 0, y: 15, scale: 0.98 }}
+            animate={{
+              opacity: 1,
+              y: 0,
+              scale: 1,
+              transition: {
+                type: "spring",
+                stiffness: 120,
+                damping: 14,
+                delay: i * 0.12,
+                duration: 0.45,
+              },
+            }}
+            whileHover={{ scale: 1.03 }}
+            whileTap={{ scale: 0.96 }}
+            transition={{
+              type: "spring",
+              stiffness: 300,
+              damping: 20,
+            }}
+            onClick={() => handleMenuClick(menu.id, menu.title)}
+            className="group cursor-pointer overflow-hidden rounded-3xl border-0 bg-transparent transition-all duration-300"
+          >
             <Card
               key={menu.id}
-              className="group cursor-pointer overflow-hidden border-0 bg-transparent p-0 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]"
-              onClick={() => handleMenuClick(menu.id, menu.title)}
+              className="group cursor-pointer overflow-hidden border-0 bg-transparent p-0 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] hover:shadow-lg hover:brightness-105"
             >
               <div
-                className="relative h-44 lg:h-64 rounded-3xl p-5 lg:p-6 flex flex-col justify-between shadow-xl hover:shadow-2xl transition-shadow duration-300"
-                style={hexToGradient(menu.color?.primary, menu.color?.secondary)}
+                className="relative h-36 sm:h-44 rounded-3xl p-4 sm:p-5 flex flex-col justify-center items-center shadow-lg hover:shadow-xl transition"
+                style={hexToGradient(
+                  menu.color?.primary,
+                  menu.color?.secondary
+                )}
               >
-                {/* Patrón de fondo */}
                 <div className="absolute inset-0 bg-black/10 rounded-3xl" />
 
-                {/* Contenido */}
                 <div className="relative z-10 flex flex-col h-full">
-                  {/* Icono o Logo */}
                   <div className="flex-1 flex items-center justify-center">
+                    {/* logo del menú */}
                     {menu.logo ? (
                       <div className="w-16 h-16 lg:w-20 lg:h-20 rounded-full bg-white/25 backdrop-blur-sm flex items-center justify-center overflow-hidden transition-transform duration-300 group-hover:scale-110 shadow-lg">
                         <Image
@@ -141,6 +243,8 @@ export default function Home() {
                           width={80}
                           height={80}
                           className="w-full h-full object-cover"
+                          sizes="(max-width: 640px) 64px, 80px"
+                          priority
                         />
                       </div>
                     ) : (
@@ -155,11 +259,10 @@ export default function Home() {
                         />
                       </div>
                     )}
-                    
                   </div>
 
-                  {/* Título */}
                   <div className="text-center">
+                    {/* titulo del menú */}
                     <h3 className="font-bold text-white text-sm lg:text-base leading-tight mb-1">
                       {menu.title}
                     </h3>
@@ -167,9 +270,12 @@ export default function Home() {
                 </div>
               </div>
             </Card>
-          ))}
-          </div>
-        </section>
+          </motion.div>
+        ))}
+      </div>
+    )}
+  </AnimatePresence>
+</section>
 
         {/* Espaciador flexible para empujar el footer hacia abajo cuando hay pocas cards */}
         {menus.length <= 6 && <div className="flex-grow" />}
@@ -178,6 +284,7 @@ export default function Home() {
         <footer className="pt-12 pb-6 text-center max-w-4xl mx-auto w-full">
           <div className="text-center text-slate-600">
             <p className="text-sm text-slate-500 mb-4">¿Necesitas ayuda?</p>
+            {/* contactar */}
             <Button
               variant="ghost"
               className="text-orange-500 hover:text-orange-600 hover:bg-orange-50 rounded-xl px-6 py-2 transition-all duration-200 font-medium"

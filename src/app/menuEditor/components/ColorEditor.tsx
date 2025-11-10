@@ -153,7 +153,7 @@ const ColorEditor = ({ primary, secondary, onColorsChange }: ColorEditorProps) =
                     console.log("Focus en input PRIMARY");
                   }}
                   value={primaryColor}
-                  className="font-mono text-sm"
+                  className="font-mono text-sm text-black bg-white"
                   placeholder={color}
                 />
               </div>
@@ -178,7 +178,7 @@ const ColorEditor = ({ primary, secondary, onColorsChange }: ColorEditorProps) =
                     console.log("Focus en input SECONDARY");
                   }}
                   value={secondaryColor}
-                  className="font-mono text-sm"
+                  className="font-mono text-sm text-black bg-white"
                   placeholder={color}
                 />
               </div>
