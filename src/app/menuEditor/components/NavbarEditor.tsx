@@ -4,29 +4,35 @@ import { useEffect, useState } from "react";
 import { Button } from "@/common/components/ui/button";
 import { usePathname, useSearchParams, useRouter } from "next/navigation";
 import { ArrowLeft, Eye } from "lucide-react";
+import { motion } from "framer-motion";
 
 const NavbarEditor = () => {
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
+  //estados del titulo
   const [title, setTitle] = useState("");
   const [showMenu, setShowMenu] = useState(false);
-  const router = useRouter();
+
+  //estado del menú seleccionado
   const [menuId, setMenuId] = useState<number | null>(null);
 
-  useEffect(() => {
-    // Detectar si estamos creando nuevo menu o editando menu.
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const router = useRouter();
 
+  // Detectar si estamos creando nuevo menu o editando menu.
+  useEffect(() => {
     if (pathname === "/menuEditor") {
       const id = searchParams.get("id");
       if (id) {
         setTitle("Editando Menu");
         setShowMenu(true);
-        setMenuId(Number(id))
+        setMenuId(Number(id));
       } else {
         setTitle("Creando Menu");
+        setShowMenu(false);
+        setMenuId(null);
       }
     }
-  }, [pathname]);
+  }, [pathname, searchParams]);
 
   // ir al menu seleccionado
   const goToMenu = (id: number | null) => {
@@ -36,41 +42,61 @@ const NavbarEditor = () => {
   };
 
   return (
-    <nav className="sticky top-0 z-20 bg-white/70 backdrop-blur-xl border-b border-white/30 shadow-sm px-5 pt-4 pb-4">
-      <div className="max-w-4xl mx-auto">
-        <div className="flex items-center justify-between">
-          {/* Botón volver */}
-          <Button
-            variant="ghost"
+    // navegador animado
+    <motion.nav
+      initial={{ y: -15, opacity: 0 }}
+      animate={{ y: 0, opacity: 1 }}
+      transition={{ duration: 0.35, ease: "easeOut" }}
+      className="
+        sticky top-0 z-30
+        w-full
+        backdrop-blur-lg bg-white/70
+        border-b border-white/30
+        shadow-[0_1px_6px_rgba(0,0,0,0.05)]
+        px-3 py-2 sm:px-5 sm:py-3
+      "
+    >
+      <div className="max-w-2xl mx-auto flex items-center justify-between gap-2 sm:gap-4">
+        {/* Botón volver */}
+        <Button
+          variant="ghost"
+          size="icon"
+          className="rounded-xl p-2 sm:p-3 
+            hover:bg-slate-100/70 active:scale-[0.95]
+            transition-all duration-200"
+          aria-label="Volver al inicio"
+          onClick={() => router.push("/")}
+        >
+          <ArrowLeft className="w-5 h-5 sm:w-5 sm:h-5 text-slate-700" />
+        </Button>
+
+        {/* Título */}
+        <h1 className="text-xl font-semibold text-slate-900 tracking-tight text-center flex-1">
+          {title}
+        </h1>
+
+        {/* Botón ver menú */}
+        {showMenu ? (
+           <Button
             size="icon"
-            className="p-2 hover:bg-slate-100 rounded-xl transition-all duration-200"
-            onClick={() => (window.location.href = "/")}
+            aria-label="Ver menú"
+            onClick={() => goToMenu(menuId)}
+            className="
+              rounded-xl p-2 sm:p-3
+              bg-gradient-to-br from-orange-400 to-orange-500
+              hover:from-orange-500 hover:to-orange-600
+              text-white shadow-md
+              transition-all duration-200 active:scale-[0.95]
+            "
           >
-            <ArrowLeft className="w-5 h-5 text-slate-700" />
+            <Eye className="w-5 h-5 sm:w-5 sm:h-5" />
           </Button>
-
-          {/* Título centrado */}
-          <div className="flex-1 text-center mx-4">
-            <h1 className="text-lg font-semibold text-slate-900 tracking-tight">
-              {title}
-            </h1>
-          </div>
-
-          {/* Botón ver menú */}
-          {showMenu ? (
-            <Button
-               onClick={() => goToMenu(menuId)}
-              className="p-2 bg-gradient-to-br from-orange-400 to-orange-500 hover:from-orange-500 hover:to-orange-600 text-white rounded-xl shadow-md transition-all duration-200 active:scale-[0.97]"
-            >
-              <Eye className="w-5 h-5" />
-            </Button>
-          ) : (
-            // Espacio reservado si no hay botón, para mantener simetría
-            <div className="w-10 h-10" />
-          )}
-        </div>
+        ) : (
+          // si NO, hacer un espacio vacio.
+          <div className="w-9 h-9 sm:w-10 sm:h-10" />
+        )}
       </div>
-    </nav>
+    </motion.nav>
   );
 };
 

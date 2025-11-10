@@ -11,15 +11,28 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { Menu, newMenu, newCategory, EditedCategory } from "@/interfaces/menu";
 import { deleteMenu, getMenu } from "@/common/utils/api";
 import { Alert, AlertDescription } from "@/common/components/ui/alert";
-
+//subcomponetes
 import NavbarEditor from "@/app/menuEditor/components/NavbarEditor";
 import ImagesEditor from "./components/ImagesEditor";
 import InfoEditor from "./components/InfoEditor";
 import ColorEditor from "./components/ColorEditor";
 import CategoryEditor from "./components/CategoryEditor";
 import FloatingActions from "./components/FloatingActions";
+
 import { AlertCircle, Trash2, Plus, GripVertical, X } from "lucide-react";
 import { title } from "process";
+import { motion } from "framer-motion";
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardContent,
+} from "@/common/components/ui/card";
+import { Button } from "@/common/components/ui/button";
+//componentes a agregar
+import { Separator } from "@/components/ui/separator";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { toast } from "@/components/ui/use-toast";
 
 const MenuEditorContent = () => {
   //Estado para el menu
@@ -281,7 +294,8 @@ const MenuEditorContent = () => {
   const previewData = getPreviewData;
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-white via-[#FFF3EC] to-[#FFE6D3] w-full  pb-25">
+    <main className="min-h-screen bg-gradient-to-b from-white via-[#FFF3EC] to-[#FFE6D3]
+          flex flex-col items-center">
       {/* Navbar */}
       <NavbarEditor />
       {/* Contenido principal */}
@@ -547,7 +561,7 @@ const MenuEditorContent = () => {
           </div>
         </div>
       )}
-    </div>
+    </main>
   );
 };
 
