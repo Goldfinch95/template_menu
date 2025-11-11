@@ -4,7 +4,6 @@ import React, { useState, useEffect } from "react";
 import { Card } from "@/common/components/ui/card";
 import { Label } from "@radix-ui/react-label";
 import { Input } from "@/common/components/ui/input";
-import { Button } from "@/common/components/ui/button";
 import { motion } from "framer-motion";
 
 interface InfoEditorProps {
