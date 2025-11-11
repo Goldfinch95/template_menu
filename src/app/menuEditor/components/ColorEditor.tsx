@@ -12,10 +12,11 @@ import {
 import { Input } from "@/common/components/ui/input";
 import { Button } from "@/common/components/ui/button";
 import { Label } from "@/common/components/ui/label";
-
+import { Card } from "@/common/components/ui/card";
 import { HexColorPicker } from "react-colorful";
-
 import { X } from "lucide-react";
+import { motion } from "framer-motion";
+import { cn } from "@/common/utils/utils";
 
 interface ColorEditorProps {
   primary: string;
@@ -23,181 +24,221 @@ interface ColorEditorProps {
   onColorsChange?: (colors: { primary: string; secondary: string }) => void;
 }
 
-const ColorEditor = ({ primary, secondary, onColorsChange }: ColorEditorProps) => {
-  const [color, setColor] = useState("#fffff");
-  const [primaryColor, setPrimaryColor] = useState("#000000");
-  const [secondaryColor, setSecondaryColor] = useState("#000000");
+const ColorEditor = ({
+  primary,
+  secondary,
+  onColorsChange,
+}: ColorEditorProps) => {
+  // estado de los colores primario y secundario y su activacion
+  const [primaryColor, setPrimaryColor] = useState("#d4d4d4");
+  const [secondaryColor, setSecondaryColor] = useState("#262626");
   const [activeColorInput, setActiveColorInput] = useState<
     "primary" | "secondary"
   >("primary");
+
+  // estado de color SELECCIONADO
+  const [color, setColor] = useState("#ffffff");
 
   // Agregar refs para los inputs
   const primaryInputRef = useRef<HTMLInputElement>(null);
   const secondaryInputRef = useRef<HTMLInputElement>(null);
 
-  // Inicializar con los valores del padre cuando lleguen
-      useEffect(() => {
-        if (primary) setPrimaryColor(primary);
-        if (secondary) setSecondaryColor(secondary);
-      }, [primary, secondary]);
+  // Sincroniza con valores iniciales
+  useEffect(() => {
+    // ver en consola para testeo
+    /*if (primary || secondary) {
+      console.log("color primario:",primary,"color secundario:",secondary)
+    }*/
+    if (primary)
+      setPrimaryColor(primary.startsWith("#") ? primary : `#${primary}`);
+    if (secondary)
+      setSecondaryColor(
+        secondary.startsWith("#") ? secondary : `#${secondary}`
+      );
+  }, [primary, secondary]);
 
-  // maneja los cambios del input primario
-  const selectPrimaryColor = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const primaryColor = e.target.value;
-    setPrimaryColor(primaryColor);
-    setActiveColorInput("primary");
-    setColor(primaryColor);
-    // Validar que sea un hex válido antes de actualizar el picker
-    /*if (/^#[0-9A-Fa-f]{6}$/.test(primaryColor)) {
-    setColor(primaryColor);
-  }*/
+  // el picker refleja el activo
+  useEffect(() => {
+    if (activeColorInput === "primary") setColor(primaryColor);
+    else setColor(secondaryColor);
+  }, [primaryColor, secondaryColor, activeColorInput]);
+
+  // validación y formato del input
+  const formatHex = (value: string) => {
+    if (!value.startsWith("#")) value = "#" + value;
+    return value.replace(/[^#0-9A-Fa-f]/g, "").slice(0, 7);
   };
 
-  // maneja los cambios del input secundario
-
-  const selectSecondaryColor = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const secondaryColor = e.target.value;
-    setSecondaryColor(secondaryColor);
-    setActiveColorInput("secondary");
-    setColor(secondaryColor);
+  // manejo de cambios de input
+  const handleInputChange = (type: "primary" | "secondary", value: string) => {
+    const formatted = formatHex(value);
+    // ver en consola para testeo
+    //console.log(`[Input ${type}] Cambió a:`, formatted);
+    if (type === "primary") {
+      setPrimaryColor(formatted);
+      setColor(formatted);
+      setActiveColorInput("primary");
+    } else {
+      setSecondaryColor(formatted);
+      setColor(formatted);
+      setActiveColorInput("secondary");
+    }
   };
 
-  //detecta el cambio de color en consola.
+  // click en preview -> activa picker y enfoca input
+  const handlePreviewClick = (type: "primary" | "secondary") => {
+    setActiveColorInput(type);
+    const selectedColor = type === "primary" ? primaryColor : secondaryColor;
+    setColor(selectedColor);
+    if (type === "primary") primaryInputRef.current?.focus();
+    else secondaryInputRef.current?.focus();
+  };
+
+  // cambio desde el picker
   const detectColorChange = (newColor: string) => {
     setColor(newColor);
+    if (activeColorInput === "primary") setPrimaryColor(newColor);
+    else setSecondaryColor(newColor);
+  };
 
-    // Detectar cuál input tiene el foco
-    if (document.activeElement === primaryInputRef.current) {
-      setPrimaryColor(newColor);
-      setActiveColorInput("primary");
-    } else if (document.activeElement === secondaryInputRef.current) {
-      setSecondaryColor(newColor);
-      setActiveColorInput("secondary")
-    } else {
-      // Si ningún input tiene foco, usar el último activo
-      if (activeColorInput === "primary") {
-        setPrimaryColor(newColor);
-      } else {
-        setSecondaryColor(newColor);
-      }
-      
-    }
+  // foco en input -> actualiza picker también
+  const handleInputFocus = (type: "primary" | "secondary") => {
+    setActiveColorInput(type);
+    const selectedColor = type === "primary" ? primaryColor : secondaryColor;
+    setColor(selectedColor);
   };
 
   // Función para enviar colores al padre
   const handleApplyColors = () => {
-    if (onColorsChange) {
-      onColorsChange({ primary: primaryColor, secondary: secondaryColor });
-    }
+    // ver en consola para testeo
+    /*const colors = { primary: primaryColor, secondary: secondaryColor };
+    console.log(
+      colors
+    );*/
+    onColorsChange?.({ primary: primaryColor, secondary: secondaryColor });
   };
-
   return (
-    <>
-      <div className="bg-white/70 backdrop-blur-xl border border-white/40 rounded-2xl p-5 shadow-lg">
+    // Card de colores animado con dialogo
+    <motion.div
+      initial={{ opacity: 0, y: 6 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.35 }}
+    >
+      <Card className="bg-white/70 backdrop-blur-xl border border-white/40 rounded-3xl p-5 shadow-md hover:shadow-lg transition-all duration-300">
         <Dialog>
-          {/* boton principal */}
           <DialogTrigger asChild>
+            {/* boton principal */}
             <Button
               className="w-full bg-gradient-to-br from-orange-400 to-orange-500 hover:from-orange-500 hover:to-orange-600
-            text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all hover:scale-[1.02] active:scale-[0.98]"
+              text-white font-semibold shadow-md hover:shadow-lg transition-all hover:scale-[1.02] active:scale-[0.97] flex items-center justify-center gap-2"
             >
               Personalización de Colores
             </Button>
           </DialogTrigger>
+
           {/* contenido del dialogo */}
-          <DialogContent className="bg-gradient-to-b from-white via-[#FFF6EF] to-[#FFE8D8] border border-white/40 rounded-2xl shadow-2xl sm:max-w-md overflow-hidden">
+          <DialogContent className="bg-gradient-to-b from-white via-[#FFF6EF] to-[#FFE8D8] border border-white/40 rounded-3xl shadow-2xl sm:max-w-md">
             {/* Botón de cerrar */}
-            <DialogClose className="absolute right-4 top-4 rounded-full p-2 hover:bg-white/60 transition-colors z-50">
+            <DialogClose className="absolute right-4 top-4 rounded-full p-2 hover:bg-white/70 transition-colors z-50">
               <X className="h-5 w-5 text-orange-400" />
             </DialogClose>
             {/* Header */}
-            <DialogHeader className="px-6 pt-6 pb-4 border-b border-white/40 backdrop-blur-sm">
-              <DialogTitle className="text-xl font-bold text-slate-800 text-center">
+            <DialogHeader className="px-6 pt-6 pb-4 border-b border-white/30">
+              <DialogTitle className="text-lg font-semibold text-slate-800 text-center">
                 Selector de Colores
               </DialogTitle>
             </DialogHeader>
             <div className="px-6 py-6 space-y-6">
               <div className="flex justify-center">
-
-                  {/* color picker */}
-                  <HexColorPicker
-                    color={color}
-                    onChange={detectColorChange}
-                     style={{
-                  width: "100%",
-                  height: "240px",
-                  borderRadius: "1rem",
-                }}
-                  />
-                </div>
+                {/* color picker */}
+                <HexColorPicker
+                  color={color}
+                  onChange={detectColorChange}
+                  style={{
+                    width: "100%",
+                    height: "220px",
+                    borderRadius: "1rem",
+                  }}
+                />
               </div>
-            
-            {/* Input de color primario */}
-            <div className="space-y-2">
-              <Label className="block text-sm font-medium text-slate-700">
+            </div>
+            {/* inputs */}
+            <div className="space-y-5">
+              {/* titulo del input primario */}
+              <Label className="text-slate-700 text-sm font-medium">
                 Color Base
               </Label>
 
               <div className="flex items-center gap-3">
+                {/* preview del input primario */}
                 <div
-                  className="w-10 h-10 rounded-lg border border-white/50 shadow-inner"
+                  onClick={() => handlePreviewClick("primary")}
+                  className={cn(
+                    "w-10 h-10 rounded-lg border shadow-inner cursor-pointer transition-all",
+                    activeColorInput === "primary"
+                      ? "ring-2 ring-orange-400"
+                      : "border-white/50"
+                  )}
                   style={{ backgroundColor: primaryColor }}
                 />
+                {/* input primario */}
                 <Input
                   ref={primaryInputRef}
                   type="text"
-                  onChange={selectPrimaryColor}
-                  onFocus={() => {
-                    setActiveColorInput("primary");
-                    setColor(primaryColor);
-                    console.log("Focus en input PRIMARY");
-                  }}
                   value={primaryColor}
-                  className="font-mono text-sm text-black bg-white"
-                  placeholder={color}
+                  onChange={(e) => handleInputChange("primary", e.target.value)}
+                  onFocus={() => handleInputFocus("primary")}
+                  className="font-mono text-black text-sm bg-white/80 border-slate-200 focus-visible:ring-orange-400"
+                  placeholder="Color base"
                 />
               </div>
             </div>
             {/* Input de color secundario */}
-            <div className="space-y-2">
-              <Label className="block text-sm font-medium text-slate-700">
+            <div className="flex flex-col gap-2">
+              {/* titulo del input secundario */}
+              <Label className="text-slate-700 text-sm font-medium">
                 Color Secundario
               </Label>
               <div className="flex items-center gap-3">
+                {/* preview del input secundario */}
                 <div
-                  className="w-10 h-10 rounded-lg border border-white/50 shadow-inner"
+                  onClick={() => handlePreviewClick("secondary")}
+                  className={cn(
+                    "w-10 h-10 rounded-lg border shadow-inner cursor-pointer transition-all",
+                    activeColorInput === "secondary"
+                      ? "ring-2 ring-orange-400"
+                      : "border-white/50"
+                  )}
                   style={{ backgroundColor: secondaryColor }}
                 />
                 <Input
                   ref={secondaryInputRef}
                   type="text"
-                  onChange={selectSecondaryColor}
-                  onFocus={() => {
-                    setActiveColorInput("secondary");
-                    setColor(secondaryColor);
-                    console.log("Focus en input SECONDARY");
-                  }}
                   value={secondaryColor}
-                  className="font-mono text-sm text-black bg-white"
-                  placeholder={color}
+                  onChange={(e) =>
+                    handleInputChange("secondary", e.target.value)
+                  }
+                  onFocus={() => handleInputFocus("secondary")}
+                  className="font-mono text-black text-sm bg-white/80 border-slate-200 focus-visible:ring-orange-400"
+                  placeholder="Color secundario"
                 />
               </div>
             </div>
-            <div className="border-t border-white/30 p-6 pt-4">
-            <DialogClose asChild>
-              <Button
-                onClick={handleApplyColors}
-                className="w-full bg-gradient-to-br from-orange-400 to-orange-500 hover:from-orange-500 hover:to-orange-600
-                text-white font-semibold shadow-lg hover:shadow-xl transition-all hover:scale-[1.02] active:scale-[0.98]"
-              >
-                Aplicar Colores
-              </Button>
-            </DialogClose>
+            <div className="pt-2">
+              <DialogClose asChild>
+                <Button
+                  onClick={handleApplyColors}
+                  className="w-full bg-gradient-to-br from-orange-400 to-orange-500 hover:from-orange-500 hover:to-orange-600
+                    text-white font-semibold shadow-md hover:shadow-lg transition-all hover:scale-[1.02] active:scale-[0.97]"
+                >
+                  Aplicar Colores
+                </Button>
+              </DialogClose>
             </div>
           </DialogContent>
         </Dialog>
-      </div>
-    </>
+      </Card>
+    </motion.div>
   );
 };
 

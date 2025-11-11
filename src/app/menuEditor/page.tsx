@@ -179,15 +179,18 @@ const MenuEditorContent = () => {
     }
   };
 
-  // recibir datos de los componentes hijos
+  // recibir datos de los componentes hijos //
+
+  //recibir imagenes
   const reciveRestaurantImages = useCallback(
     (images: { logo: File | null; backgroundImage: File | null }) => {
-      console.log("📥 Imágenes recibidas al padre:", {
+      // ver en consola
+      /*console.log("📥 Imágenes recibidas al padre:", {
         logo: images.logo?.name,
         background: images.backgroundImage?.name,
-      });
+      });*/
 
-      // ✅ TAMBIÉN actualizar newMenu (para modo creación)
+      // agregar imagenes al nuevo menú
       setNewMenu((prevMenu) => ({
         ...prevMenu,
         logo: images.logo as File, // Asegurar tipo File
@@ -196,8 +199,13 @@ const MenuEditorContent = () => {
     },
     []
   );
+
+  // recibir info del restaurante
   const reciveRestaurantInformation = useCallback(
     (info: { title: string; pos: string }) => {
+      // ver en consola
+      //console.log("Información recibida del restaurante:", info);
+      //agregar info del restaurante al nuevo menú
       setNewMenu((prevMenu) => ({
         ...prevMenu,
         title: info.title,
@@ -294,9 +302,11 @@ const MenuEditorContent = () => {
   const previewData = getPreviewData;
 
   return (
-    <main className="min-h-screen w-full
+    <main
+      className="min-h-screen w-full
         bg-gradient-to-b from-white via-[#FFF3EC] to-[#FFE6D3]
-        flex flex-col">
+        flex flex-col"
+    >
       {/* Navbar */}
       <NavbarEditor />
       {/* Contenido principal */}

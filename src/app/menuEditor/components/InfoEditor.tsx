@@ -5,6 +5,7 @@ import { Card } from "@/common/components/ui/card";
 import { Label } from "@radix-ui/react-label";
 import { Input } from "@/common/components/ui/input";
 import { Button } from "@/common/components/ui/button";
+import { motion } from "framer-motion";
 
 interface InfoEditorProps {
   title: string;
@@ -47,61 +48,69 @@ const InfoEditor = ({ title, pos, onInfoSubmit }: InfoEditorProps) => {
   }, [debouncedTitle, debouncedPos, onInfoSubmit]);
 
   return (
-    <Card className="bg-gradient-to-b from-white/80 to-white/60 backdrop-blur-xl border border-white/30 rounded-3xl p-6 shadow-[0_8px_30px_rgb(0,0,0,0.05)] transition-all hover:shadow-[0_8px_40px_rgb(0,0,0,0.08)] duration-300">
-      <div className="space-y-6">
-        {/* Título */}
-          <h3 className="text-center font-semibold text-slate-800 text-lg tracking-tight">
+    // card info del restaurante animado
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4 }}
+    >
+      <Card className="bg-white/70 backdrop-blur-xl border border-white/40 rounded-3xl p-4 sm:p-5 shadow-lg transition-all hover:shadow-xl duration-300">
+        <div className="space-y-6">
+          {/* Título */}
+          <h3 className="text-base font-semibold text-center text-slate-800 text-slate-800 text-lg tracking-tight ">
             Información del Restaurante
           </h3>
-        {/* Inputs */}
-        <div className="space-y-5">
-          {/* Nombre del Menú */}
-          <div className="flex flex-col gap-3">
-            <Label
-              htmlFor="title"
-              className="text-slate-600 text-sm font-medium"
-            >
-              Nombre del Menú
-            </Label>
-            <div className="relative">
-              <Input
-              id="title"
-              name="title"
-              type="text"
-              value={inputTitle}
-              onChange={(e) => setInputTitle(e.target.value)}
-              placeholder="Ej: Restaurante El Buen Sabor"
-              className="pr-9 bg-white/70 border-slate-200 focus-visible:ring-orange-400 text-sm"
-            />
-            
+          {/* Inputs */}
+          <div className="space-y-4">
+            {/* Nombre del Menú */}
+            <div className="flex flex-col gap-2">
+              <Label
+                htmlFor="title"
+                className="text-slate-600 text-sm font-medium"
+              >
+                Nombre del Menú
+              </Label>
+              <div className="relative">
+                <Input
+                  inputMode="text"
+                  autoComplete="off"
+                  id="title"
+                  name="title"
+                  type="text"
+                  value={inputTitle}
+                  onChange={(e) => setInputTitle(e.target.value)}
+                  placeholder="Ej: Restaurante El Buen Sabor"
+                  className="h-11 pr-10 bg-white/80 border-slate-200 focus-visible:ring-orange-400 text-sm placeholder:text-slate-400"
+                />
+              </div>
             </div>
-          </div>
 
-          {/* Ubicación / Puntos de Venta */}
-          <div className="flex flex-col gap-3">
-            <Label
-              htmlFor="pos"
-              className="text-slate-600 text-sm font-medium"
-            >
-              Ubicación / Puntos de Venta
-            </Label>
-            <div className="relative">
-              <Input
-              id="pos"
-              name="pos"
-              type="text"
-              value={inputPos}
-              onChange={(e) => setInputPos(e.target.value)}
-              placeholder="Ej: Av. Principal 123, Centro"
-              className="pr-9 bg-white/70 border-slate-200 focus-visible:ring-orange-400 text-sm"
-            />
-            
+            {/* Ubicación / Puntos de Venta */}
+            <div className="flex flex-col gap-2">
+              <Label
+                htmlFor="pos"
+                className="text-slate-600 text-sm font-medium"
+              >
+                Ubicación / Puntos de Venta
+              </Label>
+              <div className="relative">
+                <Input
+                  inputMode="text"
+                  autoComplete="off"
+                  id="pos"
+                  name="pos"
+                  type="text"
+                  value={inputPos}
+                  onChange={(e) => setInputPos(e.target.value)}
+                  placeholder="Ej: Av. Principal 123, Centro"
+                  className="h-11 pr-10 bg-white/80 border-slate-200 focus-visible:ring-orange-400 text-sm placeholder:text-slate-400"
+                />
+              </div>
             </div>
-            
           </div>
         </div>
-      </div>
-    </Card>
+      </Card>
+    </motion.div>
   );
 };
 

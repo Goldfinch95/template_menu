@@ -126,10 +126,10 @@ const ImagesEditor = ({
             <Image
               src={logoPreview}
               alt="Logo preview"
-              priority
               width={100}
               height={100}
               className="w-full h-full object-cover"
+              priority
             />
           ) : (
             <Upload className="w-8 h-8 text-slate-400" />
@@ -170,6 +170,7 @@ const ImagesEditor = ({
               width={600} 
               height={340} 
               className="w-full h-full object-cover"
+              priority
             />
           ) : (
             <div className="flex flex-col items-center">
