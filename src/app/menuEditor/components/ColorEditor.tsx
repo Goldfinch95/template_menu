@@ -120,125 +120,158 @@ const ColorEditor = ({
   return (
     // Card de colores animado con dialogo
     <motion.div
-      initial={{ opacity: 0, y: 6 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.35 }}
-    >
-      <Card className="bg-white/70 backdrop-blur-xl border border-white/40 rounded-3xl p-5 shadow-md hover:shadow-lg transition-all duration-300">
-        <Dialog>
-          <DialogTrigger asChild>
-            {/* boton principal */}
+  initial={{ opacity: 0, y: 6 }}
+  animate={{ opacity: 1, y: 0 }}
+  transition={{ duration: 0.35 }}
+>
+  <Card className="bg-white/70 backdrop-blur-xl border border-white/40 rounded-3xl p-5 shadow-md hover:shadow-lg transition-all duration-300">
+    <Dialog>
+      <DialogTrigger asChild>
+        {/* boton principal */}
+        <Button
+          className="w-full bg-gradient-to-br from-orange-400 to-orange-500 hover:from-orange-500 hover:to-orange-600
+          text-white font-semibold shadow-md hover:shadow-lg transition-all hover:scale-[1.02] active:scale-[0.97] flex items-center justify-center gap-2"
+        >
+          Personalización de Colores
+        </Button>
+      </DialogTrigger>
+
+      {/* contenido del dialogo */}
+      <DialogContent className=" bg-gradient-to-b from-white via-[#FFF6EF] to-[#FFE8D8] border border-white/40 rounded-3xl shadow-2xl w-[92vw] max-w-sm mx-auto p-4 sm:p-6 overflow-y-auto max-h-[90vh]">
+        {/* Botón de cerrar */}
+        <DialogClose className="absolute right-4 top-4 rounded-full p-2 hover:bg-white/70 transition-colors z-50">
+          <X className="h-5 w-5 text-orange-400" />
+        </DialogClose>
+
+        {/* Header */}
+        <DialogHeader className="px-6 pt-6 pb-4 border-b border-white/30">
+          <DialogTitle className="text-lg font-semibold text-slate-800 text-center">
+            Selector de Colores
+          </DialogTitle>
+        </DialogHeader>
+
+        <div className="px-6 py-6 space-y-6">
+          <div className="flex justify-center">
+            {/* color picker */}
+            <HexColorPicker
+              color={color}
+              onChange={detectColorChange}
+              style={{
+                width: "100%",
+                height: "220px",
+                borderRadius: "1rem",
+              }}
+            />
+          </div>
+        </div>
+
+        {/* inputs */}
+        <div className="space-y-3">
+          {/* titulo del input primario */}
+          <Label className="text-slate-700 text-sm font-medium">
+            Color Base
+          </Label>
+
+          <div className="flex items-center gap-4">
+            {/* preview del input primario con animación */}
+            <motion.div
+              layoutId="color-preview-primary"
+              onClick={() => handlePreviewClick("primary")}
+              className={cn(
+                "w-10 h-10 rounded-lg border shadow-inner cursor-pointer",
+                activeColorInput === "primary"
+                  ? "ring-2 ring-orange-400"
+                  : "border-white/50"
+              )}
+              style={{ backgroundColor: primaryColor }}
+              animate={{
+                scale: activeColorInput === "primary" ? 1.1 : 1,
+                boxShadow:
+                  activeColorInput === "primary"
+                    ? "0 0 10px rgba(251,146,60,0.4)"
+                    : "0 0 0px rgba(0,0,0,0)",
+              }}
+              transition={{
+                type: "spring",
+                stiffness: 300,
+                damping: 20,
+              }}
+            />
+
+            {/* input primario */}
+            <Input
+              ref={primaryInputRef}
+              type="text"
+              value={primaryColor}
+              onChange={(e) => handleInputChange("primary", e.target.value)}
+              onFocus={() => handleInputFocus("primary")}
+              className="font-mono text-black text-sm bg-white/80 border-slate-200 focus-visible:ring-orange-400"
+              placeholder="Color base"
+            />
+          </div>
+        </div>
+
+        {/* Input de color secundario */}
+        <div className="flex flex-col gap-2 mt-2">
+          <Label className="text-slate-700 text-sm font-medium">
+            Color Secundario
+          </Label>
+          <div className="flex items-center gap-4">
+            {/* preview del input secundario con animación */}
+            <motion.div
+              layoutId="color-preview-secondary"
+              onClick={() => handlePreviewClick("secondary")}
+              className={cn(
+                "w-10 h-10 rounded-lg border shadow-inner cursor-pointer",
+                activeColorInput === "secondary"
+                  ? "ring-2 ring-orange-400"
+                  : "border-white/50"
+              )}
+              style={{ backgroundColor: secondaryColor }}
+              animate={{
+                scale: activeColorInput === "secondary" ? 1.1 : 1,
+                boxShadow:
+                  activeColorInput === "secondary"
+                    ? "0 0 10px rgba(251,146,60,0.4)"
+                    : "0 0 0px rgba(0,0,0,0)",
+              }}
+              transition={{
+                type: "spring",
+                stiffness: 300,
+                damping: 20,
+              }}
+            />
+
+            <Input
+              ref={secondaryInputRef}
+              type="text"
+              value={secondaryColor}
+              onChange={(e) =>
+                handleInputChange("secondary", e.target.value)
+              }
+              onFocus={() => handleInputFocus("secondary")}
+              className="font-mono text-black text-sm bg-white/80 border-slate-200 focus-visible:ring-orange-400"
+              placeholder="Color secundario"
+            />
+          </div>
+        </div>
+
+        <div className="pt-4">
+          <DialogClose asChild>
             <Button
+              onClick={handleApplyColors}
               className="w-full bg-gradient-to-br from-orange-400 to-orange-500 hover:from-orange-500 hover:to-orange-600
-              text-white font-semibold shadow-md hover:shadow-lg transition-all hover:scale-[1.02] active:scale-[0.97] flex items-center justify-center gap-2"
+                text-white font-semibold shadow-md hover:shadow-lg transition-all hover:scale-[1.02] active:scale-[0.97]"
             >
-              Personalización de Colores
+              Aplicar Colores
             </Button>
-          </DialogTrigger>
+          </DialogClose>
+        </div>
+      </DialogContent>
+    </Dialog>
+  </Card>
+</motion.div>
 
-          {/* contenido del dialogo */}
-          <DialogContent className="bg-gradient-to-b from-white via-[#FFF6EF] to-[#FFE8D8] border border-white/40 rounded-3xl shadow-2xl sm:max-w-md">
-            {/* Botón de cerrar */}
-            <DialogClose className="absolute right-4 top-4 rounded-full p-2 hover:bg-white/70 transition-colors z-50">
-              <X className="h-5 w-5 text-orange-400" />
-            </DialogClose>
-            {/* Header */}
-            <DialogHeader className="px-6 pt-6 pb-4 border-b border-white/30">
-              <DialogTitle className="text-lg font-semibold text-slate-800 text-center">
-                Selector de Colores
-              </DialogTitle>
-            </DialogHeader>
-            <div className="px-6 py-6 space-y-6">
-              <div className="flex justify-center">
-                {/* color picker */}
-                <HexColorPicker
-                  color={color}
-                  onChange={detectColorChange}
-                  style={{
-                    width: "100%",
-                    height: "220px",
-                    borderRadius: "1rem",
-                  }}
-                />
-              </div>
-            </div>
-            {/* inputs */}
-            <div className="space-y-5">
-              {/* titulo del input primario */}
-              <Label className="text-slate-700 text-sm font-medium">
-                Color Base
-              </Label>
-
-              <div className="flex items-center gap-3">
-                {/* preview del input primario */}
-                <div
-                  onClick={() => handlePreviewClick("primary")}
-                  className={cn(
-                    "w-10 h-10 rounded-lg border shadow-inner cursor-pointer transition-all",
-                    activeColorInput === "primary"
-                      ? "ring-2 ring-orange-400"
-                      : "border-white/50"
-                  )}
-                  style={{ backgroundColor: primaryColor }}
-                />
-                {/* input primario */}
-                <Input
-                  ref={primaryInputRef}
-                  type="text"
-                  value={primaryColor}
-                  onChange={(e) => handleInputChange("primary", e.target.value)}
-                  onFocus={() => handleInputFocus("primary")}
-                  className="font-mono text-black text-sm bg-white/80 border-slate-200 focus-visible:ring-orange-400"
-                  placeholder="Color base"
-                />
-              </div>
-            </div>
-            {/* Input de color secundario */}
-            <div className="flex flex-col gap-2">
-              {/* titulo del input secundario */}
-              <Label className="text-slate-700 text-sm font-medium">
-                Color Secundario
-              </Label>
-              <div className="flex items-center gap-3">
-                {/* preview del input secundario */}
-                <div
-                  onClick={() => handlePreviewClick("secondary")}
-                  className={cn(
-                    "w-10 h-10 rounded-lg border shadow-inner cursor-pointer transition-all",
-                    activeColorInput === "secondary"
-                      ? "ring-2 ring-orange-400"
-                      : "border-white/50"
-                  )}
-                  style={{ backgroundColor: secondaryColor }}
-                />
-                <Input
-                  ref={secondaryInputRef}
-                  type="text"
-                  value={secondaryColor}
-                  onChange={(e) =>
-                    handleInputChange("secondary", e.target.value)
-                  }
-                  onFocus={() => handleInputFocus("secondary")}
-                  className="font-mono text-black text-sm bg-white/80 border-slate-200 focus-visible:ring-orange-400"
-                  placeholder="Color secundario"
-                />
-              </div>
-            </div>
-            <div className="pt-2">
-              <DialogClose asChild>
-                <Button
-                  onClick={handleApplyColors}
-                  className="w-full bg-gradient-to-br from-orange-400 to-orange-500 hover:from-orange-500 hover:to-orange-600
-                    text-white font-semibold shadow-md hover:shadow-lg transition-all hover:scale-[1.02] active:scale-[0.97]"
-                >
-                  Aplicar Colores
-                </Button>
-              </DialogClose>
-            </div>
-          </DialogContent>
-        </Dialog>
-      </Card>
-    </motion.div>
   );
 };
 
