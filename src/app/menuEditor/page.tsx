@@ -229,7 +229,8 @@ const MenuEditorContent = () => {
 
   //funcion para recibir las categorías del componente hijo
   const receiveRestaurantCategories = (categories: newCategory[]) => {
-    console.log("categorias recibidas", categories);
+    console.log("📦 NUEVAS CATEGORÍAS recibidas:", categories);
+    console.log("📦 Cantidad:", categories.length);
     setNewCategory(categories);
   };
 

@@ -55,21 +55,32 @@ const CategoryEditor = ({
   onDeleteCategory,
   categoriesToDelete,
 }: CategoryEditorProps) => {
+  //  Estados //
+  // categoria expandida en el collapsable
   const [expandedCategory, setExpandedCategory] = useState<string | null>(null);
+  //  NUEVAS categorias
   const [newCategories, setNewCategories] = useState<newCategory[]>([]);
+  // nuevo TITULO de la categoria
   const [localTitles, setLocalTitles] = useState<{ [key: number]: string }>({});
+  // NUEVOS platos
   const [localItems, setLocalItems] = useState<{ [key: number]: Items[] }>({});
+  // plato que se esta EDITANDO
   const [editingItem, setEditingItem] = useState<{
     categoryId: number;
     item: Items | newItem | null;
   }>({ categoryId: 0, item: null });
+  // carga de la imagen del plato
   const [loadingBackground, setLoadingBackground] = useState(false);
 
+  // referencias //
+  // debounce
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
   const editDebounceTimerRef = useRef<NodeJS.Timeout | null>(null);
+  //
   const pendingNewCategoriesRef = useRef<newCategory[] | null>(null);
   const pendingEditCategoryRef = useRef<EditedCategory | null>(null);
 
+  // al subir una imagen del plato, guardarlo.
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
   const file = e.target.files?.[0];
   if (file) {
@@ -84,34 +95,37 @@ const CategoryEditor = ({
   }
 };
 
+//validacion del precio
   const validatePrice = (price: string): boolean => {
     if (!price) return true;
     const priceRegex = /^\d+(\.\d{0,2})?$/;
     return priceRegex.test(price);
   };
 
-  const validateImageUrl = (url: string): boolean => {
-    if (!url) return true;
-    try {
-      new URL(url);
-      return true;
-    } catch {
-      return false;
-    }
-  };
-
+  //Actualiza los títulos y platos de las categorías cada vez que cambian las categorías.
   useEffect(() => {
-    const titles: { [key: number]: string } = {};
-    const items: { [key: number]: Items[] } = {};
+    // testeo
+  //console.log("Categories received in effect:", categories); 
 
-    categories.forEach((cat) => {
-      titles[cat.id] = cat.title;
-      items[cat.id] = cat.items || [];
-    });
+  if (!categories || categories.length === 0) {
+    //testeo
+    //console.log("Categories is empty or undefined at the start.");
+    return;
+  }
 
-    setLocalTitles(titles);
-    setLocalItems(items);
-  }, [categories]);
+  const titles: { [key: number]: string } = {};
+  const items: { [key: number]: Items[] } = {};
+
+  categories.forEach((cat) => {
+    titles[cat.id] = cat.title;
+    items[cat.id] = cat.items || [];
+  });
+
+  setLocalTitles(titles);
+  setLocalItems(items);
+}, [categories]);
+
+//los cambios se guarden de forma "debounced" para evitar llamadas innecesarias al servidor.
 
   useEffect(() => {
     return () => {
@@ -130,11 +144,13 @@ const CategoryEditor = ({
     };
   }, [onCategoriesChange, onEditCategory]);
 
+  // Filtra las categorías que no deben ser eliminadas.
   const visibleCategories = useMemo(
     () => categories.filter((cat) => !categoriesToDelete.includes(cat.id)),
     [categories, categoriesToDelete]
   );
 
+  //Combina las categorías existentes con las nuevas, ordenándolas.
   const allCategories = useMemo(
     () => [
       ...visibleCategories.map((cat) => ({
@@ -147,6 +163,7 @@ const CategoryEditor = ({
     [visibleCategories, localTitles, localItems, newCategories]
   );
 
+  // avisar al padre de las NUEVAS categorias creadas.
   const notifyNewCategoriesAdd = useCallback((updatedCategories: newCategory[]) => {
     pendingNewCategoriesRef.current = updatedCategories;
     if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
@@ -156,6 +173,7 @@ const CategoryEditor = ({
     }, 500);
   }, [onCategoriesChange]);
 
+  // avisar al padre de las categorias EDITADAS
   const notifyEditedCategory = useCallback((editedCategory: EditedCategory) => {
     pendingEditCategoryRef.current = editedCategory;
     if (editDebounceTimerRef.current) clearTimeout(editDebounceTimerRef.current);
@@ -206,6 +224,7 @@ const CategoryEditor = ({
     return (a.tempId ?? 0) - (b.tempId ?? 0);
   };
 
+  // crear NUEVA categoria y notificar al padre
   const createCategory = () => {
     const newCat: newCategory = {
       tempId: Date.now(),
@@ -218,6 +237,7 @@ const CategoryEditor = ({
     notifyNewCategoriesAdd(updated);
   };
 
+  // EDITAR categoria y notificar al padre.
   const updateCategoryTitle = (categoryKey: number, newTitle: string) => {
     const isNew = newCategories.some((cat) => cat.tempId === categoryKey);
 
@@ -233,6 +253,7 @@ const CategoryEditor = ({
     }
   };
 
+  //ELIMINAR categoria y notificar al padre.
   const deleteCategory = (categoryKey: number) => {
     const isNew = newCategories.some((cat) => cat.tempId === categoryKey);
 
@@ -245,6 +266,7 @@ const CategoryEditor = ({
     }
   };
 
+  // crear NUEVO plato y notificar al padre.
   const addItem = (categoryKey: number) => {
     const newItemObj: Items = {
       tempId: Date.now(),
@@ -275,6 +297,7 @@ const CategoryEditor = ({
     }
   };
 
+  // borrar plato y notificar al padre.
   const deleteItem = (categoryKey: number, itemKey: number) => {
     const isNew = newCategories.some((cat) => cat.tempId === categoryKey);
 
@@ -304,10 +327,12 @@ const CategoryEditor = ({
     }
   };
 
+  //editar el plato en el modal
   const handleItemEdit = (categoryId: number, item: Items | newItem) => {
     setEditingItem({ categoryId, item: { ...item } });
   };
 
+  // guardar el plato editado en el modal
   const saveItemEdit = (field: keyof Items, value: string) => {
     if (!editingItem.item) return;
 
@@ -332,7 +357,7 @@ const CategoryEditor = ({
     }
   };
 
-  // ✅ CORRECCIÓN PRINCIPAL: confirmItemEdit ahora guarda correctamente
+  // confirmar los cambios del plato en el modal
   const confirmItemEdit = () => {
     if (!editingItem.item) return;
 
@@ -350,10 +375,7 @@ const CategoryEditor = ({
       return;
     }
 
-    if (item.images?.[0]?.url && !validateImageUrl(item.images[0].url)) {
-      alert("La URL de la imagen no es válida");
-      return;
-    }
+   
 
     const isNew = newCategories.some((cat) => cat.tempId === categoryId);
 
@@ -658,65 +680,3 @@ const CategoryEditor = ({
 };
 
 export default CategoryEditor;
-
-{/*<div className="relative w-full h-full group">
-              <Input
-                type="file"
-                accept="image/*"
-                onChange={handleImageUpload}
-                className="mt-4 hidden"
-                id="image-upload-input"
-              />
-
-              <Label
-                htmlFor="image-upload-input"
-                className={`w-full h-64 rounded-2xl overflow-hidden 
-    ${
-      editingItem.item?.images?.[0]?.url
-        ? "border-0"
-        : "border-2 border-dashed border-slate-300"
-    }
-    bg-slate-50 flex items-center justify-center cursor-pointer hover:border-orange-500 transition-all`}
-              >
-                {/* Mostrar la imagen si existe 
-                {editingItem.item?.images?.[0]?.url ? (
-                  <>
-                    <img
-                      src={editingItem.item?.images[0]?.url || ""}
-                      alt="Preview"
-                      className="w-full h-full object-cover"
-                      onError={(e) => {
-                        const target = e.currentTarget;
-                        target.style.display = "none";
-                        const nextEl = target.nextElementSibling as HTMLElement;
-                        if (nextEl) nextEl.classList.remove("hidden");
-                      }}
-                    />
-                  </>
-                ) : (
-                  // Si no hay imagen cargada
-                  <div className="flex flex-col items-center">
-                    {loadingBackground ? (
-                      <Spinner className="w-6 h-6 text-orange-500" />
-                    ) : (
-                      <>
-                        <Upload className="w-8 h-8 text-slate-400 mb-1" />
-                        <p className="text-sm text-slate-500">
-                          Carga la imagen del plato
-                        </p>
-                      </>
-                    )}
-                  </div>
-                )}
-
-                {/* Subtítulo para formatos de imagen 
-              </Label>
-              {editingItem.item?.images?.[0]?.url && (
-                <p className="text-base text-slate-400 mt-2">
-                  Toca la imagen para cambiarla
-                </p>
-              )}
-              <p className="text-base text-slate-400 mt-2">
-                PNG, JPG hasta 10MB
-              </p>
-            </div>*/}

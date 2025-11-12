@@ -160,22 +160,56 @@ export const createCategory = async (
   categoryData: newCategory
 ): Promise<Categories> => {
   try {
+    const formData = new FormData();
+    
+    // Campos obligatorios
+    formData.append("menuId", String(categoryData.menuId));
+    formData.append("title", categoryData.title);
+    
+    // Items (si existen)
+    if (categoryData.items && categoryData.items.length > 0) {
+      categoryData.items.forEach((item, itemIndex) => {
+        // Datos básicos del item
+        formData.append(`items[${itemIndex}][title]`, item.title);
+        formData.append(`items[${itemIndex}][description]`, item.description);
+        formData.append(`items[${itemIndex}][price]`, item.price);
+        formData.append(`items[${itemIndex}][categoryId]`, String(item.categoryId));
+        
+        // 🔍 IMPORTANTE: Verificar que images sea un array de File
+        if (item.images && item.images.length > 0) {
+          item.images.forEach((imageFile, imageIndex) => {
+            // ✅ Verificar que sea un File antes de agregar
+            if (imageFile instanceof File) {
+              formData.append(`items[${itemIndex}][images]`, imageFile);
+            } else {
+              console.warn(`⚠️ Item ${itemIndex}, imagen ${imageIndex} no es un File:`, imageFile);
+            }
+          });
+        }
+      });
+    }
+
+    // 🔍 Debug: Ver qué se está enviando
+    console.log("📤 FormData a enviar:");
+    for (let [key, value] of formData.entries()) {
+      console.log(`  ${key}:`, value instanceof File ? `File: ${value.name}` : value);
+    }
+
     const response = await fetch(CATEGORIES_BASE_URL, {
       method: "POST",
       headers: {
-        "Content-Type": "application/json",
         ...TENANT_HEADER,
       },
-      body: JSON.stringify(categoryData),
+      body: formData,
     });
 
-    if (!response.ok){
+    if (!response.ok) {
       const errorText = await response.text();
       throw new Error(`Error al crear categoría: ${response.status} - ${errorText}`);
-    } 
-    const data = await response.json();
-   
-    return data;
+    }
+    
+    return response.json();
+    
   } catch (error) {
     console.error("❌ Error al crear categoría:", error);
     throw error;

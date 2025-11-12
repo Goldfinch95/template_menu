@@ -38,7 +38,6 @@ const FloatingActions: React.FC<FloatingActionsProps> = ({
   onDeleteComplete,
   onPreviewClick,
 }) => {
-  
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -46,7 +45,28 @@ const FloatingActions: React.FC<FloatingActionsProps> = ({
   const [title, setTitle] = useState("");
   const [isSaving, setIsSaving] = useState(false);
 
+  const base64ToFile = async (base64String: string, filename: string): Promise<File> => {
+  // Extraer el tipo MIME y los datos
+  const arr = base64String.split(',');
+  const mime = arr[0].match(/:(.*?);/)?.[1] || 'image/png';
+  const bstr = atob(arr[1]);
+  let n = bstr.length;
+  const u8arr = new Uint8Array(n);
+  
+  while (n--) {
+    u8arr[n] = bstr.charCodeAt(n);
+  }
+  
+  return new File([u8arr], filename, { type: mime });
+};
+
   useEffect(() => {
+    console.log("📦 Datos recibidos del padre:");
+    console.log("- menu:", menu);
+    console.log("- newMenu:", newMenu);
+    console.log("- newCategory:", newCategory);
+    console.log("- editedCategories:", editedCategories);
+    console.log("- categoriesToDelete:", categoriesToDelete);
     // Detectar si estamos creando o editando un menú
     if (pathname === "/menuEditor") {
       const id = searchParams.get("id");
@@ -92,7 +112,7 @@ const FloatingActions: React.FC<FloatingActionsProps> = ({
                   itemsToDelete.push(originalItem.id);
                 }
               });
-            }  else {
+            } else {
               const itemsAreEqual = originalCat.items?.every(
                 (originalItem, index) => {
                   const editedItem = editedCat.items?.[index];
@@ -106,9 +126,7 @@ const FloatingActions: React.FC<FloatingActionsProps> = ({
               );
 
               if (itemsAreEqual) {
-                
               } else {
-                
               }
             }
           }
@@ -116,24 +134,19 @@ const FloatingActions: React.FC<FloatingActionsProps> = ({
 
         // 🆕 PASO 2: Eliminar items de la base de datos
         if (itemsToDelete.length > 0) {
-          
           await Promise.all(itemsToDelete.map((itemId) => deleteItem(itemId)));
-          
         }
 
         // 🗑️ Eliminar categorías
         if (categoriesToDelete.length > 0) {
-          
           await Promise.all(
             categoriesToDelete.map((categoryId) => deleteCategory(categoryId))
           );
           onDeleteComplete();
-          
         }
 
         // ✏️ Editar categorías existentes
         if (editedCategories && editedCategories.length > 0) {
-          
           await Promise.all(
             editedCategories.map((category) => {
               const cleanedItems = (category.items || []).map((item) => {
@@ -144,7 +157,7 @@ const FloatingActions: React.FC<FloatingActionsProps> = ({
                 }
                 return rest;
               });
-              
+
               return updateCategory(category.id, {
                 title: category.title,
                 items: cleanedItems,
@@ -156,33 +169,91 @@ const FloatingActions: React.FC<FloatingActionsProps> = ({
         //  Crear nuevas categorías
         if (newCategory && newCategory.length > 0) {
           await Promise.all(
-            newCategory.map((category) =>
-              createCategory({
+            newCategory.map((category) => {
+              // Asegurarse de que los items tengan el formato correcto
+              const formattedItems = (category.items || []).map((item) => ({
+                title: item.title,
+                description: item.description,
+                price: item.price,
+                categoryId: menuId, // Usar el menuId actual
+                images: item.images || [], // Array de File[]
+              }));
+              return createCategory({
                 title: category.title,
-                items: category.items || [],
+                items: formattedItems,
                 menuId,
-              })
-            )
+              });
+            })
           );
-          
         }
       } else {
         //  Crear un nuevo menú
         const createdMenu = await createMenu(newMenu);
-        console.log(createdMenu)
+        console.log(createdMenu);
         const newMenuId = createdMenu.id;
-
+        //  Crear nuevas categorías
         if (newCategory && newCategory.length > 0) {
-          await Promise.all(
-            newCategory.map((category) =>
-              createCategory({
-                title: category.title,
-                items: category.items || [],
-                menuId: newMenuId,
-              })
-            )
-          );
-        }
+  console.group("🆕 CREANDO NUEVAS CATEGORÍAS");
+
+  await Promise.all(
+    newCategory.map(async (category, catIndex) => {
+      console.log(`📋 Categoría ${catIndex}: ${category.title}`);
+
+      // ✅ Procesar items con conversión de base64 a File
+      const formattedItems = await Promise.all(
+        (category.items || []).map(async (item, itemIndex) => {
+          const validImages: File[] = [];
+
+          // Convertir cada imagen
+          if (item.images && item.images.length > 0) {
+            for (let imgIndex = 0; imgIndex < item.images.length; imgIndex++) {
+              const img = item.images[imgIndex];
+              
+              // Si es un File, usarlo directamente
+              if (img instanceof File) {
+                validImages.push(img);
+                console.log(`  ✅ Imagen ${imgIndex}: File directo`);
+              }
+              // Si tiene URL en base64, convertirla
+              else if (img.url && typeof img.url === 'string' && img.url.startsWith('data:')) {
+                try {
+                  const file = await base64ToFile(
+                    img.url, 
+                    `${item.title}-${imgIndex}.png`
+                  );
+                  validImages.push(file);
+                  console.log(`  ✅ Imagen ${imgIndex}: Convertida de base64 a File (${file.size} bytes)`);
+                } catch (error) {
+                  console.error(`  ❌ Error convirtiendo imagen ${imgIndex}:`, error);
+                }
+              }
+            }
+          }
+
+          console.log(`  📦 Item "${item.title}" con ${validImages.length} imágenes válidas`);
+
+          return {
+            title: item.title,
+            description: item.description,
+            price: item.price,
+            categoryId: newMenuId, // Usar newMenuId aquí
+            images: validImages,
+          };
+        })
+      );
+
+      console.log(`  📦 Items formateados:`, formattedItems);
+
+      return createCategory({
+        title: category.title,
+        items: formattedItems,
+        menuId: newMenuId, // Usar newMenuId aquí también
+      });
+    })
+  );
+
+  console.groupEnd();
+}
       }
 
       // ✅ Redirigir después de guardar
@@ -199,7 +270,7 @@ const FloatingActions: React.FC<FloatingActionsProps> = ({
       <div className="max-w-4xl mx-auto flex gap-4">
         {/* Botón Vista Previa */}
         <Button
-        onClick={onPreviewClick}
+          onClick={onPreviewClick}
           className="
             flex-1 h-14 
             bg-gradient-to-br from-orange-400 to-orange-500 hover:from-orange-500 hover:to-orange-600

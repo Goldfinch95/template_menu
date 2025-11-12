@@ -81,14 +81,14 @@ export interface newMenu {
 export interface newCategory {
   menuId: number;
   title: string;
-  items?: Items[];
+  items?: newItem[];
 }
 
 // nuevo item
 export interface newItem{
   description: string;
   categoryId: number;
-  images: ImageItems[];
+  images?: File[];
   price: string;
   title: string;
 }
