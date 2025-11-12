@@ -45,28 +45,32 @@ const FloatingActions: React.FC<FloatingActionsProps> = ({
   const [title, setTitle] = useState("");
   const [isSaving, setIsSaving] = useState(false);
 
-  const base64ToFile = async (base64String: string, filename: string): Promise<File> => {
-  // Extraer el tipo MIME y los datos
-  const arr = base64String.split(',');
-  const mime = arr[0].match(/:(.*?);/)?.[1] || 'image/png';
-  const bstr = atob(arr[1]);
-  let n = bstr.length;
-  const u8arr = new Uint8Array(n);
-  
-  while (n--) {
-    u8arr[n] = bstr.charCodeAt(n);
-  }
-  
-  return new File([u8arr], filename, { type: mime });
-};
+  const base64ToFile = async (
+    base64String: string,
+    filename: string
+  ): Promise<File> => {
+    // Extraer el tipo MIME y los datos
+    const arr = base64String.split(",");
+    const mime = arr[0].match(/:(.*?);/)?.[1] || "image/png";
+    const bstr = atob(arr[1]);
+    let n = bstr.length;
+    const u8arr = new Uint8Array(n);
+
+    while (n--) {
+      u8arr[n] = bstr.charCodeAt(n);
+    }
+
+    return new File([u8arr], filename, { type: mime });
+  };
 
   useEffect(() => {
-    console.log("📦 Datos recibidos del padre:");
-    console.log("- menu:", menu);
-    console.log("- newMenu:", newMenu);
-    console.log("- newCategory:", newCategory);
-    console.log("- editedCategories:", editedCategories);
-    console.log("- categoriesToDelete:", categoriesToDelete);
+    console.group("🔍 === DATOS RECIBIDOS DEL PADRE ===");
+    
+    console.log("📋 menu:", menu);
+    console.log("  - ID:", menu?.id);
+    console.log("  - Nombre:", menu?.title);
+    console.log("  - Categorías:", menu?.categories?.length || 0);
+
     // Detectar si estamos creando o editando un menú
     if (pathname === "/menuEditor") {
       const id = searchParams.get("id");
@@ -193,67 +197,104 @@ const FloatingActions: React.FC<FloatingActionsProps> = ({
         const newMenuId = createdMenu.id;
         //  Crear nuevas categorías
         if (newCategory && newCategory.length > 0) {
-  console.group("🆕 CREANDO NUEVAS CATEGORÍAS");
+          console.group("➕ CREANDO NUEVAS CATEGORÍAS (Nuevo Menu)");
 
-  await Promise.all(
-    newCategory.map(async (category, catIndex) => {
-      console.log(`📋 Categoría ${catIndex}: ${category.title}`);
+          await Promise.all(
+            newCategory.map(async (category, catIndex) => {
+              console.log(`📋 Categoría ${catIndex}: ${category.title}`);
 
-      // ✅ Procesar items con conversión de base64 a File
-      const formattedItems = await Promise.all(
-        (category.items || []).map(async (item, itemIndex) => {
-          const validImages: File[] = [];
+              // ✅ Procesar items con conversión de base64 a File
+              const formattedItems = await Promise.all(
+                (category.items || []).map(async (item, itemIndex) => {
+                  const validImages: File[] = [];
 
-          // Convertir cada imagen
-          if (item.images && item.images.length > 0) {
-            for (let imgIndex = 0; imgIndex < item.images.length; imgIndex++) {
-              const img = item.images[imgIndex];
-              
-              // Si es un File, usarlo directamente
-              if (img instanceof File) {
-                validImages.push(img);
-                console.log(`  ✅ Imagen ${imgIndex}: File directo`);
-              }
-              // Si tiene URL en base64, convertirla
-              else if (img.url && typeof img.url === 'string' && img.url.startsWith('data:')) {
-                try {
-                  const file = await base64ToFile(
-                    img.url, 
-                    `${item.title}-${imgIndex}.png`
+                  // Convertir cada imagen
+                  if (item.images && item.images.length > 0) {
+                    for (
+                      let imgIndex = 0;
+                      imgIndex < item.images.length;
+                      imgIndex++
+                    ) {
+                      const img = item.images[imgIndex];
+
+                      // Si es un File, usarlo directamente
+                      if (img instanceof File) {
+                        validImages.push(img);
+                       console.log(`    ✅ Imagen ${imgIndex}: File directo (${img.name}, ${img.size} bytes)`);
+                      }
+                      // Si tiene URL en base64, convertirla
+                      else if (
+                        img.url &&
+                        typeof img.url === "string" &&
+                        img.url.startsWith("data:")
+                      ) {
+                        try {
+                          const file = await base64ToFile(
+                            img.url,
+                            `${item.title}-${imgIndex}.png`
+                            
+                          );
+                          validImages.push(file);
+                          console.log(`    ✅ Imagen ${imgIndex}: Convertida de base64 a File (${file.size} bytes)`);
+                        } catch (error) {
+                          console.error(
+                            `  ❌ Error convirtiendo imagen ${imgIndex}:`,
+                            error
+                          );
+                        }
+                      }
+                    }
+                  }
+
+                  console.log(
+                    `  📦 Item "${item.title}" con ${validImages.length} imágenes válidas`
                   );
-                  validImages.push(file);
-                  console.log(`  ✅ Imagen ${imgIndex}: Convertida de base64 a File (${file.size} bytes)`);
-                } catch (error) {
-                  console.error(`  ❌ Error convirtiendo imagen ${imgIndex}:`, error);
+
+                  return {
+                    title: item.title,
+                    description: item.description,
+                    price: item.price,
+                    categoryId: newMenuId, // Usar newMenuId aquí
+                    images: validImages,
+                  };
+                })
+              );
+
+              const dataToSend = {
+                title: category.title,
+                items: formattedItems,
+                menuId: newMenuId,
+              };
+
+
+              console.log(`\n📤 ENVIANDO A LA BD - Categoría ${catIndex + 1}:`);
+              console.log("  ├─ Título:", dataToSend.title);
+              console.log("  ├─ Menu ID:", dataToSend.menuId);
+              console.log("  └─ Items:", dataToSend.items.length);
+              
+              dataToSend.items.forEach((item, i) => {
+                console.log(`\n    Item ${i + 1}:`);
+                console.log(`      ├─ Título: "${item.title}"`);
+                console.log(`      ├─ Descripción: "${item.description}"`);
+                console.log(`      ├─ Precio: ${item.price}`);
+                console.log(`      ├─ Category ID: ${item.categoryId}`);
+                console.log(`      └─ Imágenes: ${item.images.length}`);
+                
+                if (item.images.length > 0) {
+                  item.images.forEach((img, imgIndex) => {
+                    console.log(`         └─ Imagen ${imgIndex + 1}: ${img.name} (${(img.size / 1024).toFixed(2)} KB, ${img.type})`);
+                  });
                 }
-              }
-            }
-          }
+              });
+              
+              console.log("\n  📦 Objeto completo a enviar:", dataToSend);
 
-          console.log(`  📦 Item "${item.title}" con ${validImages.length} imágenes válidas`);
+              return createCategory(dataToSend);
+            })
+          );
 
-          return {
-            title: item.title,
-            description: item.description,
-            price: item.price,
-            categoryId: newMenuId, // Usar newMenuId aquí
-            images: validImages,
-          };
-        })
-      );
-
-      console.log(`  📦 Items formateados:`, formattedItems);
-
-      return createCategory({
-        title: category.title,
-        items: formattedItems,
-        menuId: newMenuId, // Usar newMenuId aquí también
-      });
-    })
-  );
-
-  console.groupEnd();
-}
+          console.groupEnd();
+        }
       }
 
       // ✅ Redirigir después de guardar
