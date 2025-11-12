@@ -1,7 +1,34 @@
 "use client";
 
-import React, { useEffect, useState, useRef } from "react";
-import { Plus, GripVertical, Trash2 } from "lucide-react";
+import React, { useState, useEffect, useRef, useMemo, useCallback } from "react";
+import {
+  Plus,
+  Trash2,
+  GripVertical,
+  Pencil,
+  ChevronDown,
+  ChevronUp,
+  Utensils,
+  Upload,
+  X,
+} from "lucide-react";
+import {
+  Collapsible,
+  CollapsibleTrigger,
+  CollapsibleContent,
+} from "@/common/components/ui/collapsible";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/common/components/ui/dialog";
+import { Input } from "@/common/components/ui/input";
+import { Button } from "@/common/components/ui/button";
+import { Card, CardHeader, CardContent } from "@/common/components/ui/card";
+import { motion } from "framer-motion";
 import {
   Categories,
   newCategory,
@@ -9,6 +36,9 @@ import {
   newItem,
   Items,
 } from "@/interfaces/menu";
+import { cn } from "@/common/utils/utils";
+import { Label } from "@/common/components/ui/label";
+import { Spinner } from "@/common/components/ui/spinner";
 
 interface CategoryEditorProps {
   categories: Categories[];
@@ -25,20 +55,51 @@ const CategoryEditor = ({
   onDeleteCategory,
   categoriesToDelete,
 }: CategoryEditorProps) => {
-  // Estado de nueva categoria
+  const [expandedCategory, setExpandedCategory] = useState<string | null>(null);
   const [newCategories, setNewCategories] = useState<newCategory[]>([]);
-  // Estado local para los títulos editados de categorías existentes
   const [localTitles, setLocalTitles] = useState<{ [key: number]: string }>({});
-  // Estado local para los items
   const [localItems, setLocalItems] = useState<{ [key: number]: Items[] }>({});
-  
+  const [editingItem, setEditingItem] = useState<{
+    categoryId: number;
+    item: Items | newItem | null;
+  }>({ categoryId: 0, item: null });
+  const [loadingBackground, setLoadingBackground] = useState(false);
 
-  // Referencia para el timeout del debounce
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
-  // Referencia para el timeout del debounce de edición
   const editDebounceTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const pendingNewCategoriesRef = useRef<newCategory[] | null>(null);
+  const pendingEditCategoryRef = useRef<EditedCategory | null>(null);
 
-  //  Inicializar títulos locales cuando cambian las categorías
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const file = e.target.files?.[0];
+  if (file) {
+    setLoadingBackground(true);  // Activar el spinner cuando se comienza a cargar la imagen
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const imageUrl = reader.result as string;
+      saveItemEdit("images", imageUrl);
+      setLoadingBackground(false);  // Desactivar el spinner una vez la imagen esté cargada
+    };
+    reader.readAsDataURL(file);
+  }
+};
+
+  const validatePrice = (price: string): boolean => {
+    if (!price) return true;
+    const priceRegex = /^\d+(\.\d{0,2})?$/;
+    return priceRegex.test(price);
+  };
+
+  const validateImageUrl = (url: string): boolean => {
+    if (!url) return true;
+    try {
+      new URL(url);
+      return true;
+    } catch {
+      return false;
+    }
+  };
+
   useEffect(() => {
     const titles: { [key: number]: string } = {};
     const items: { [key: number]: Items[] } = {};
@@ -48,452 +109,614 @@ const CategoryEditor = ({
       items[cat.id] = cat.items || [];
     });
 
-    // Solo actualizar si realmente hay cambios
-    setLocalTitles((prev) => {
-      const hasChanges = categories.some((cat) => prev[cat.id] !== cat.title);
-      return hasChanges ? titles : prev;
-    });
-
-    setLocalItems((prev) => {
-      const hasChanges = categories.some(
-        (cat) => JSON.stringify(prev[cat.id]) !== JSON.stringify(cat.items)
-      );
-      return hasChanges ? items : prev;
-    });
+    setLocalTitles(titles);
+    setLocalItems(items);
   }, [categories]);
 
-  // Limpiar timers al desmontar
   useEffect(() => {
     return () => {
-      if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
-      if (editDebounceTimerRef.current)
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+        if (pendingNewCategoriesRef.current) {
+          onCategoriesChange(pendingNewCategoriesRef.current);
+        }
+      }
+      if (editDebounceTimerRef.current) {
         clearTimeout(editDebounceTimerRef.current);
+        if (pendingEditCategoryRef.current) {
+          onEditCategory(pendingEditCategoryRef.current);
+        }
+      }
     };
-  }, []);
+  }, [onCategoriesChange, onEditCategory]);
 
-  // Categorías visibles (no marcadas para eliminar)
-  const visibleCategories = categories.filter(
-    (cat) => !categoriesToDelete.includes(cat.id)
+  const visibleCategories = useMemo(
+    () => categories.filter((cat) => !categoriesToDelete.includes(cat.id)),
+    [categories, categoriesToDelete]
   );
 
-  // mostrar las categorias combinadas
-  const allCategories = [
-    ...visibleCategories.map((cat) => ({
-      ...cat,
-      title: localTitles[cat.id] ?? cat.title,
-      items: localItems[cat.id] ?? cat.items,
-    })),
-    ...newCategories,
-  ];
+  const allCategories = useMemo(
+    () => [
+      ...visibleCategories.map((cat) => ({
+        ...cat,
+        title: localTitles[cat.id] ?? cat.title,
+        items: localItems[cat.id] ?? cat.items,
+      })),
+      ...newCategories,
+    ],
+    [visibleCategories, localTitles, localItems, newCategories]
+  );
 
-  // Función para notificar al padre de los cambios en categorias con debounce
-  const notifyNewCategoriesAdd = (updatedCategories: newCategory[]) => {
+  const notifyNewCategoriesAdd = useCallback((updatedCategories: newCategory[]) => {
+    pendingNewCategoriesRef.current = updatedCategories;
     if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
     debounceTimerRef.current = setTimeout(() => {
       onCategoriesChange(updatedCategories);
+      pendingNewCategoriesRef.current = null;
     }, 500);
-  };
+  }, [onCategoriesChange]);
 
-  // Función para notificar al padre de categorías editadas con debounce
-  const notifyEditedCategory = (editedCategory: EditedCategory) => {
-    if (editDebounceTimerRef.current)
-      clearTimeout(editDebounceTimerRef.current);
+  const notifyEditedCategory = useCallback((editedCategory: EditedCategory) => {
+    pendingEditCategoryRef.current = editedCategory;
+    if (editDebounceTimerRef.current) clearTimeout(editDebounceTimerRef.current);
     editDebounceTimerRef.current = setTimeout(() => {
       onEditCategory(editedCategory);
+      pendingEditCategoryRef.current = null;
     }, 500);
+  }, [onEditCategory]);
+
+  // Ordenamiento para categorías: nuevas primero
+  const sortCategoriesByNewFirst = <T extends { id?: number; tempId?: number; title?: string }>(
+    a: T,
+    b: T
+  ) => {
+    const isANew = !a.id && "tempId" in a;
+    const isBNew = !b.id && "tempId" in b;
+
+    if (isANew && isBNew) {
+      return (b.tempId ?? 0) - (a.tempId ?? 0);
+    }
+
+    if (isANew) return -1;
+    if (isBNew) return 1;
+
+    const titleA = a.title?.toLowerCase() || "";
+    const titleB = b.title?.toLowerCase() || "";
+    return titleA.localeCompare(titleB);
   };
 
-  //Crear una nueva categoria
+  // Ordenamiento para items/platos: mantener orden de inserción (sin ordenar)
+  const sortItemsByInsertionOrder = <T extends { id?: number; tempId?: number }>(
+    a: T,
+    b: T
+  ) => {
+    // Los items con id (de BD) van primero, ordenados por id
+    // Los items con tempId (nuevos) van después, ordenados por tempId
+    const hasAId = !!a.id;
+    const hasBId = !!b.id;
 
-  const createNewCategory = () => {
-    const newCat: newCategory & { tempId: number } = {
+    if (hasAId && hasBId) {
+      return (a.id ?? 0) - (b.id ?? 0);
+    }
+
+    if (hasAId && !hasBId) return -1;
+    if (!hasAId && hasBId) return 1;
+
+    // Ambos son nuevos: ordenar por tempId (el más antiguo primero)
+    return (a.tempId ?? 0) - (b.tempId ?? 0);
+  };
+
+  const createCategory = () => {
+    const newCat: newCategory = {
       tempId: Date.now(),
-      menuId: 1, // Usar timestamp como ID temporal
       title: "",
+      menuId: 1,
       items: [],
     };
-    const updated = [...newCategories, newCat];
+    const updated = [newCat, ...newCategories];
     setNewCategories(updated);
-    onCategoriesChange(updated);
+    notifyNewCategoriesAdd(updated);
   };
 
-  //Actualizar el título de la categoría
   const updateCategoryTitle = (categoryKey: number, newTitle: string) => {
-  const isNewCategory = newCategories.some(
-    (cat) => cat.id === categoryKey || cat.tempId === categoryKey
-  );
+    const isNew = newCategories.some((cat) => cat.tempId === categoryKey);
 
-  if (isNewCategory) {
-    const updated = newCategories.map((cat) =>
-      cat.id === categoryKey || cat.tempId === categoryKey
-        ? { ...cat, title: newTitle }
-        : cat
-    );
-    setNewCategories(updated);
-    notifyNewCategoriesAdd(updated);
-  } else {
-    setLocalTitles((prev) => ({ ...prev, [categoryKey]: newTitle }));
-    notifyEditedCategory({ id: categoryKey, title: newTitle });
-  }
-};
-
-  // Eliminar categoría
-  const deleteCategory = (categoryKey: number) => {
-  const isNewCategory = newCategories.some(
-    (cat) => cat.id === categoryKey || cat.tempId === categoryKey
-  );
-
-  if (isNewCategory) {
-    const updated = newCategories.filter(
-      (cat) => cat.id !== categoryKey && cat.tempId !== categoryKey
-    );
-    setNewCategories(updated);
-    onCategoriesChange(updated);
-  } else {
-    onDeleteCategory(categoryKey);
-  }
-};
-
-  // añadir un plato
-  // añadir un plato
-  const addItem = (categoryKey: number) => {
-  const newItemObj: newItem & { tempId: number } = {
-    tempId: Date.now(),
-    categoryId: 1, // el menuId del restaurante, NO la categoría
-    title: "",
-    description: "",
-    price: "",
-    images: [],
-  };
-
-  const isNewCategory = newCategories.some(
-    (cat) => cat.id === categoryKey || cat.tempId === categoryKey
-  );
-
-  if (isNewCategory) {
-    // ✅ Categoría nueva
-    const updated = newCategories.map((cat) =>
-      cat.id === categoryKey || cat.tempId === categoryKey
-        ? { ...cat, items: [...(cat.items || []), newItemObj] }
-        : cat
-    );
-    setNewCategories(updated);
-    notifyNewCategoriesAdd(updated);
-  } else {
-    // ✅ Categoría existente
-    const updatedItems = [
-      ...(localItems[categoryKey] || []),
-      newItemObj,
-    ];
-    setLocalItems((prev) => ({
-      ...prev,
-      [categoryKey]: updatedItems,
-    }));
-
-    notifyEditedCategory({
-      id: categoryKey,
-      title: localTitles[categoryKey],
-      items: updatedItems,
-    });
-  }
-};
-
-  // Actualizar un plato
-  const updateItem = (
-  categoryId: number,
-  itemKey: number, // puede ser id o tempId
-  field: keyof newItem,
-  value: string
-) => {
-  const isNewCategory = newCategories.some((cat) => cat.id === categoryId);
-
-    if (isNewCategory) {
-    const updated = newCategories.map((cat) => {
-      if (cat.id === categoryId) {
-        const updatedItems = (cat.items || []).map((item) =>
-          (item.id === itemKey || item.tempId === itemKey)
-            ? field === "images"
-              ? { ...item, images: [{ url: value }] }
-              : { ...item, [field]: value }
-            : item
-        );
-        return { ...cat, items: updatedItems };
-      }
-      return cat;
-    });
-       setNewCategories(updated);
-    notifyNewCategoriesAdd(updated);
-    } else {
-    setLocalItems((prev) => {
-      const categoryItems = prev[categoryId] || [];
-      const updatedItems = categoryItems.map((item) =>
-        (item.id === itemKey || item.tempId === itemKey)
-          ? field === "images"
-            ? { ...item, images: [{ url: value }] }
-            : { ...item, [field]: value }
-          : item
+    if (isNew) {
+      const updated = newCategories.map((cat) =>
+        cat.tempId === categoryKey ? { ...cat, title: newTitle } : cat
       );
-      return { ...prev, [categoryId]: updatedItems };
-    });
-
-      // Notificar al backend
-      const currentItems = localItems[categoryId] || [];
-    const updatedItemsList = currentItems.map((item) =>
-      (item.id === itemKey || item.tempId === itemKey)
-        ? field === "images"
-          ? { ...item, images: [{ url: value }] }
-          : { ...item, [field]: value }
-        : item
-    );
-      notifyEditedCategory({
-      id: categoryId,
-      title: localTitles[categoryId],
-      items: updatedItemsList,
-    });
+      setNewCategories(updated);
+      notifyNewCategoriesAdd(updated);
+    } else {
+      setLocalTitles((prev) => ({ ...prev, [categoryKey]: newTitle }));
+      notifyEditedCategory({ id: categoryKey, title: newTitle });
     }
   };
 
-  // 🆕 Eliminar plato
+  const deleteCategory = (categoryKey: number) => {
+    const isNew = newCategories.some((cat) => cat.tempId === categoryKey);
+
+    if (isNew) {
+      const updated = newCategories.filter((cat) => cat.tempId !== categoryKey);
+      setNewCategories(updated);
+      notifyNewCategoriesAdd(updated);
+    } else {
+      onDeleteCategory(categoryKey);
+    }
+  };
+
+  const addItem = (categoryKey: number) => {
+    const newItemObj: Items = {
+      tempId: Date.now(),
+      title: "",
+      description: "",
+      price: "",
+      images: [],
+    };
+
+    const isNew = newCategories.some((cat) => cat.tempId === categoryKey);
+
+    if (isNew) {
+      const updated = newCategories.map((cat) =>
+        cat.tempId === categoryKey
+          ? { ...cat, items: [...(cat.items || []), newItemObj] }
+          : cat
+      );
+      setNewCategories(updated);
+      notifyNewCategoriesAdd(updated);
+    } else {
+      const updatedItems = [...(localItems[categoryKey] || []), newItemObj];
+      setLocalItems((prev) => ({ ...prev, [categoryKey]: updatedItems }));
+      notifyEditedCategory({
+        id: categoryKey,
+        title: localTitles[categoryKey],
+        items: updatedItems,
+      });
+    }
+  };
+
   const deleteItem = (categoryKey: number, itemKey: number) => {
-  const isNewCategory = newCategories.some(
-    (cat) => cat.id === categoryKey || cat.tempId === categoryKey
-  );
+    const isNew = newCategories.some((cat) => cat.tempId === categoryKey);
 
-  if (isNewCategory) {
-    // ✅ Categoría nueva → eliminar item usando id o tempId
-    const updated = newCategories.map((cat) =>
-      cat.id === categoryKey || cat.tempId === categoryKey
-        ? {
-            ...cat,
-            items: (cat.items || []).filter(
-              (item) => item.id !== itemKey && item.tempId !== itemKey
-            ),
-          }
-        : cat
-    );
-    setNewCategories(updated);
-    notifyNewCategoriesAdd(updated);
-  } else {
-    // ✅ Categoría existente → eliminar del estado local
-    const updatedItems = (localItems[categoryKey] || []).filter(
-      (item) => item.id !== itemKey && item.tempId !== itemKey
-    );
+    if (isNew) {
+      const updated = newCategories.map((cat) =>
+        cat.tempId === categoryKey
+          ? {
+              ...cat,
+              items: (cat.items || []).filter(
+                (item) => item.id !== itemKey && item.tempId !== itemKey
+              ),
+            }
+          : cat
+      );
+      setNewCategories(updated);
+      notifyNewCategoriesAdd(updated);
+    } else {
+      const updatedItems = (localItems[categoryKey] || []).filter(
+        (item) => item.id !== itemKey && item.tempId !== itemKey
+      );
+      setLocalItems((prev) => ({ ...prev, [categoryKey]: updatedItems }));
+      notifyEditedCategory({
+        id: categoryKey,
+        title: localTitles[categoryKey],
+        items: updatedItems,
+      });
+    }
+  };
 
-    setLocalItems((prev) => ({
-      ...prev,
-      [categoryKey]: updatedItems,
-    }));
+  const handleItemEdit = (categoryId: number, item: Items | newItem) => {
+    setEditingItem({ categoryId, item: { ...item } });
+  };
 
-    notifyEditedCategory({
-      id: categoryKey,
-      title: localTitles[categoryKey],
-      items: updatedItems,
-    });
-  }
-};
+  const saveItemEdit = (field: keyof Items, value: string) => {
+    if (!editingItem.item) return;
+
+    if (field === "price" && value && !validatePrice(value)) {
+      return;
+    }
+
+    if (field === "images") {
+      const existingImages = editingItem.item.images || [];
+      const updatedItem = {
+        ...editingItem.item,
+        images: value
+          ? existingImages.length > 0
+            ? [{ url: value }, ...existingImages.slice(1)]
+            : [{ url: value }]
+          : [],
+      };
+      setEditingItem((prev) => ({ ...prev, item: updatedItem }));
+    } else {
+      const updatedItem = { ...editingItem.item, [field]: value };
+      setEditingItem((prev) => ({ ...prev, item: updatedItem }));
+    }
+  };
+
+  // ✅ CORRECCIÓN PRINCIPAL: confirmItemEdit ahora guarda correctamente
+  const confirmItemEdit = () => {
+    if (!editingItem.item) return;
+
+    const { categoryId, item } = editingItem;
+    const itemKey = item.id ?? item.tempId;
+
+    // Validación final
+    if (!item.title?.trim()) {
+      alert("El título del plato es obligatorio");
+      return;
+    }
+
+    if (item.price && !validatePrice(item.price)) {
+      alert("El precio debe ser un número válido");
+      return;
+    }
+
+    if (item.images?.[0]?.url && !validateImageUrl(item.images[0].url)) {
+      alert("La URL de la imagen no es válida");
+      return;
+    }
+
+    const isNew = newCategories.some((cat) => cat.tempId === categoryId);
+
+    if (isNew) {
+      // Actualizar en newCategories
+      const updated = newCategories.map((cat) => {
+        if (cat.tempId === categoryId) {
+          const updatedItems = (cat.items || []).map((existingItem) =>
+            (existingItem.id === itemKey || existingItem.tempId === itemKey)
+              ? { ...existingItem, ...item }
+              : existingItem
+          );
+          return { ...cat, items: updatedItems };
+        }
+        return cat;
+      });
+      setNewCategories(updated);
+      notifyNewCategoriesAdd(updated);
+    } else {
+      // Actualizar en localItems
+      const updatedItems = (localItems[categoryId] || []).map((existingItem) =>
+        (existingItem.id === itemKey || existingItem.tempId === itemKey)
+          ? { ...existingItem, ...item }
+          : existingItem
+      );
+      
+      setLocalItems((prev) => ({ ...prev, [categoryId]: updatedItems }));
+      
+      notifyEditedCategory({
+        id: categoryId,
+        title: localTitles[categoryId],
+        items: updatedItems,
+      });
+    }
+
+    // Cerrar modal
+    setEditingItem({ categoryId: 0, item: null });
+  };
 
   return (
-    <div className="bg-white/80 backdrop-blur-xl border border-slate-200 rounded-xl shadow-md overflow-hidden sm:rounded-2xl sm:shadow-lg">
-      {/* Header */}
-      <div className="bg-gradient-to-b from-white/90 to-white/70 px-4 py-3 border-b border-slate-200 flex items-center justify-between">
-        <h3 className="font-semibold text-slate-800 text-base sm:text-lg">
-          Categorías y Platos
-        </h3>
-        <button
-          onClick={createNewCategory}
-          className="flex items-center justify-center gap-2 px-3 py-2 bg-gradient-to-br from-orange-400 to-orange-500 
-              hover:from-orange-500 hover:to-orange-600 active:scale-[0.97]
-              text-white rounded-lg text-sm font-semibold shadow-md hover:shadow-lg transition-all"
+    <Card className="bg-gradient-to-b from-white/80 to-white/60 backdrop-blur-xl border border-white/30 rounded-3xl p-5 shadow-md">
+      <CardHeader className="flex justify-between items-center mb-2">
+        <h3 className="font-semibold text-slate-800 text-lg">Categorías y Platos</h3>
+        <Button
+          onClick={createCategory}
+          className="bg-gradient-to-br from-orange-400 to-orange-500 text-white rounded-xl"
         >
           <Plus className="w-4 h-4" />
-          <span className="hidden sm:inline">Nueva Categoría</span>
-        </button>
-      </div>
+          Nueva Categoría
+        </Button>
+      </CardHeader>
 
-      {/* Contenido */}
-      <div className="p-3 sm:p-5 space-y-4">
-        {allCategories.map((category) => (
-          <div
+      <CardContent className="space-y-4">
+        {[...allCategories].sort(sortCategoriesByNewFirst).map((category) => (
+          <Collapsible
             key={category.id ?? category.tempId}
-            className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden"
+            open={expandedCategory === String(category.id ?? category.tempId)}
+            onOpenChange={() =>
+              setExpandedCategory(
+                expandedCategory === String(category.id ?? category.tempId)
+                  ? null
+                  : String(category.id ?? category.tempId)
+              )
+            }
           >
-            {/* Nombre categoría */}
-            <div className="flex items-center gap-3 px-3 py-3 border-b border-slate-200 bg-slate-50/50">
-              <GripVertical className="w-4 h-4 text-slate-400 flex-shrink-0" />
-              <input
-                type="text"
-                value={category.title}
-                onChange={(e) =>
-      updateCategoryTitle(category.id ?? category.tempId, e.target.value)
-    }
-                placeholder="Ej: Entradas, Postres..."
-                className="flex-1 bg-white border border-slate-200 text-slate-800 text-sm rounded-lg px-3 py-2 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-orange-400 transition-all"
-              />
-              <button
-                 onClick={() => deleteCategory(category.id ?? category.tempId)}
-                className="p-2 text-red-500 hover:bg-red-100 rounded-md transition-all"
-              >
-                <Trash2 className="w-4 h-4" />
-              </button>
-            </div>
-
-            {/* Items */}
-            <div className="p-3 space-y-3">
-              {[...(category.items || [])]
-                .sort((a, b) => {
-                  // No ordenar items nuevos (sin id o con tempId)
-                  const isANew = !a.id || "tempId" in a;
-                  const isBNew = !b.id || "tempId" in b;
-
-                  // Si ambos son nuevos, mantener orden original
-                  if (isANew && isBNew) return 0;
-                  // Items nuevos siempre al final
-                  if (isANew) return 1;
-                  if (isBNew) return -1;
-
-                  // Solo ordenar items existentes alfabéticamente
-                  const titleA = a.title?.toLowerCase() || "";
-                  const titleB = b.title?.toLowerCase() || "";
-                  return titleA.localeCompare(titleB);
-                })
-                .map((item) => (
-                  <div
-                    key={item.id ?? item.tempId}
-                    className="bg-slate-50 rounded-lg p-3 border border-slate-200"
+            <motion.div
+              layout
+              className="border border-slate-200 rounded-2xl p-3 bg-white/80 shadow-sm"
+            >
+              <div className="flex justify-between items-center">
+                <input
+                  type="text"
+                  value={category.title}
+                  onChange={(e) =>
+                    updateCategoryTitle(category.id ?? category.tempId, e.target.value)
+                  }
+                  placeholder="Ej: Entradas, Postres..."
+                  className="font-medium text-slate-800 bg-transparent border-none focus:ring-0 text-base flex-1"
+                />
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => deleteCategory(category.id ?? category.tempId)}
+                    className="text-red-500 hover:bg-red-100 p-2 rounded-md"
                   >
-                    {/* Nombre del plato */}
-                    <input
-                      type="text"
-                      value={item.title}
-                      onChange={(e) =>
-                        updateItem(
-                          category.id,
-                          item.id ?? item.tempId,
-                          "title",
-                          e.target.value
-                        )
-                      }
-                      placeholder="Nombre del plato"
-                      className="w-full bg-white border border-slate-200 text-slate-800 text-sm rounded-lg px-3 py-2 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-orange-400 transition-all"
-                    />
-
-                    {/* Descripción */}
-                    <textarea
-                      value={item.description}
-                      onChange={(e) =>
-                        updateItem(
-                          category.id,
-                          item.id ?? item.tempId,
-                          "description",
-                          e.target.value
-                        )
-                      }
-                      placeholder="Descripción (ingredientes, detalles...)"
-                      rows={2}
-                      className="w-full mt-2 bg-white border border-slate-200 text-slate-800 text-sm rounded-lg px-3 py-2 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-orange-400 resize-none transition-all"
-                    />
-
-                    {/* Precio */}
-                    <div className="relative mt-2">
-                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">
-                        $
-                      </span>
-                      <input
-                        type="text"
-                        value={item.price}
-                        onChange={(e) =>
-                          updateItem(
-                            category.id,
-                            item.id ?? item.tempId,
-                            "price",
-                            e.target.value
-                          )
-                        }
-                        placeholder="Precio"
-                        className="w-full bg-white border border-slate-200 text-slate-800 text-sm rounded-lg pl-7 pr-3 py-2 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-orange-400 transition-all"
-                      />
-                    </div>
-
-{/*<input
-                      type="url"
-                      value={item.images[0]?.url || ""}
-                      onChange={(e) =>
-        updateItem(category.id, item.id ?? item.tempId, "images", e.target.value)
-      }
-                      placeholder="URL de imagen..."
-                      className="w-full mt-2 bg-white border border-slate-200 text-slate-800 text-sm rounded-lg px-3 py-2 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-orange-400 transition-all"
-                    /> */}
-                    {/* Imagen con preview */}
-<div className="mt-2 space-y-2">
-  <label className="block text-sm font-medium text-slate-700">
-    Imagen del plato
-  </label>
-
-  {/* Input URL */}
-  <input
-    type="url"
-    value={item.images?.[0]?.url || ""}
-    onChange={(e) =>
-      updateItem(category.id, item.id ?? item.tempId, "images", e.target.value)
-    }
-    placeholder="https://ejemplo.com/imagen.jpg"
-    className="w-full bg-white border border-slate-200 text-slate-800 text-sm rounded-lg px-3 py-2 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-orange-400 transition-all"
-  />
-
-  {/* Preview */}
-  {item.images?.[0]?.url && (
-    <div className="relative w-full aspect-video bg-slate-100 rounded-xl overflow-hidden border border-slate-200">
-      <img
-        src={item.images[0].url}
-        alt="Preview"
-        className="w-full h-full object-cover"
-        onError={(e) => {
-          e.currentTarget.src =
-            "https://via.placeholder.com/400x300?text=Imagen+no+disponible";
-        }}
-      />
-    </div>
-  )}
-</div>
-                    {/* Eliminar plato */}
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                  <CollapsibleTrigger asChild>
                     <button
-                      onClick={() => deleteItem(category.id ?? category.tempId, item.id ?? item.tempId)}
-                      className="w-full mt-3 py-2 text-red-500 hover:bg-red-100 rounded-lg transition-all text-xs font-medium flex items-center justify-center gap-2"
+                      className={cn(
+                        "p-2 rounded-lg transition-all duration-200",
+                        expandedCategory === String(category.id ?? category.tempId)
+                          ? "bg-orange-50 text-orange-500 shadow-sm"
+                          : "text-slate-500 hover:bg-slate-100"
+                      )}
                     >
-                      <Trash2 className="w-4 h-4" />
-                      Eliminar plato
+                      {expandedCategory === String(category.id ?? category.tempId) ? (
+                        <ChevronUp className="w-4 h-4" />
+                      ) : (
+                        <ChevronDown className="w-4 h-4" />
+                      )}
                     </button>
-                  </div>
+                  </CollapsibleTrigger>
+                </div>
+              </div>
+            </motion.div>
+
+            <CollapsibleContent>
+              <div className="mt-3 space-y-3">
+                {[...(category.items || [])].sort(sortItemsByInsertionOrder).map((item) => (
+                  <motion.div
+                    key={item.id ?? item.tempId}
+                    layout
+                    className="flex justify-between items-center bg-white border border-slate-200 rounded-xl p-3"
+                  >
+                    <div className="flex items-center gap-3 overflow-hidden">
+                      {item.images && item.images.length > 0 ? (
+                        <img
+                          src={item.images[0].url}
+                          alt={item.title}
+                          className="w-12 h-12 rounded-lg object-cover border border-slate-200"
+                        />
+                      ) : (
+                        <div className="w-12 h-12 rounded-lg bg-slate-100 flex items-center justify-center">
+                          <Utensils className="w-5 h-5 text-slate-400" />
+                        </div>
+                      )}
+
+                      <p className="font-medium text-slate-700 text-sm truncate max-w-[120px]">
+                        {item.title || "Nuevo plato"}
+                      </p>
+                      {item.price && (
+                        <p className="text-slate-500 text-xs">${item.price}</p>
+                      )}
+                    </div>
+                    <div className="flex gap-2">
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="text-orange-500 hover:text-orange-600"
+                        onClick={() => handleItemEdit(category.id ?? category.tempId, item)}
+                      >
+                        <Pencil className="w-4 h-4" />
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="text-red-500 hover:text-red-600"
+                        onClick={() =>
+                          deleteItem(category.id ?? category.tempId, item.id ?? item.tempId)
+                        }
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </motion.div>
                 ))}
 
-              {/* Agregar plato */}
-              <button
-                onClick={() => addItem(category.id ?? category.tempId)}
-                className="w-full py-3 border-2 border-dashed border-slate-300 text-slate-500 hover:text-orange-500 hover:border-orange-400 rounded-lg transition-all text-sm font-medium flex items-center justify-center gap-2 bg-white"
-              >
-                <Plus className="w-4 h-4" />
-                Agregar Plato
-              </button>
-            </div>
-          </div>
+                <div className="pt-4 mt-4 border-t border-slate-300">
+                  <Button
+                    onClick={() => addItem(category.id ?? category.tempId)}
+                    variant="outline"
+                    className="w-full border-dashed border-slate-300 text-slate-500 hover:border-orange-400 hover:text-orange-500 rounded-xl py-5"
+                  >
+                    <Plus className="w-4 h-4 mr-2" /> Agregar plato
+                  </Button>
+                </div>
+              </div>
+            </CollapsibleContent>
+          </Collapsible>
         ))}
+      </CardContent>
 
-        {categories.length === 0 && (
-          <div className="text-center py-12 px-4">
-            <div className="w-14 h-14 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-3 shadow-inner">
-              <Plus className="w-7 h-7 text-slate-400" />
+      <Dialog
+        open={!!editingItem.item}
+        onOpenChange={(open) =>
+          setEditingItem({
+            categoryId: 0,
+            item: open ? editingItem.item : null,
+          })
+        }
+      >
+        <DialogContent className="rounded-2xl max-w-md bg-white/90 backdrop-blur-xl border border-white/30">
+        <DialogClose className="absolute right-4 top-4 rounded-full p-2 hover:bg-white/70 transition-colors z-50">
+          <X className="h-5 w-5 text-orange-400" />
+        </DialogClose>
+          <DialogHeader>
+            <DialogTitle className="text-slate-800 text-lg font-semibold">Editar plato</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 mt-3">
+            <div>
+              <Input
+                placeholder="Título del plato *"
+                value={editingItem.item?.title || ""}
+                onChange={(e) => saveItemEdit("title", e.target.value)}
+                className="text-black"
+              />
+              {editingItem.item?.title === "" && (
+                <p className="text-xs text-red-500 mt-1">El título es obligatorio</p>
+              )}
             </div>
-            <p className="text-slate-600 text-base font-medium mb-1">
-              No hay categorías aún
-            </p>
-            <p className="text-slate-500 text-sm">
-              Toca "+" para comenzar a crear tu menú
-            </p>
+            <Input
+              placeholder="Descripción"
+              value={editingItem.item?.description || ""}
+              onChange={(e) => saveItemEdit("description", e.target.value)}
+              className="text-black"
+            />
+            <div>
+              <Input
+                placeholder="Precio (ej: 12.50)"
+                value={editingItem.item?.price || ""}
+                onChange={(e) => saveItemEdit("price", e.target.value)}
+                className="text-black"
+              />
+              {editingItem.item?.price && !validatePrice(editingItem.item.price) && (
+                <p className="text-xs text-red-500 mt-1">
+                  Use solo números y hasta 2 decimales
+                </p>
+              )}
+            </div>
+
+            <div className="relative w-full h-full group">
+              <Input
+                type="file"
+                accept="image/*"
+                onChange={handleImageUpload}
+                className="mt-4 hidden"
+                id="image-upload-input"
+              />
+
+              <Label
+                htmlFor="image-upload-input"
+                className={`w-full h-64 rounded-2xl overflow-hidden 
+    ${
+      editingItem.item?.images?.[0]?.url
+        ? "border-0"
+        : "border-2 border-dashed border-slate-300"
+    }
+    bg-slate-50 flex items-center justify-center cursor-pointer hover:border-orange-500 transition-all`}
+              >
+                {/* Mostrar la imagen si existe */}
+                {editingItem.item?.images?.[0]?.url ? (
+                  <>
+                    <img
+                      src={editingItem.item?.images[0]?.url || ""}
+                      alt="Preview"
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        const target = e.currentTarget;
+                        target.style.display = "none";
+                        const nextEl = target.nextElementSibling as HTMLElement;
+                        if (nextEl) nextEl.classList.remove("hidden");
+                      }}
+                    />
+                  </>
+                ) : (
+                  // Si no hay imagen cargada
+                  <div className="flex flex-col items-center">
+                    {loadingBackground ? (
+                      <Spinner className="w-6 h-6 text-orange-500" />
+                    ) : (
+                      <>
+                        <Upload className="w-8 h-8 text-slate-400 mb-1" />
+                        <p className="text-sm text-slate-500">
+                          Carga la imagen del plato
+                        </p>
+                      </>
+                    )}
+                  </div>
+                )}
+
+                {/* Subtítulo para formatos de imagen */}
+              </Label>
+              {editingItem.item?.images?.[0]?.url && (
+                <p className="text-base text-slate-400 mt-2">
+                  Toca la imagen para cambiarla
+                </p>
+              )}
+              <p className="text-base text-slate-400 mt-2">
+                PNG, JPG hasta 10MB
+              </p>
+              <DialogFooter className="mt-5">
+            <Button
+              variant="outline"
+              onClick={() => setEditingItem({ categoryId: 0, item: null })}
+              className="text-black"
+            >
+              Cancelar
+            </Button>
+            <Button
+              onClick={confirmItemEdit}
+              className="bg-gradient-to-br from-orange-400 to-orange-500 text-white"
+            >
+              Guardar cambios
+            </Button>
+          </DialogFooter>
+            </div>
           </div>
-        )}
-      </div>
-    </div>
+        </DialogContent>
+      </Dialog>
+    </Card>
   );
 };
 
 export default CategoryEditor;
+
+{/*<div className="relative w-full h-full group">
+              <Input
+                type="file"
+                accept="image/*"
+                onChange={handleImageUpload}
+                className="mt-4 hidden"
+                id="image-upload-input"
+              />
+
+              <Label
+                htmlFor="image-upload-input"
+                className={`w-full h-64 rounded-2xl overflow-hidden 
+    ${
+      editingItem.item?.images?.[0]?.url
+        ? "border-0"
+        : "border-2 border-dashed border-slate-300"
+    }
+    bg-slate-50 flex items-center justify-center cursor-pointer hover:border-orange-500 transition-all`}
+              >
+                {/* Mostrar la imagen si existe 
+                {editingItem.item?.images?.[0]?.url ? (
+                  <>
+                    <img
+                      src={editingItem.item?.images[0]?.url || ""}
+                      alt="Preview"
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        const target = e.currentTarget;
+                        target.style.display = "none";
+                        const nextEl = target.nextElementSibling as HTMLElement;
+                        if (nextEl) nextEl.classList.remove("hidden");
+                      }}
+                    />
+                  </>
+                ) : (
+                  // Si no hay imagen cargada
+                  <div className="flex flex-col items-center">
+                    {loadingBackground ? (
+                      <Spinner className="w-6 h-6 text-orange-500" />
+                    ) : (
+                      <>
+                        <Upload className="w-8 h-8 text-slate-400 mb-1" />
+                        <p className="text-sm text-slate-500">
+                          Carga la imagen del plato
+                        </p>
+                      </>
+                    )}
+                  </div>
+                )}
+
+                {/* Subtítulo para formatos de imagen 
+              </Label>
+              {editingItem.item?.images?.[0]?.url && (
+                <p className="text-base text-slate-400 mt-2">
+                  Toca la imagen para cambiarla
+                </p>
+              )}
+              <p className="text-base text-slate-400 mt-2">
+                PNG, JPG hasta 10MB
+              </p>
+            </div>*/}

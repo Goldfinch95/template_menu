@@ -56,7 +56,7 @@ const InfoEditor = ({ title, pos, onInfoSubmit }: InfoEditorProps) => {
       <Card className="bg-white/70 backdrop-blur-xl border border-white/40 rounded-3xl p-4 sm:p-5 shadow-lg transition-all hover:shadow-xl duration-300">
         <div className="space-y-6">
           {/* Título */}
-          <h3 className="text-base font-semibold text-center text-slate-800 text-slate-800 text-lg tracking-tight ">
+          <h3 className="text-base font-semibold text-center text-slate-800 tracking-tight ">
             Información del Restaurante
           </h3>
           {/* Inputs */}
