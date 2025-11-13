@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation";
 import FoodMenuItem from "@/app/components/FoodMenuItem";
 import type { Menu, Categories } from "@/interfaces/menu";
 import { getMenu } from "@/common/utils/api";
+import Image from "next/image";
 
 // Componente interno que usa useSearchParams
 function MenuContent() {
@@ -35,7 +36,7 @@ function MenuContent() {
       }
     };
     loadMenu();
-  }, [searchParams]);
+  }, [menuId]);
 
   useEffect(() => {
     if (categories.length === 0) return;
@@ -143,9 +144,11 @@ function MenuContent() {
         {/* Contenido del header */}
         <div className="relative h-full flex flex-col items-center justify-center px-6">
           <div className="w-28 h-28 mb-4  rounded-3xl flex items-center justify-center shadow-2xl overflow-hidden ">
-            <img
+            <Image
               src={menu.logo}
               alt="Logo"
+              width={112}
+              height={112}
               className="w-full h-full object-cover"
             />
           </div>
