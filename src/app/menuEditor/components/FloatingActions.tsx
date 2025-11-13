@@ -64,12 +64,12 @@ const FloatingActions: React.FC<FloatingActionsProps> = ({
   };
 
   useEffect(() => {
-    console.group("🔍 === DATOS RECIBIDOS DEL PADRE ===");
+    /*console.group("🔍 === DATOS RECIBIDOS DEL PADRE ===");
     
     console.log("📋 menu:", menu);
     console.log("  - ID:", menu?.id);
     console.log("  - Nombre:", menu?.title);
-    console.log("  - Categorías:", menu?.categories?.length || 0);
+    console.log("  - Categorías:", menu?.categories?.length || 0);*/
 
     // Detectar si estamos creando o editando un menú
     if (pathname === "/menuEditor") {
@@ -220,7 +220,9 @@ const FloatingActions: React.FC<FloatingActionsProps> = ({
                       // Si es un File, usarlo directamente
                       if (img instanceof File) {
                         validImages.push(img);
-                       console.log(`    ✅ Imagen ${imgIndex}: File directo (${img.name}, ${img.size} bytes)`);
+                        console.log(
+                          `    ✅ Imagen ${imgIndex}: File directo (${img.name}, ${img.size} bytes)`
+                        );
                       }
                       // Si tiene URL en base64, convertirla
                       else if (
@@ -232,10 +234,11 @@ const FloatingActions: React.FC<FloatingActionsProps> = ({
                           const file = await base64ToFile(
                             img.url,
                             `${item.title}-${imgIndex}.png`
-                            
                           );
                           validImages.push(file);
-                          console.log(`    ✅ Imagen ${imgIndex}: Convertida de base64 a File (${file.size} bytes)`);
+                          console.log(
+                            `    ✅ Imagen ${imgIndex}: Convertida de base64 a File (${file.size} bytes)`
+                          );
                         } catch (error) {
                           console.error(
                             `  ❌ Error convirtiendo imagen ${imgIndex}:`,
@@ -266,12 +269,11 @@ const FloatingActions: React.FC<FloatingActionsProps> = ({
                 menuId: newMenuId,
               };
 
-
               console.log(`\n📤 ENVIANDO A LA BD - Categoría ${catIndex + 1}:`);
               console.log("  ├─ Título:", dataToSend.title);
               console.log("  ├─ Menu ID:", dataToSend.menuId);
               console.log("  └─ Items:", dataToSend.items.length);
-              
+
               dataToSend.items.forEach((item, i) => {
                 console.log(`\n    Item ${i + 1}:`);
                 console.log(`      ├─ Título: "${item.title}"`);
@@ -279,16 +281,32 @@ const FloatingActions: React.FC<FloatingActionsProps> = ({
                 console.log(`      ├─ Precio: ${item.price}`);
                 console.log(`      ├─ Category ID: ${item.categoryId}`);
                 console.log(`      └─ Imágenes: ${item.images.length}`);
-                
+
                 if (item.images.length > 0) {
                   item.images.forEach((img, imgIndex) => {
-                    console.log(`         └─ Imagen ${imgIndex + 1}: ${img.name} (${(img.size / 1024).toFixed(2)} KB, ${img.type})`);
+                    console.log(
+                      `         └─ Imagen ${imgIndex + 1}: ${img.name} (${(
+                        img.size / 1024
+                      ).toFixed(2)} KB, ${img.type})`
+                    );
                   });
                 }
               });
-              
-              console.log("\n  📦 Objeto completo a enviar:", dataToSend);
 
+              console.log("\n  📦 Objeto completo a enviar:", dataToSend);
+              console.log(
+                `📤 Enviando categoría "${dataToSend.title}" con ${dataToSend.items.length} items`
+              );
+              dataToSend.items.forEach((item, index) => {
+                item.images.forEach((img, imgIndex) => {
+                  console.log(
+                    `    🧾 Item ${index + 1} → Imagen ${imgIndex + 1}:`,
+                    img instanceof File
+                      ? `✅ File "${img.name}" (${img.size} bytes)`
+                      : img
+                  );
+                });
+              });
               return createCategory(dataToSend);
             })
           );

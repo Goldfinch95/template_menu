@@ -1,10 +1,15 @@
 "use client";
 
-import React, { useState, useEffect, useRef, useMemo, useCallback } from "react";
+import React, {
+  useState,
+  useEffect,
+  useRef,
+  useMemo,
+  useCallback,
+} from "react";
 import {
   Plus,
   Trash2,
-  GripVertical,
   Pencil,
   ChevronDown,
   ChevronUp,
@@ -35,6 +40,7 @@ import {
   EditedCategory,
   newItem,
   Items,
+  ImageItems,
 } from "@/interfaces/menu";
 import { cn } from "@/common/utils/utils";
 import { Label } from "@/common/components/ui/label";
@@ -56,46 +62,80 @@ const CategoryEditor = ({
   categoriesToDelete,
 }: CategoryEditorProps) => {
   //  Estados //
-  // categoria expandida en el collapsable
   const [expandedCategory, setExpandedCategory] = useState<string | null>(null);
-  //  NUEVAS categorias
   const [newCategories, setNewCategories] = useState<newCategory[]>([]);
-  // nuevo TITULO de la categoria
   const [localTitles, setLocalTitles] = useState<{ [key: number]: string }>({});
-  // NUEVOS platos
   const [localItems, setLocalItems] = useState<{ [key: number]: Items[] }>({});
-  // plato que se esta EDITANDO
   const [editingItem, setEditingItem] = useState<{
     categoryId: number;
     item: Items | newItem | null;
   }>({ categoryId: 0, item: null });
-  // carga de la imagen del plato
   const [loadingBackground, setLoadingBackground] = useState(false);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
 
-  // referencias //
-  // debounce
+  // referencias
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
   const editDebounceTimerRef = useRef<NodeJS.Timeout | null>(null);
-  //
   const pendingNewCategoriesRef = useRef<newCategory[] | null>(null);
   const pendingEditCategoryRef = useRef<EditedCategory | null>(null);
 
+  // 🔥 Cargar preview cuando se abre el modal de edición
+  useEffect(() => {
+    if (editingItem.item) {
+      const firstImage = editingItem.item.images?.[0];
+      if (firstImage) {
+        // Si es un File, crear preview
+        if (firstImage instanceof File) {
+          const reader = new FileReader();
+          reader.onloadend = () => {
+            setImagePreview(reader.result as string);
+          };
+          reader.readAsDataURL(firstImage);
+        }
+        // Si es un objeto con url
+        else if (typeof firstImage === "object" && "url" in firstImage) {
+          setImagePreview(firstImage.url);
+        }
+      } else {
+        setImagePreview(null);
+      }
+    } else {
+      setImagePreview(null);
+    }
+  }, [editingItem.item]);
+
   // al subir una imagen del plato, guardarlo.
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-  const file = e.target.files?.[0];
-  if (file) {
-    setLoadingBackground(true);  // Activar el spinner cuando se comienza a cargar la imagen
+    const file = e.target.files?.[0];
+    console.log("📸 Imagen seleccionada:", file);
+    console.log("Es un File:", file instanceof File);
+    if (!file) return;
+
+    // Validar tamaño (10MB)
+    if (file.size > 10 * 1024 * 1024) {
+      alert("La imagen debe ser menor a 10MB");
+      return;
+    }
+    // Validar tipo
+    const validTypes = ["image/jpeg", "image/png", "image/webp", "image/jpg"];
+    if (!validTypes.includes(file.type)) {
+      alert("Solo se permiten imágenes JPG, PNG o WebP");
+      return;
+    }
+    setLoadingBackground(true);
+
+    // Crear preview para mostrar en UI (solo para visualización)
     const reader = new FileReader();
     reader.onloadend = () => {
-      const imageUrl = reader.result as string;
-      saveItemEdit("images", imageUrl);
-      setLoadingBackground(false);  // Desactivar el spinner una vez la imagen esté cargada
+      setImagePreview(reader.result as string);
+      setLoadingBackground(false);
     };
     reader.readAsDataURL(file);
-  }
-};
 
-//validacion del precio
+    saveItemEdit("images", file);
+  };
+
+  //validacion del precio
   const validatePrice = (price: string): boolean => {
     if (!price) return true;
     const priceRegex = /^\d+(\.\d{0,2})?$/;
@@ -104,29 +144,23 @@ const CategoryEditor = ({
 
   //Actualiza los títulos y platos de las categorías cada vez que cambian las categorías.
   useEffect(() => {
-    // testeo
-  //console.log("Categories received in effect:", categories); 
+    if (!categories || categories.length === 0) {
+      return;
+    }
 
-  if (!categories || categories.length === 0) {
-    //testeo
-    //console.log("Categories is empty or undefined at the start.");
-    return;
-  }
+    const titles: { [key: number]: string } = {};
+    const items: { [key: number]: Items[] } = {};
 
-  const titles: { [key: number]: string } = {};
-  const items: { [key: number]: Items[] } = {};
+    categories.forEach((cat) => {
+      titles[cat.id] = cat.title;
+      items[cat.id] = cat.items || [];
+    });
 
-  categories.forEach((cat) => {
-    titles[cat.id] = cat.title;
-    items[cat.id] = cat.items || [];
-  });
+    setLocalTitles(titles);
+    setLocalItems(items);
+  }, [categories]);
 
-  setLocalTitles(titles);
-  setLocalItems(items);
-}, [categories]);
-
-//los cambios se guarden de forma "debounced" para evitar llamadas innecesarias al servidor.
-
+  //los cambios se guarden de forma "debounced" para evitar llamadas innecesarias al servidor.
   useEffect(() => {
     return () => {
       if (debounceTimerRef.current) {
@@ -165,26 +199,46 @@ const CategoryEditor = ({
 
   // avisar al padre de las NUEVAS categorias creadas.
   const notifyNewCategoriesAdd = useCallback((updatedCategories: newCategory[]) => {
-    pendingNewCategoriesRef.current = updatedCategories;
-    if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
-    debounceTimerRef.current = setTimeout(() => {
-      onCategoriesChange(updatedCategories);
-      pendingNewCategoriesRef.current = null;
-    }, 500);
-  }, [onCategoriesChange]);
+  console.log("📤 Notificando nuevas categorías al padre:", updatedCategories);
+  updatedCategories.forEach((cat) => {
+    cat.items?.forEach((item, i) => {
+      console.log(`🧾 Nueva categoría ${cat.tempId || cat.id} → Item[${i}] imágenes:`, item.images);
+      if (item.images?.[0]) {
+        console.log("Tipo de imagen:", item.images[0] instanceof File ? "File" : typeof item.images[0]);
+      }
+    });
+  });
+  pendingNewCategoriesRef.current = updatedCategories;
+  if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
+  debounceTimerRef.current = setTimeout(() => {
+    onCategoriesChange(updatedCategories);
+    pendingNewCategoriesRef.current = null;
+  }, 500);
+}, [onCategoriesChange]);
 
   // avisar al padre de las categorias EDITADAS
   const notifyEditedCategory = useCallback((editedCategory: EditedCategory) => {
-    pendingEditCategoryRef.current = editedCategory;
-    if (editDebounceTimerRef.current) clearTimeout(editDebounceTimerRef.current);
-    editDebounceTimerRef.current = setTimeout(() => {
-      onEditCategory(editedCategory);
-      pendingEditCategoryRef.current = null;
-    }, 500);
-  }, [onEditCategory]);
+  console.log("📤 Notificando edición al padre:", editedCategory);
+  if (editedCategory.items) {
+    editedCategory.items.forEach((item, i) => {
+      console.log(`🧾 Item[${i}] imágenes:`, item.images);
+      if (item.images?.[0]) {
+        console.log("Tipo de imagen:", item.images[0] instanceof File ? "File" : typeof item.images[0]);
+      }
+    });
+  }
+  pendingEditCategoryRef.current = editedCategory;
+  if (editDebounceTimerRef.current) clearTimeout(editDebounceTimerRef.current);
+  editDebounceTimerRef.current = setTimeout(() => {
+    onEditCategory(editedCategory);
+    pendingEditCategoryRef.current = null;
+  }, 500);
+}, [onEditCategory]);
 
   // Ordenamiento para categorías: nuevas primero
-  const sortCategoriesByNewFirst = <T extends { id?: number; tempId?: number; title?: string }>(
+  const sortCategoriesByNewFirst = <
+    T extends { id?: number; tempId?: number; title?: string }
+  >(
     a: T,
     b: T
   ) => {
@@ -204,12 +258,12 @@ const CategoryEditor = ({
   };
 
   // Ordenamiento para items/platos: mantener orden de inserción (sin ordenar)
-  const sortItemsByInsertionOrder = <T extends { id?: number; tempId?: number }>(
+  const sortItemsByInsertionOrder = <
+    T extends { id?: number; tempId?: number }
+  >(
     a: T,
     b: T
   ) => {
-    // Los items con id (de BD) van primero, ordenados por id
-    // Los items con tempId (nuevos) van después, ordenados por tempId
     const hasAId = !!a.id;
     const hasBId = !!b.id;
 
@@ -220,7 +274,6 @@ const CategoryEditor = ({
     if (hasAId && !hasBId) return -1;
     if (!hasAId && hasBId) return 1;
 
-    // Ambos son nuevos: ordenar por tempId (el más antiguo primero)
     return (a.tempId ?? 0) - (b.tempId ?? 0);
   };
 
@@ -333,22 +386,24 @@ const CategoryEditor = ({
   };
 
   // guardar el plato editado en el modal
-  const saveItemEdit = (field: keyof Items, value: string) => {
+  const saveItemEdit = (field: keyof Items, value: string | File) => {
     if (!editingItem.item) return;
 
-    if (field === "price" && value && !validatePrice(value)) {
+    if (
+      field === "price" &&
+      typeof value === "string" &&
+      value &&
+      !validatePrice(value)
+    ) {
       return;
     }
 
     if (field === "images") {
-      const existingImages = editingItem.item.images || [];
+      console.log("💾 Guardando imagen en item:", value);
+      console.log("Es un File:", value instanceof File);
       const updatedItem = {
         ...editingItem.item,
-        images: value
-          ? existingImages.length > 0
-            ? [{ url: value }, ...existingImages.slice(1)]
-            : [{ url: value }]
-          : [],
+        images: [value as File],
       };
       setEditingItem((prev) => ({ ...prev, item: updatedItem }));
     } else {
@@ -375,8 +430,6 @@ const CategoryEditor = ({
       return;
     }
 
-   
-
     const isNew = newCategories.some((cat) => cat.tempId === categoryId);
 
     if (isNew) {
@@ -384,7 +437,7 @@ const CategoryEditor = ({
       const updated = newCategories.map((cat) => {
         if (cat.tempId === categoryId) {
           const updatedItems = (cat.items || []).map((existingItem) =>
-            (existingItem.id === itemKey || existingItem.tempId === itemKey)
+            existingItem.id === itemKey || existingItem.tempId === itemKey
               ? { ...existingItem, ...item }
               : existingItem
           );
@@ -397,13 +450,13 @@ const CategoryEditor = ({
     } else {
       // Actualizar en localItems
       const updatedItems = (localItems[categoryId] || []).map((existingItem) =>
-        (existingItem.id === itemKey || existingItem.tempId === itemKey)
+        existingItem.id === itemKey || existingItem.tempId === itemKey
           ? { ...existingItem, ...item }
           : existingItem
       );
-      
+
       setLocalItems((prev) => ({ ...prev, [categoryId]: updatedItems }));
-      
+
       notifyEditedCategory({
         id: categoryId,
         title: localTitles[categoryId],
@@ -415,10 +468,30 @@ const CategoryEditor = ({
     setEditingItem({ categoryId: 0, item: null });
   };
 
+  // 🔥 Helper para obtener URL de preview (File o url string)
+  const getImagePreviewUrl = (image: any): string | null => {
+    if (!image) return null;
+
+    // Si es un File, necesitamos crear un ObjectURL o usar FileReader
+    if (image instanceof File) {
+      // Creamos un ObjectURL temporal para mostrar
+      return URL.createObjectURL(image);
+    }
+
+    // Si es un objeto con url (imagen de BD)
+    if (typeof image === "object" && "url" in image) {
+      return image.url;
+    }
+
+    return null;
+  };
+
   return (
     <Card className="bg-gradient-to-b from-white/80 to-white/60 backdrop-blur-xl border border-white/30 rounded-3xl p-5 shadow-md">
       <CardHeader className="flex justify-between items-center mb-2">
-        <h3 className="font-semibold text-slate-800 text-lg">Categorías y Platos</h3>
+        <h3 className="font-semibold text-slate-800 text-lg">
+          Categorías y Platos
+        </h3>
         <Button
           onClick={createCategory}
           className="bg-gradient-to-br from-orange-400 to-orange-500 text-white rounded-xl"
@@ -450,14 +523,19 @@ const CategoryEditor = ({
                   type="text"
                   value={category.title}
                   onChange={(e) =>
-                    updateCategoryTitle(category.id ?? category.tempId, e.target.value)
+                    updateCategoryTitle(
+                      category.id ?? category.tempId,
+                      e.target.value
+                    )
                   }
                   placeholder="Ej: Entradas, Postres..."
                   className="font-medium text-slate-800 bg-transparent border-none focus:ring-0 text-base flex-1"
                 />
                 <div className="flex gap-2">
                   <button
-                    onClick={() => deleteCategory(category.id ?? category.tempId)}
+                    onClick={() =>
+                      deleteCategory(category.id ?? category.tempId)
+                    }
                     className="text-red-500 hover:bg-red-100 p-2 rounded-md"
                   >
                     <Trash2 className="w-4 h-4" />
@@ -466,12 +544,14 @@ const CategoryEditor = ({
                     <button
                       className={cn(
                         "p-2 rounded-lg transition-all duration-200",
-                        expandedCategory === String(category.id ?? category.tempId)
+                        expandedCategory ===
+                          String(category.id ?? category.tempId)
                           ? "bg-orange-50 text-orange-500 shadow-sm"
                           : "text-slate-500 hover:bg-slate-100"
                       )}
                     >
-                      {expandedCategory === String(category.id ?? category.tempId) ? (
+                      {expandedCategory ===
+                      String(category.id ?? category.tempId) ? (
                         <ChevronUp className="w-4 h-4" />
                       ) : (
                         <ChevronDown className="w-4 h-4" />
@@ -484,54 +564,71 @@ const CategoryEditor = ({
 
             <CollapsibleContent>
               <div className="mt-3 space-y-3">
-                {[...(category.items || [])].sort(sortItemsByInsertionOrder).map((item) => (
-                  <motion.div
-                    key={item.id ?? item.tempId}
-                    layout
-                    className="flex justify-between items-center bg-white border border-slate-200 rounded-xl p-3"
-                  >
-                    <div className="flex items-center gap-3 overflow-hidden">
-                      {item.images && item.images.length > 0 ? (
-                        <img
-                          src={item.images[0].url}
-                          alt={item.title}
-                          className="w-12 h-12 rounded-lg object-cover border border-slate-200"
-                        />
-                      ) : (
-                        <div className="w-12 h-12 rounded-lg bg-slate-100 flex items-center justify-center">
-                          <Utensils className="w-5 h-5 text-slate-400" />
-                        </div>
-                      )}
+                {[...(category.items || [])]
+                  .sort(sortItemsByInsertionOrder)
+                  .map((item) => {
+                    // 🔥 Obtener preview URL correctamente
+                    const previewUrl = getImagePreviewUrl(item.images?.[0]);
 
-                      <p className="font-medium text-slate-700 text-sm truncate max-w-[120px]">
-                        {item.title || "Nuevo plato"}
-                      </p>
-                      {item.price && (
-                        <p className="text-slate-500 text-xs">${item.price}</p>
-                      )}
-                    </div>
-                    <div className="flex gap-2">
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        className="text-orange-500 hover:text-orange-600"
-                        onClick={() => handleItemEdit(category.id ?? category.tempId, item)}
+                    return (
+                      <motion.div
+                        key={item.id ?? item.tempId}
+                        layout
+                        className="flex justify-between items-center bg-white border border-slate-200 rounded-xl p-3"
                       >
-                        <Pencil className="w-4 h-4" />
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        className="text-red-500 hover:text-red-600"
-                        onClick={() =>
-                          deleteItem(category.id ?? category.tempId, item.id ?? item.tempId)
-                        }
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  </motion.div>
-                ))}
+                        <div className="flex items-center gap-3 overflow-hidden">
+                          {previewUrl ? (
+                            <img
+                              src={previewUrl}
+                              alt={item.title}
+                              className="w-12 h-12 rounded-lg object-cover border border-slate-200"
+                            />
+                          ) : (
+                            <div className="w-12 h-12 rounded-lg bg-slate-100 flex items-center justify-center">
+                              <Utensils className="w-5 h-5 text-slate-400" />
+                            </div>
+                          )}
+
+                          <p className="font-medium text-slate-700 text-sm truncate max-w-[120px]">
+                            {item.title || "Nuevo plato"}
+                          </p>
+                          {item.price && (
+                            <p className="text-slate-500 text-xs">
+                              ${item.price}
+                            </p>
+                          )}
+                        </div>
+                        <div className="flex gap-2">
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="text-orange-500 hover:text-orange-600"
+                            onClick={() =>
+                              handleItemEdit(
+                                category.id ?? category.tempId,
+                                item
+                              )
+                            }
+                          >
+                            <Pencil className="w-4 h-4" />
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="text-red-500 hover:text-red-600"
+                            onClick={() =>
+                              deleteItem(
+                                category.id ?? category.tempId,
+                                item.id ?? item.tempId
+                              )
+                            }
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </motion.div>
+                    );
+                  })}
 
                 <div className="pt-4 mt-4 border-t border-slate-300">
                   <Button
@@ -558,11 +655,13 @@ const CategoryEditor = ({
         }
       >
         <DialogContent className="rounded-2xl max-w-md bg-white/90 backdrop-blur-xl border border-white/30">
-        <DialogClose className="absolute right-4 top-4 rounded-full p-2 hover:bg-white/70 transition-colors z-50">
-          <X className="h-5 w-5 text-orange-400" />
-        </DialogClose>
+          <DialogClose className="absolute right-4 top-4 rounded-full p-2 hover:bg-white/70 transition-colors z-50">
+            <X className="h-5 w-5 text-orange-400" />
+          </DialogClose>
           <DialogHeader>
-            <DialogTitle className="text-slate-800 text-lg font-semibold">Editar plato</DialogTitle>
+            <DialogTitle className="text-slate-800 text-lg font-semibold">
+              Editar plato
+            </DialogTitle>
           </DialogHeader>
           <div className="space-y-4 mt-3">
             <div>
@@ -573,7 +672,9 @@ const CategoryEditor = ({
                 className="text-black"
               />
               {editingItem.item?.title === "" && (
-                <p className="text-xs text-red-500 mt-1">El título es obligatorio</p>
+                <p className="text-xs text-red-500 mt-1">
+                  El título es obligatorio
+                </p>
               )}
             </div>
             <Input
@@ -584,16 +685,17 @@ const CategoryEditor = ({
             />
             <div>
               <Input
-                placeholder="Precio (ej: 12.50)"
+                placeholder="Precio (ej: 1200.00)"
                 value={editingItem.item?.price || ""}
                 onChange={(e) => saveItemEdit("price", e.target.value)}
                 className="text-black"
               />
-              {editingItem.item?.price && !validatePrice(editingItem.item.price) && (
-                <p className="text-xs text-red-500 mt-1">
-                  Use solo números y hasta 2 decimales
-                </p>
-              )}
+              {editingItem.item?.price &&
+                !validatePrice(editingItem.item.price) && (
+                  <p className="text-xs text-red-500 mt-1">
+                    Use solo números y hasta 2 decimales
+                  </p>
+                )}
             </div>
 
             <div className="relative w-full h-full group">
@@ -608,30 +710,20 @@ const CategoryEditor = ({
               <Label
                 htmlFor="image-upload-input"
                 className={`w-full h-64 rounded-2xl overflow-hidden 
-    ${
-      editingItem.item?.images?.[0]?.url
-        ? "border-0"
-        : "border-2 border-dashed border-slate-300"
-    }
-    bg-slate-50 flex items-center justify-center cursor-pointer hover:border-orange-500 transition-all`}
+                  ${
+                    imagePreview
+                      ? "border-0"
+                      : "border-2 border-dashed border-slate-300"
+                  }
+                  bg-slate-50 flex items-center justify-center cursor-pointer hover:border-orange-500 transition-all`}
               >
-                {/* Mostrar la imagen si existe */}
-                {editingItem.item?.images?.[0]?.url ? (
-                  <>
-                    <img
-                      src={editingItem.item?.images[0]?.url || ""}
-                      alt="Preview"
-                      className="w-full h-full object-cover"
-                      onError={(e) => {
-                        const target = e.currentTarget;
-                        target.style.display = "none";
-                        const nextEl = target.nextElementSibling as HTMLElement;
-                        if (nextEl) nextEl.classList.remove("hidden");
-                      }}
-                    />
-                  </>
+                {imagePreview ? (
+                  <img
+                    src={imagePreview}
+                    alt="Preview"
+                    className="w-full h-full object-cover"
+                  />
                 ) : (
-                  // Si no hay imagen cargada
                   <div className="flex flex-col items-center">
                     {loadingBackground ? (
                       <Spinner className="w-6 h-6 text-orange-500" />
@@ -645,10 +737,8 @@ const CategoryEditor = ({
                     )}
                   </div>
                 )}
-
-                {/* Subtítulo para formatos de imagen */}
               </Label>
-              {editingItem.item?.images?.[0]?.url && (
+              {imagePreview && (
                 <p className="text-base text-slate-400 mt-2">
                   Toca la imagen para cambiarla
                 </p>
@@ -657,20 +747,20 @@ const CategoryEditor = ({
                 PNG, JPG hasta 10MB
               </p>
               <DialogFooter className="mt-5">
-            <Button
-              variant="outline"
-              onClick={() => setEditingItem({ categoryId: 0, item: null })}
-              className="text-black"
-            >
-              Cancelar
-            </Button>
-            <Button
-              onClick={confirmItemEdit}
-              className="bg-gradient-to-br from-orange-400 to-orange-500 text-white"
-            >
-              Guardar cambios
-            </Button>
-          </DialogFooter>
+                <Button
+                  variant="outline"
+                  onClick={() => setEditingItem({ categoryId: 0, item: null })}
+                  className="text-black"
+                >
+                  Cancelar
+                </Button>
+                <Button
+                  onClick={confirmItemEdit}
+                  className="bg-gradient-to-br from-orange-400 to-orange-500 text-white"
+                >
+                  Guardar cambios
+                </Button>
+              </DialogFooter>
             </div>
           </div>
         </DialogContent>

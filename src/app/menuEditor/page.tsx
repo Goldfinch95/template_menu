@@ -229,34 +229,51 @@ const MenuEditorContent = () => {
 
   //funcion para recibir las categorías del componente hijo
   const receiveRestaurantCategories = (categories: newCategory[]) => {
-    console.log("📦 NUEVAS CATEGORÍAS recibidas:", categories);
-    console.log("📦 Cantidad:", categories.length);
-    setNewCategory(categories);
-  };
+  console.log("📦 [PADRE] Nuevas categorías recibidas:", categories);
+  categories.forEach((cat, i) => {
+    console.log(`  🧭 Categoria[${i}]:`, cat.title || "(sin título)");
+    cat.items?.forEach((item, j) => {
+      console.log(`    🍽️ Item[${j}]:`, item.title || "(sin nombre)");
+      if (item.images?.[0]) {
+        console.log(
+          `      🖼️ Imagen del item[${j}]:`,
+          item.images[0],
+          "Tipo:",
+          item.images[0] instanceof File ? "File" : typeof item.images[0]
+        );
+      }
+    });
+  });
+
+  setNewCategory(categories);
+};
 
   //  Función para recibir categorías editadas desde el hijo
-  const receiveEditedCategory = useCallback(
-    (editedCategory: EditedCategory) => {
-      setEditedCategories((prev) => {
-        // Si la categoría ya está en el array, actualízala; si no, agrégala
-        const existingIndex = prev.findIndex(
-          (cat) => cat.id === editedCategory.id
-        );
+  const receiveEditedCategory = useCallback((editedCategory: EditedCategory) => {
+  console.log("✏️ [PADRE] Categoría editada recibida:", editedCategory.title);
+  editedCategory.items?.forEach((item, i) => {
+    console.log(`  🍽️ Item[${i}]:`, item.title || "(sin nombre)");
+    if (item.images?.[0]) {
+      console.log(
+        `      🖼️ Imagen del item[${i}]:`,
+        item.images[0],
+        "Tipo:",
+        item.images[0] instanceof File ? "File" : typeof item.images[0]
+      );
+    }
+  });
 
-        if (existingIndex !== -1) {
-          const updated = [...prev];
-          updated[existingIndex] = editedCategory;
-
-          return updated;
-        } else {
-          return [...prev, editedCategory];
-        }
-      });
-
-      //console.log(editedCategory)
-    },
-    []
-  );
+  setEditedCategories((prev) => {
+    const existingIndex = prev.findIndex((cat) => cat.id === editedCategory.id);
+    if (existingIndex !== -1) {
+      const updated = [...prev];
+      updated[existingIndex] = editedCategory;
+      return updated;
+    } else {
+      return [...prev, editedCategory];
+    }
+  });
+}, []);
 
   // Función para limpiar las categorías después de guardar
   const clearCategoriesAfterSave = useCallback(() => {

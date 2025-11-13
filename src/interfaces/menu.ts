@@ -54,7 +54,7 @@ export interface ImageItems {
   itemId: number;
   sortOrder: number;
   updatedAt: string;
-  url: string;
+  url: Array<{ url: string } | File>;
 }
 
 

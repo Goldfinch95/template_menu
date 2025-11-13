@@ -1,8 +1,14 @@
-import { Menu, Categories, Items, newCategory, newMenu  } from "@/interfaces/menu";
+import {
+  Menu,
+  Categories,
+  Items,
+  newCategory,
+  newMenu,
+} from "@/interfaces/menu";
 
 const BASE_URL = "http://localhost:3000/api/menus";
 const CATEGORIES_BASE_URL = "http://localhost:3000/api/categories";
-const ITEM_BASE_URL = "http://localhost:3000/api/items"
+const ITEM_BASE_URL = "http://localhost:3000/api/items";
 const TENANT_HEADER = { "x-tenant-subdomain": "amaxlote" };
 
 // --- 🔹 Obtener todos los menús (para Home)
@@ -22,7 +28,7 @@ export const getMenus = async (): Promise<Menu[]> => {
     }
 
     const data: Menu[] = await response.json();
-    
+
     return data;
   } catch (error) {
     console.error(
@@ -53,27 +59,24 @@ export const getMenu = async (id: string | number): Promise<Menu> => {
   }
 };
 
-
-
 /// 🔹 Crear un nuevo menú (menuEditor)
 export const createMenu = async (data: newMenu): Promise<Menu> => {
   try {
     const formData = new FormData();
-    
+
     // Campos obligatorios
     formData.append("title", data.title);
-    
+
     // Campos opcionales
-   
-    
+
     if (data.userId !== undefined) {
       formData.append("userId", String(data.userId));
     }
-    
+
     if (data.pos) {
       formData.append("pos", data.pos);
     }
-    
+
     // Color (si existe, convertir a JSON string)
     if (data.color) {
       formData.append("color", JSON.stringify(data.color));
@@ -82,7 +85,7 @@ export const createMenu = async (data: newMenu): Promise<Menu> => {
     if (data.logo) {
       formData.append("logo", data.logo);
     }
-    
+
     if (data.backgroundImage) {
       formData.append("backgroundImage", data.backgroundImage);
     }
@@ -102,7 +105,6 @@ export const createMenu = async (data: newMenu): Promise<Menu> => {
     }
 
     return response.json();
-    
   } catch (error) {
     console.error("❌ Error al crear menú:", error);
     throw error;
@@ -156,69 +158,49 @@ export const deleteMenu = async (id: string | number): Promise<void> => {
 // --- 🔹 CATEGORÍAS
 
 // Crear una nueva categoría
-export const createCategory = async (
-  categoryData: newCategory
-): Promise<Categories> => {
-  try {
-    const formData = new FormData();
-    
-    // Campos obligatorios
-    formData.append("menuId", String(categoryData.menuId));
-    formData.append("title", categoryData.title);
-    
-    // Items (si existen)
-    if (categoryData.items && categoryData.items.length > 0) {
-      categoryData.items.forEach((item, itemIndex) => {
-        // Datos básicos del item
-        formData.append(`items[${itemIndex}][title]`, item.title);
-        formData.append(`items[${itemIndex}][description]`, item.description);
-        formData.append(`items[${itemIndex}][price]`, item.price);
-        formData.append(`items[${itemIndex}][categoryId]`, String(item.categoryId));
-        
-        // 🔍 IMPORTANTE: Verificar que images sea un array de File
-        if (item.images && item.images.length > 0) {
-          item.images.forEach((imageFile, imageIndex) => {
-            // ✅ Verificar que sea un File antes de agregar
-            if (imageFile instanceof File) {
-              formData.append(`items[${itemIndex}][images]`, imageFile);
-            } else {
-              console.warn(`⚠️ Item ${itemIndex}, imagen ${imageIndex} no es un File:`, imageFile);
-            }
-          });
-        }
-      });
-    }
+export const createCategory = async (categoryData) => {
+  const formData = new FormData();
 
-    // 🔍 Debug: Ver qué se está enviando
-    console.log("📤 FormData a enviar:");
-    for (let [key, value] of formData.entries()) {
-      console.log(`  ${key}:`, value instanceof File ? `File: ${value.name}` : value);
-    }
+  formData.append("title", categoryData.title);
+  formData.append("menuId", categoryData.menuId);
 
-    const response = await fetch(CATEGORIES_BASE_URL, {
-      method: "POST",
-      headers: {
-        ...TENANT_HEADER,
-      },
-      body: formData,
+  categoryData.items.forEach((item, itemIndex) => {
+    formData.append(`items[${itemIndex}][title]`, item.title);
+    formData.append(`items[${itemIndex}][description]`, item.description || "");
+    formData.append(`items[${itemIndex}][price]`, item.price || 0);
+
+    item.images?.forEach((img, imgIndex) => {
+      if (img instanceof File) {
+        const fileField = `item_${itemIndex}_img_${imgIndex}`;
+        // 🔹 asociamos el fileField en JSON
+        formData.append(`items[${itemIndex}][images][${imgIndex}][fileField]`, fileField);
+        // 🔹 y subimos el archivo con ese nombre
+        formData.append(fileField, img);
+      } else if (typeof img === "object" && img.url) {
+        // 🔹 imagen ya existente
+        formData.append(`items[${itemIndex}][images][${imgIndex}][url]`, img.url);
+      }
     });
+  });
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(`Error al crear categoría: ${response.status} - ${errorText}`);
-    }
-    
-    return response.json();
-    
-  } catch (error) {
-    console.error("❌ Error al crear categoría:", error);
-    throw error;
+  console.groupCollapsed(`📦 Enviando categoría "${categoryData.title}"`);
+  for (let [key, val] of formData.entries()) {
+    console.log(key, val instanceof File ? `File(${val.name})` : val);
   }
+  console.groupEnd();
+
+  const res = await fetch("/api/categories", {
+    method: "POST",
+    headers: TENANT_HEADER, // 👈 agregado
+    body: formData,
+  });
+
+  return await res.json();
 };
 
 // Editar una categoria
 export const updateCategory = async (
-  categoryId: number, 
+  categoryId: number,
   categoryData: { title: string; items?: Items[] }
 ): Promise<Categories> => {
   try {
@@ -233,9 +215,11 @@ export const updateCategory = async (
 
     if (!response.ok) {
       const errorText = await response.text();
-      throw new Error(`Error al editar categoría: ${response.status} - ${errorText}`);
+      throw new Error(
+        `Error al editar categoría: ${response.status} - ${errorText}`
+      );
     }
-    
+
     const updatedCategory: Categories = await response.json();
     return updatedCategory;
   } catch (error) {
@@ -243,7 +227,6 @@ export const updateCategory = async (
     throw error;
   }
 };
-
 
 // Eliminar una categoría
 export const deleteCategory = async (categoryId: number): Promise<void> => {
@@ -257,9 +240,11 @@ export const deleteCategory = async (categoryId: number): Promise<void> => {
 
     if (!response.ok) {
       const errorText = await response.text();
-      throw new Error(`Error al eliminar categoría: ${response.status} - ${errorText}`);
+      throw new Error(
+        `Error al eliminar categoría: ${response.status} - ${errorText}`
+      );
     }
-    
+
     // Como el backend responde con 204 (No Content), no hay body que parsear
     console.log("✅ Categoría eliminada correctamente");
   } catch (error) {
@@ -282,9 +267,10 @@ export const deleteItem = async (itemId: number): Promise<void> => {
 
     if (!response.ok) {
       const errorText = await response.text();
-      throw new Error(`Error al eliminar item: ${response.status} - ${errorText}`);
+      throw new Error(
+        `Error al eliminar item: ${response.status} - ${errorText}`
+      );
     }
-    
   } catch (error) {
     console.error("❌ Error al eliminar item:", error);
     throw error;
