@@ -40,11 +40,11 @@ import {
   EditedCategory,
   newItem,
   Items,
-  ImageItems,
 } from "@/interfaces/menu";
 import { cn } from "@/common/utils/utils";
 import { Label } from "@/common/components/ui/label";
 import { Spinner } from "@/common/components/ui/spinner";
+import Image from "next/image";
 
 interface CategoryEditorProps {
   categories: Categories[];
@@ -198,42 +198,61 @@ const CategoryEditor = ({
   );
 
   // avisar al padre de las NUEVAS categorias creadas.
-  const notifyNewCategoriesAdd = useCallback((updatedCategories: newCategory[]) => {
-  console.log("📤 Notificando nuevas categorías al padre:", updatedCategories);
-  updatedCategories.forEach((cat) => {
-    cat.items?.forEach((item, i) => {
-      console.log(`🧾 Nueva categoría ${cat.tempId || cat.id} → Item[${i}] imágenes:`, item.images);
-      if (item.images?.[0]) {
-        console.log("Tipo de imagen:", item.images[0] instanceof File ? "File" : typeof item.images[0]);
-      }
-    });
-  });
-  pendingNewCategoriesRef.current = updatedCategories;
-  if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
-  debounceTimerRef.current = setTimeout(() => {
-    onCategoriesChange(updatedCategories);
-    pendingNewCategoriesRef.current = null;
-  }, 500);
-}, [onCategoriesChange]);
+  const notifyNewCategoriesAdd = useCallback(
+    (updatedCategories: newCategory[]) => {
+      console.log(
+        "📤 Notificando nuevas categorías al padre:",
+        updatedCategories
+      );
+      updatedCategories.forEach((cat) => {
+        cat.items?.forEach((item, i) => {
+          console.log(
+            `🧾 Nueva categoría ${cat.tempId || cat.id} → Item[${i}] imágenes:`,
+            item.images
+          );
+          if (item.images?.[0]) {
+            console.log(
+              "Tipo de imagen:",
+              item.images[0] instanceof File ? "File" : typeof item.images[0]
+            );
+          }
+        });
+      });
+      pendingNewCategoriesRef.current = updatedCategories;
+      if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
+      debounceTimerRef.current = setTimeout(() => {
+        onCategoriesChange(updatedCategories);
+        pendingNewCategoriesRef.current = null;
+      }, 500);
+    },
+    [onCategoriesChange]
+  );
 
   // avisar al padre de las categorias EDITADAS
-  const notifyEditedCategory = useCallback((editedCategory: EditedCategory) => {
-  console.log("📤 Notificando edición al padre:", editedCategory);
-  if (editedCategory.items) {
-    editedCategory.items.forEach((item, i) => {
-      console.log(`🧾 Item[${i}] imágenes:`, item.images);
-      if (item.images?.[0]) {
-        console.log("Tipo de imagen:", item.images[0] instanceof File ? "File" : typeof item.images[0]);
+  const notifyEditedCategory = useCallback(
+    (editedCategory: EditedCategory) => {
+      console.log("📤 Notificando edición al padre:", editedCategory);
+      if (editedCategory.items) {
+        editedCategory.items.forEach((item, i) => {
+          console.log(`🧾 Item[${i}] imágenes:`, item.images);
+          if (item.images?.[0]) {
+            console.log(
+              "Tipo de imagen:",
+              item.images[0] instanceof File ? "File" : typeof item.images[0]
+            );
+          }
+        });
       }
-    });
-  }
-  pendingEditCategoryRef.current = editedCategory;
-  if (editDebounceTimerRef.current) clearTimeout(editDebounceTimerRef.current);
-  editDebounceTimerRef.current = setTimeout(() => {
-    onEditCategory(editedCategory);
-    pendingEditCategoryRef.current = null;
-  }, 500);
-}, [onEditCategory]);
+      pendingEditCategoryRef.current = editedCategory;
+      if (editDebounceTimerRef.current)
+        clearTimeout(editDebounceTimerRef.current);
+      editDebounceTimerRef.current = setTimeout(() => {
+        onEditCategory(editedCategory);
+        pendingEditCategoryRef.current = null;
+      }, 500);
+    },
+    [onEditCategory]
+  );
 
   // Ordenamiento para categorías: nuevas primero
   const sortCategoriesByNewFirst = <
@@ -469,12 +488,13 @@ const CategoryEditor = ({
   };
 
   // 🔥 Helper para obtener URL de preview (File o url string)
-  const getImagePreviewUrl = (image: any): string | null => {
+  const getImagePreviewUrl = (
+    image: File | { url: string } | undefined
+  ): string | null => {
     if (!image) return null;
 
-    // Si es un File, necesitamos crear un ObjectURL o usar FileReader
+    // Si es un File, necesitamos crear un ObjectURL
     if (image instanceof File) {
-      // Creamos un ObjectURL temporal para mostrar
       return URL.createObjectURL(image);
     }
 
@@ -578,9 +598,11 @@ const CategoryEditor = ({
                       >
                         <div className="flex items-center gap-3 overflow-hidden">
                           {previewUrl ? (
-                            <img
+                            <Image
                               src={previewUrl}
                               alt={item.title}
+                              width={48}
+                              height={48}
                               className="w-12 h-12 rounded-lg object-cover border border-slate-200"
                             />
                           ) : (
@@ -718,9 +740,11 @@ const CategoryEditor = ({
                   bg-slate-50 flex items-center justify-center cursor-pointer hover:border-orange-500 transition-all`}
               >
                 {imagePreview ? (
-                  <img
+                  <Image
                     src={imagePreview}
                     alt="Preview"
+                    width={400}
+                    height={256}
                     className="w-full h-full object-cover"
                   />
                 ) : (
