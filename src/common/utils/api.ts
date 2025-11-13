@@ -117,16 +117,50 @@ export const updateMenu = async (
   data: Partial<Menu>
 ): Promise<Menu> => {
   try {
+    const formData = new FormData();
+
+    // Campos opcionales
+    if (data.title !== undefined) {
+      formData.append("title", data.title);
+    }
+
+    if (data.userId !== undefined) {
+      formData.append("userId", String(data.userId));
+    }
+
+    if (data.pos !== undefined) {
+      formData.append("pos", data.pos);
+    }
+
+    // Color (si existe, convertir a JSON string)
+    if (data.color !== undefined) {
+      formData.append("color", JSON.stringify(data.color));
+    }
+
+    // Archivos
+    if (data.logo) {
+      formData.append("logo", data.logo);
+    }
+
+    if (data.backgroundImage) {
+      formData.append("backgroundImage", data.backgroundImage);
+    }
+
     const response = await fetch(`${BASE_URL}/${id}`, {
       method: "PUT",
       headers: {
-        "Content-Type": "application/json",
+        // ⚠️ NO incluir Content-Type con FormData
         ...TENANT_HEADER,
       },
-      body: JSON.stringify(data),
+      body: formData,
     });
 
-    if (!response.ok) throw new Error(`Error al actualizar menú ${id}`);
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(
+        `Error al actualizar menú: ${response.status} - ${errorText}`
+      );
+    }
 
     return response.json();
   } catch (error) {

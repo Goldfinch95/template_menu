@@ -1,6 +1,5 @@
 //  INTERFAZ GENERAL
 
-
 // menu
 export interface Menu {
   active: boolean;
@@ -17,7 +16,6 @@ export interface Menu {
   pos: string;
   createdAt: string;
   updatedAt: string;
-  
 }
 
 // categorias del menu
@@ -57,25 +55,22 @@ export interface ImageItems {
   url: Array<{ url: string } | File>;
 }
 
-
 // INTERFAZ PARA CREACION
 
 // nuevo menu
 
 export interface newMenu {
   userId: 1; // temporalmente lo fijo en 1
-  backgroundImage?: File;
-  color?: {
+  backgroundImage: File;
+  color: {
     primary: string;
     secondary: string;
   };
-  logo?: File;
-  pos?: string;
+  logo: File;
+  pos: string;
   title: string;
   categories: [];
 }
-
-
 
 // nueva categoria
 export interface newCategory {
@@ -85,14 +80,13 @@ export interface newCategory {
 }
 
 // nuevo item
-export interface newItem{
+export interface newItem {
   description: string;
   categoryId: number;
   images?: File[];
   price: string;
   title: string;
 }
-
 
 // INTERFAZ PARA EDICION
 
@@ -102,4 +96,3 @@ export interface EditedCategory {
   title: string;
   items?: Items[];
 }
-

@@ -11,6 +11,7 @@ import {
 import { usePathname, useSearchParams, useRouter } from "next/navigation";
 import {
   createMenu,
+  updateMenu,
   createCategory,
   updateCategory,
   deleteCategory,
@@ -83,10 +84,25 @@ const FloatingActions: React.FC<FloatingActionsProps> = ({
     try {
       //obtener id del menu
       const menuIdParam = searchParams.get("id");
-      const menuId = Number(menuIdParam);
+      const menuId = Number(menuIdParam) || menu?.id;
+      const userId = 1;
+
+      // controlar el usuario y menu seleccionado.
+      console.log("🧾 ID del menú detectado:", menuId);
+      console.log("👤 userId:", userId);
 
       // Si se está editando un menú existente
-      if (menuIdParam) {
+      if (menuIdParam || menu?.id) {
+        console.group("🧩 ACTUALIZANDO MENÚ EXISTENTE");
+        console.log("🚀 Llamando a updateMenu con ID:", menuId);
+        console.log("📦 Enviando datos:", newMenu);
+        console.groupEnd();
+
+        //editar menu
+        const updatedMenu = await updateMenu(menuId, newMenu);
+        console.log("🧾 Datos a enviar a updateMenu():", updatedMenu);
+
+        //editar categorias e items
         const categoriesToCheck = menu.categories || [];
 
         //Detectar y eliminar items individuales dentro de categorías
