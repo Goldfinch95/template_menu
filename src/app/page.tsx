@@ -28,7 +28,7 @@ export default function Home() {
   // estados del menu y de carga
   const [menus, setMenus] = useState<Menu[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  
+
   const router = useRouter();
 
   //dirigirte a crear un nuevo menú
@@ -149,131 +149,129 @@ export default function Home() {
 
         <section className="max-w-md mx-auto w-full px-4 py-3">
           {/* animacion de carga */}
-  <AnimatePresence>
-    {isLoading ? (
-      // --- esqueleto de menús ---
-      <div className="grid grid-cols-2 gap-4 sm:gap-6 md:gap-7">
-        {Array.from({ length: 6 }).map((_, i) => (
-          <div
-            key={i}
-            className="rounded-3xl overflow-hidden shadow-md bg-white/10 backdrop-blur-sm p-4 sm:p-5"
-          >
-            <div className="flex flex-col items-center space-y-3">
-              <Skeleton className="w-16 h-16 sm:w-20 sm:h-20 rounded-full" />
-              <Skeleton className="w-24 h-4 sm:w-28 sm:h-5 rounded-md" />
-            </div>
-          </div>
-        ))}
-      </div>
-      // si NO hay menús, mostrar estado vacio animado.
-    ) : menus.length === 0 ? (
-      <motion.div
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4, ease: "easeOut" }}
-        className="flex flex-col items-center justify-center text-center py-16 px-6 bg-white/50 backdrop-blur-md rounded-3xl shadow-inner border border-white/30"
-      >
-        <div className="w-16 h-16 mb-4 rounded-full bg-gradient-to-br from-orange-400 to-orange-500 flex items-center justify-center shadow-md">
-          <UtensilsCrossed className="w-8 h-8 text-white" />
-        </div>
-        <h3
-          className={`${manrope.className} text-lg font-bold text-slate-800 mb-2`}
-        >
-          Aún no tienes menús
-        </h3>
-        <p className="text-slate-500 text-sm mb-6">
-          Crea tu primer menú digital para empezar a personalizarlo y
-          compartirlo con tus clientes.
-        </p>
-        
-      </motion.div>
-      // SI hay menús, desplegarlos animado
-    ) : (
-      // --- LISTA DE MENÚS ---
-      <div className="grid grid-cols-2 gap-4 sm:gap-6 md:gap-7">
-        {menus.map((menu, i) => (
-          <motion.div
-            key={menu.id}
-            initial={{ opacity: 0, y: 15, scale: 0.98 }}
-            animate={{
-              opacity: 1,
-              y: 0,
-              scale: 1,
-              transition: {
-                type: "spring",
-                stiffness: 120,
-                damping: 14,
-                delay: i * 0.12,
-                duration: 0.45,
-              },
-            }}
-            whileHover={{ scale: 1.03 }}
-            whileTap={{ scale: 0.96 }}
-            transition={{
-              type: "spring",
-              stiffness: 300,
-              damping: 20,
-            }}
-            onClick={() => handleMenuClick(menu.id, menu.title)}
-            className="group cursor-pointer overflow-hidden rounded-3xl border-0 bg-transparent transition-all duration-300"
-          >
-            <Card
-              key={menu.id}
-              className="group cursor-pointer overflow-hidden border-0 bg-transparent p-0 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] hover:shadow-lg hover:brightness-105"
-            >
-              <div
-                className="relative h-36 sm:h-44 rounded-3xl p-4 sm:p-5 flex flex-col justify-center items-center shadow-lg hover:shadow-xl transition"
-                style={hexToGradient(
-                  menu.color?.primary,
-                  menu.color?.secondary
-                )}
-              >
-                <div className="absolute inset-0 bg-black/10 rounded-3xl" />
-
-                <div className="relative z-10 flex flex-col h-full">
-                  <div className="flex-1 flex items-center justify-center">
-                    {/* logo del menú */}
-                    {menu.logo ? (
-                      <div className="w-16 h-16 lg:w-20 lg:h-20 rounded-full bg-white/25 backdrop-blur-sm flex items-center justify-center overflow-hidden transition-transform duration-300 group-hover:scale-110 shadow-lg">
-                        <Image
-                          src={menu.logo}
-                          alt={menu.title}
-                          width={80}
-                          height={80}
-                          className="w-full h-full object-cover"
-                          sizes="(max-width: 640px) 64px, 80px"
-                          priority
-                        />
-                      </div>
-                    ) : (
-                      <div className="w-14 h-14 lg:w-16 lg:h-16 rounded-full bg-white/25 backdrop-blur-sm flex items-center justify-center transition-transform duration-300 group-hover:scale-110">
-                        <UtensilsCrossed
-                          className="w-7 h-7 lg:w-8 lg:h-8 text-white absolute transition-all duration-300 group-hover:opacity-0 group-hover:scale-75"
-                          strokeWidth={2.5}
-                        />
-                        <ChevronRight
-                          className="w-7 h-7 lg:w-8 lg:h-8 text-white absolute transition-all duration-300 opacity-0 scale-75 group-hover:opacity-100 group-hover:scale-100"
-                          strokeWidth={2.5}
-                        />
-                      </div>
-                    )}
+          <AnimatePresence>
+            {isLoading ? (
+              // --- esqueleto de menús ---
+              <div className="grid grid-cols-2 gap-4 sm:gap-6 md:gap-7">
+                {Array.from({ length: 6 }).map((_, i) => (
+                  <div
+                    key={i}
+                    className="rounded-3xl overflow-hidden shadow-md bg-white/10 backdrop-blur-sm p-4 sm:p-5"
+                  >
+                    <div className="flex flex-col items-center space-y-3">
+                      <Skeleton className="w-16 h-16 sm:w-20 sm:h-20 rounded-full" />
+                      <Skeleton className="w-24 h-4 sm:w-28 sm:h-5 rounded-md" />
+                    </div>
                   </div>
-
-                  <div className="text-center">
-                    {/* titulo del menú */}
-                    <h3 className="font-bold text-white text-sm lg:text-base leading-tight mb-1">
-                      {menu.title}
-                    </h3>
-                  </div>
-                </div>
+                ))}
               </div>
-            </Card>
-          </motion.div>
-        ))}
-      </div>
-    )}
-  </AnimatePresence>
-</section>
+            ) : // si NO hay menús, mostrar estado vacio animado.
+            menus.length === 0 ? (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4, ease: "easeOut" }}
+                className="flex flex-col items-center justify-center text-center py-16 px-6 bg-white/50 backdrop-blur-md rounded-3xl shadow-inner border border-white/30"
+              >
+                <div className="w-16 h-16 mb-4 rounded-full bg-gradient-to-br from-orange-400 to-orange-500 flex items-center justify-center shadow-md">
+                  <UtensilsCrossed className="w-8 h-8 text-white" />
+                </div>
+                <h3
+                  className={`${manrope.className} text-lg font-bold text-slate-800 mb-2`}
+                >
+                  Aún no tienes menús
+                </h3>
+                <p className="text-slate-500 text-sm mb-6">
+                  Crea tu primer menú digital para empezar a personalizarlo y
+                  compartirlo con tus clientes.
+                </p>
+              </motion.div>
+            ) : (
+              // SI hay menús, desplegarlos animado
+              // --- LISTA DE MENÚS ---
+              <div className="grid grid-cols-2 gap-4 sm:gap-6 md:gap-7">
+                {menus.map((menu, i) => (
+                  <motion.div
+                    key={menu.id}
+                    initial={{ opacity: 0, y: 15, scale: 0.98 }}
+                    animate={{
+                      opacity: 1,
+                      y: 0,
+                      scale: 1,
+                      transition: {
+                        type: "spring",
+                        stiffness: 110,
+                        damping: 18,
+                        duration: 0.45, 
+                      },
+                    }}
+                    whileHover={{ scale: 1.03 }}
+                    whileTap={{ scale: 0.96 }}
+                    transition={{
+                      type: "spring",
+                      stiffness: 300,
+                      damping: 20,
+                    }}
+                    onClick={() => handleMenuClick(menu.id, menu.title)}
+                    className="group cursor-pointer overflow-hidden rounded-3xl border-0 bg-transparent transition-all duration-300"
+                  >
+                    <Card
+                      key={menu.id}
+                      className="group cursor-pointer overflow-hidden border-0 bg-transparent p-0 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] hover:shadow-lg hover:brightness-105"
+                    >
+                      <div
+                        className="relative h-36 sm:h-44 rounded-3xl p-4 sm:p-5 flex flex-col justify-center items-center shadow-lg hover:shadow-xl transition"
+                        style={hexToGradient(
+                          menu.color?.primary,
+                          menu.color?.secondary
+                        )}
+                      >
+                        <div className="absolute inset-0 bg-black/10 rounded-3xl" />
+
+                        <div className="relative z-10 flex flex-col h-full">
+                          <div className="flex-1 flex items-center justify-center">
+                            {/* logo del menú */}
+                            {menu.logo ? (
+                              <div className="w-16 h-16 lg:w-20 lg:h-20 rounded-full bg-white/25 backdrop-blur-sm flex items-center justify-center overflow-hidden transition-transform duration-300 group-hover:scale-110 shadow-lg">
+                                <Image
+                                  src={menu.logo}
+                                  alt={menu.title}
+                                  width={80}
+                                  height={80}
+                                  className="w-full h-full object-cover"
+                                  sizes="(max-width: 640px) 64px, 80px"
+                                  priority
+                                />
+                              </div>
+                            ) : (
+                              <div className="w-14 h-14 lg:w-16 lg:h-16 rounded-full bg-white/25 backdrop-blur-sm flex items-center justify-center transition-transform duration-300 group-hover:scale-110">
+                                <UtensilsCrossed
+                                  className="w-7 h-7 lg:w-8 lg:h-8 text-white absolute transition-all duration-300 group-hover:opacity-0 group-hover:scale-75"
+                                  strokeWidth={2.5}
+                                />
+                                <ChevronRight
+                                  className="w-7 h-7 lg:w-8 lg:h-8 text-white absolute transition-all duration-300 opacity-0 scale-75 group-hover:opacity-100 group-hover:scale-100"
+                                  strokeWidth={2.5}
+                                />
+                              </div>
+                            )}
+                          </div>
+
+                          <div className="text-center">
+                            {/* titulo del menú */}
+                            <h3 className="font-bold text-white text-sm lg:text-base leading-tight mb-1">
+                              {menu.title}
+                            </h3>
+                          </div>
+                        </div>
+                      </div>
+                    </Card>
+                  </motion.div>
+                ))}
+              </div>
+            )}
+          </AnimatePresence>
+        </section>
 
         {/* Espaciador flexible para empujar el footer hacia abajo cuando hay pocas cards */}
         {menus.length <= 6 && <div className="flex-grow" />}
