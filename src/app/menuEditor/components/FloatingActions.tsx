@@ -169,18 +169,48 @@ const FloatingActions: React.FC<FloatingActionsProps> = ({
         if (editedCategories && editedCategories.length > 0) {
           await Promise.all(
             editedCategories.map((category) => {
-              const cleanedItems = (category.items || []).map((item) => {
+              // Procesar items
+              const processedItems = (category.items || []).map((item) => {
                 const { tempId, ...rest } = item as any;
+
+                // Procesar imágenes - enviar Files directamente
+                const validImages: (File | { url: string; id?: number })[] = [];
+
+                if (item.images && item.images.length > 0) {
+                  item.images.forEach((img) => {
+                    // Si es un File, enviarlo directamente
+                    if (img instanceof File) {
+                      validImages.push(img);
+                    }
+                    // Si tiene URL (imagen existente), mantenerla con su id
+                    else if (img.url && typeof img.url === "string") {
+                      validImages.push({
+                        url: img.url,
+                        id: img.id,
+                      });
+                    }
+                  });
+                }
+
+                // Si el item tiene tempId, es nuevo (sin id)
                 if (tempId) {
                   const { id, ...newItem } = rest;
-                  return newItem;
+                  return {
+                    ...newItem,
+                    images: validImages,
+                  };
                 }
-                return rest;
+
+                // Item existente
+                return {
+                  ...rest,
+                  images: validImages,
+                };
               });
 
               return updateCategory(category.id, {
                 title: category.title,
-                items: cleanedItems,
+                items: processedItems,
               });
             })
           );

@@ -231,20 +231,63 @@ export const createCategory = async (categoryData) => {
 
   return await res.json();
 };
-
 // Editar una categoria
 export const updateCategory = async (
   categoryId: number,
-  categoryData: { title: string; items?: Items[] }
+  categoryData: { title?: string; items?: Items[] }
 ): Promise<Categories> => {
   try {
+    const formData = new FormData();
+
+    // Campo título (opcional)
+    if (categoryData.title !== undefined) {
+      formData.append("title", categoryData.title);
+    }
+
+    // Items (opcional)
+    if (categoryData.items) {
+      categoryData.items.forEach((item, itemIndex) => {
+        formData.append(`items[${itemIndex}][title]`, item.title);
+        formData.append(`items[${itemIndex}][description]`, item.description || "");
+        formData.append(`items[${itemIndex}][price]`, String(item.price || 0));
+
+        // Si el item tiene un ID, incluirlo para que el backend sepa que es un item existente
+        if (item.id) {
+          formData.append(`items[${itemIndex}][id]`, String(item.id));
+        }
+
+        item.images?.forEach((img, imgIndex) => {
+          if (img instanceof File) {
+            const fileField = `item_${itemIndex}_img_${imgIndex}`;
+            // 🔹 asociamos el fileField en JSON
+            formData.append(`items[${itemIndex}][images][${imgIndex}][fileField]`, fileField);
+            // 🔹 y subimos el archivo con ese nombre
+            formData.append(fileField, img);
+          } else if (typeof img === "object" && img.url) {
+            // 🔹 imagen ya existente
+            formData.append(`items[${itemIndex}][images][${imgIndex}][url]`, img.url);
+            // Si la imagen tiene id, incluirlo
+            if (img.id) {
+              formData.append(`items[${itemIndex}][images][${imgIndex}][id]`, String(img.id));
+            }
+          }
+        });
+      });
+    }
+
+    console.groupCollapsed(`📦 Actualizando categoría ID: ${categoryId}`);
+    for (let [key, val] of formData.entries()) {
+      console.log(key, val instanceof File ? `File(${val.name})` : val);
+    }
+    console.groupEnd();
+
     const response = await fetch(`${CATEGORIES_BASE_URL}/${categoryId}`, {
       method: "PUT",
       headers: {
         ...TENANT_HEADER,
-        "Content-Type": "application/json",
+        // ⚠️ NO incluir Content-Type con FormData
       },
-      body: JSON.stringify(categoryData),
+      body: formData,
     });
 
     if (!response.ok) {
