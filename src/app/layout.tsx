@@ -17,7 +17,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${openSans.className} antialiased min-h-screen bg-gradient-to-br from-gray-800 via-gray-900 to-black text-white`}
+        className={`${openSans.className} antialiased min-h-screen bg-gradient-to-r from-orange-400 to-orange-500 text-white`}
       >
         {children}
       </body>

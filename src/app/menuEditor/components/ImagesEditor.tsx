@@ -54,6 +54,8 @@ const ImagesEditor = ({
     }, 700);
     return () => clearTimeout(timer);
   }, [logo]);
+
+
   /* // Estados para el logo y la imagen de fondo
   const [logoFile, setLogoFile] = useState<File | null>(logo || null);
   const [backgroundFile, setBackgroundFile] = useState<File | null>(
@@ -132,10 +134,10 @@ const ImagesEditor = ({
       transition={{ duration: 0.4 }}
     >
       <Card className="max-w-md w-full bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-slate-200/50 overflow-hidden">
-        <div className="px-8 py-8">
+        <div className="px-6 py-6">
           {/* Título */}
-          <div className="text-center mb-6">
-            <p className="text-sm font-medium text-slate-500 uppercase tracking-wider mb-4">
+          <div className="text-center mb-4">
+            <p className="text-sm font-medium text-slate-500 uppercase tracking-wider mb-2">
               Información del menú
             </p>
             <h2 className="text-2xl font-bold text-slate-800 tracking-tight">{title}</h2>
