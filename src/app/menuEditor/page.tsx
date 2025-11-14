@@ -10,7 +10,6 @@ import React, {
 import { useSearchParams, useRouter } from "next/navigation";
 import { Menu, newMenu, newCategory, EditedCategory } from "@/interfaces/menu";
 import { deleteMenu, getMenu } from "@/common/utils/api";
-import { Alert, AlertDescription } from "@/common/components/ui/alert";
 //subcomponetes
 import NavbarEditor from "@/app/menuEditor/components/NavbarEditor";
 import ImagesEditor from "./components/ImagesEditor";
@@ -19,20 +18,9 @@ import ColorEditor from "./components/ColorEditor";
 import CategoryEditor from "./components/CategoryEditor";
 import FloatingActions from "./components/FloatingActions";
 
-import { AlertCircle, Trash2, Plus, GripVertical, X } from "lucide-react";
-import { title } from "process";
+import { Trash2, X } from "lucide-react";
+
 import { motion } from "framer-motion";
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardContent,
-} from "@/common/components/ui/card";
-import { Button } from "@/common/components/ui/button";
-//componentes a agregar
-import { Separator } from "@/components/ui/separator";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { toast } from "@/components/ui/use-toast";
 
 const MenuEditorContent = () => {
   //Estado para el menu
@@ -229,51 +217,59 @@ const MenuEditorContent = () => {
 
   //funcion para recibir las categorías del componente hijo
   const receiveRestaurantCategories = (categories: newCategory[]) => {
-  console.log("📦 [PADRE] Nuevas categorías recibidas:", categories);
-  categories.forEach((cat, i) => {
-    console.log(`  🧭 Categoria[${i}]:`, cat.title || "(sin título)");
-    cat.items?.forEach((item, j) => {
-      console.log(`    🍽️ Item[${j}]:`, item.title || "(sin nombre)");
-      if (item.images?.[0]) {
-        console.log(
-          `      🖼️ Imagen del item[${j}]:`,
-          item.images[0],
-          "Tipo:",
-          item.images[0] instanceof File ? "File" : typeof item.images[0]
-        );
-      }
+    console.log("📦 [PADRE] Nuevas categorías recibidas:", categories);
+    categories.forEach((cat, i) => {
+      console.log(`  🧭 Categoria[${i}]:`, cat.title || "(sin título)");
+      cat.items?.forEach((item, j) => {
+        console.log(`    🍽️ Item[${j}]:`, item.title || "(sin nombre)");
+        if (item.images?.[0]) {
+          console.log(
+            `      🖼️ Imagen del item[${j}]:`,
+            item.images[0],
+            "Tipo:",
+            item.images[0] instanceof File ? "File" : typeof item.images[0]
+          );
+        }
+      });
     });
-  });
 
-  setNewCategory(categories);
-};
+    setNewCategory(categories);
+  };
 
   //  Función para recibir categorías editadas desde el hijo
-  const receiveEditedCategory = useCallback((editedCategory: EditedCategory) => {
-  console.log("✏️ [PADRE] Categoría editada recibida:", editedCategory.title);
-  editedCategory.items?.forEach((item, i) => {
-    console.log(`  🍽️ Item[${i}]:`, item.title || "(sin nombre)");
-    if (item.images?.[0]) {
+  const receiveEditedCategory = useCallback(
+    (editedCategory: EditedCategory) => {
       console.log(
-        `      🖼️ Imagen del item[${i}]:`,
-        item.images[0],
-        "Tipo:",
-        item.images[0] instanceof File ? "File" : typeof item.images[0]
+        "✏️ [PADRE] Categoría editada recibida:",
+        editedCategory.title
       );
-    }
-  });
+      editedCategory.items?.forEach((item, i) => {
+        console.log(`  🍽️ Item[${i}]:`, item.title || "(sin nombre)");
+        if (item.images?.[0]) {
+          console.log(
+            `      🖼️ Imagen del item[${i}]:`,
+            item.images[0],
+            "Tipo:",
+            item.images[0] instanceof File ? "File" : typeof item.images[0]
+          );
+        }
+      });
 
-  setEditedCategories((prev) => {
-    const existingIndex = prev.findIndex((cat) => cat.id === editedCategory.id);
-    if (existingIndex !== -1) {
-      const updated = [...prev];
-      updated[existingIndex] = editedCategory;
-      return updated;
-    } else {
-      return [...prev, editedCategory];
-    }
-  });
-}, []);
+      setEditedCategories((prev) => {
+        const existingIndex = prev.findIndex(
+          (cat) => cat.id === editedCategory.id
+        );
+        if (existingIndex !== -1) {
+          const updated = [...prev];
+          updated[existingIndex] = editedCategory;
+          return updated;
+        } else {
+          return [...prev, editedCategory];
+        }
+      });
+    },
+    []
+  );
 
   // Función para limpiar las categorías después de guardar
   const clearCategoriesAfterSave = useCallback(() => {
@@ -344,6 +340,7 @@ const MenuEditorContent = () => {
           {/* AQUI DEBE IR UNA ALERTA DE ERROR EN CASO DE QUE EL FORMULARIO NO ESTE COMPLETO /*}
           {/*Sección de imagenes del menú*/}
           <ImagesEditor
+            title={menu.title}
             logo={menu.logo}
             background={menu.backgroundImage}
             onImagesSubmit={reciveRestaurantImages}
