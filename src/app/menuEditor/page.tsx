@@ -12,7 +12,7 @@ import { Menu, newMenu, newCategory, EditedCategory } from "@/interfaces/menu";
 import { deleteMenu, getMenu } from "@/common/utils/api";
 //subcomponetes
 import NavbarEditor from "@/app/menuEditor/components/NavbarEditor";
-import ImagesEditor from "./components/ImagesEditor";
+import MenuInfo from "./components/menuInfo/page";
 import InfoEditor from "./components/InfoEditor";
 import ColorEditor from "./components/ColorEditor";
 import CategoryEditor from "./components/CategoryEditor";
@@ -339,10 +339,13 @@ const MenuEditorContent = () => {
         <div className="space-y-8">
           {/* AQUI DEBE IR UNA ALERTA DE ERROR EN CASO DE QUE EL FORMULARIO NO ESTE COMPLETO /*}
           {/*Sección de imagenes del menú*/}
-          <ImagesEditor
+          <MenuInfo
             title={menu.title}
+            pos={menu.pos}
             logo={menu.logo}
             background={menu.backgroundImage}
+            primary = {menu.color.primary}
+            secondary = {menu.color.secondary}
             onImagesSubmit={reciveRestaurantImages}
           />
 

@@ -1,3 +1,8 @@
+//este componente debe:
+//1. mostrar el nombre y logo del menu
+//2.abrir un modal (InfoDialog)
+//3. RECIBIR DEL PADRE los datos del menu.
+
 "use client";
 
 import React, { useEffect, useState } from "react";
@@ -21,28 +26,38 @@ import { BookImage } from "lucide-react";
 import { Spinner } from "@/common/components/ui/spinner";
 import { Button } from "@/common/components/ui/button";
 import { motion } from "framer-motion";
-import { Edit3, X, Check } from "lucide-react";
+import { ImageIcon, Edit3, X, Check } from "lucide-react";
+import InfoDialog from "./components/InfoDialog";
 
-interface ImagesEditorProps {
+interface InfoEditorProps {
   title: string;
+  pos: string;
   logo?: string;
   background?: string;
+  primary: string;
+  secondary: string;
   onImagesSubmit?: (images: {
     logo: File | null;
     backgroundImage: File | null;
   }) => void;
 }
 
-const ImagesEditor = ({
+const MenuInfoPage = ({
   title,
   logo,
+  pos,
+  primary,
+  secondary,
   background,
   onImagesSubmit,
-}: ImagesEditorProps) => {
+}: InfoEditorProps) => {
   // estado para el preview de logo
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
   // estado de carga del logo
   const [loadingLogo, setLoadingLogo] = useState(false);
+
+  // variable para el caso de que se cree un nuevo menu.
+  const isEmpty = !title && !logo;
 
   useEffect(() => {
     if (logo) setLoadingLogo(true);
@@ -54,7 +69,6 @@ const ImagesEditor = ({
     }, 700);
     return () => clearTimeout(timer);
   }, [logo]);
-
 
   /* // Estados para el logo y la imagen de fondo
   const [logoFile, setLogoFile] = useState<File | null>(logo || null);
@@ -126,69 +140,126 @@ const ImagesEditor = ({
     }
   };*/
 
-  return (
-    // card informacion del restaurante animado
-    <motion.div
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4 }}
-    >
-      <Card className="max-w-md w-full bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-slate-200/50 overflow-hidden">
-        <div className="px-6 py-6">
-          {/* Título */}
-          <div className="text-center mb-4">
-            <p className="text-sm font-medium text-slate-500 uppercase tracking-wider mb-2">
-              Información del menú
-            </p>
-            <h2 className="text-2xl font-bold text-slate-800 tracking-tight">{title}</h2>
-          </div>
-          {/* Logo */}
-          <div className="flex flex-col items-center space-y-4 mb-6">
-            <Label
-              htmlFor="logo"
-              className={`w-32 h-32 rounded-full overflow-hidden flex items-center justify-center cursor-pointer
-                  transition-all duration-300 transform hover:scale-105
-                ${logoPreview ? "ring-4 ring-slate-200 shadow-xl" : "border-4 border-dashed border-slate-300 bg-slate-50 shadow-lg"}
-                bg-slate-50 hover:border-orange-500 transition-all`}
+  // ---------------------------------------------------------------------
+  // 1) RETURN DEL EMPTY STATE (cuando no hay logo ni título)
+  // ---------------------------------------------------------------------
+  if (isEmpty) {
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.35 }}
+        className="w-full px-4"
+      >
+        <Card className="bg-white/80 backdrop-blur-sm border border-slate-200/50 rounded-2xl shadow-md p-6 w-full max-w-sm mx-auto">
+          <div className="flex flex-col items-center text-center py-10 space-y-4">
+            <motion.div
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ duration: 0.35 }}
             >
-              {loadingLogo ? (
-                <Spinner className="w-8 h-8 text-orange-500" />
-              ) : logoPreview ? (
-                <Image src={logoPreview} alt="Logo preview" width={100} height={100} className="w-full h-full object-cover" />
-              ) : (
-                <BookImage className="w-8 h-8 text-slate-400" />
-              )}
-            </Label>
-          </div>
+              <ImageIcon className="w-16 h-16 text-slate-300" />
+            </motion.div>
 
-          {/* Botón de Editar */}
-          <Dialog>
-            <DialogTrigger asChild>
-              <Button className="w-full mt-6 bg-gradient-to-r from-orange-400 to-orange-500 py-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 font-semibold text-base group">
-                Editar
-              </Button>
-            </DialogTrigger>
+            <h3 className="text-lg font-semibold text-slate-800">
+              Sin información
+            </h3>
 
-            <DialogContent>
-              <DialogHeader>Editar Información</DialogHeader>
-              <div className="p-4">
-                <p>Aquí puedes editar la información del restaurante.</p>
-              </div>
-              <DialogFooter>
-                <Button variant="outline" className="mr-2">
-                  Cerrar
+            <p className="text-sm text-slate-500 max-w-[260px] leading-relaxed">
+              Todavía no cargaste un logo ni un título. Podés configurarlos
+              desde el botón editar.
+            </p>
+
+            <InfoDialog
+              defaultTitle={title}
+              defaultPos={pos}
+              defaultLogo={logo}
+              defaultBackground={background}
+              onSubmit={(data) => {
+                // acá enviás al padre
+                onImagesSubmit?.(data);
+              }}
+              trigger={
+                <Button className="w-full mt-3 bg-orange-500 text-white py-6 rounded-xl">
+                  Editar
                 </Button>
-                <Button>Guardar</Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
+              }
+            />
+          </div>
+        </Card>
+      </motion.div>
+    );
+  }
+
+  // ---------------------------------------------------------------------
+  // 2) RETURN NORMAL (cuando el padre SÍ devuelve title y/o logo)
+  // ---------------------------------------------------------------------
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.35 }}
+      className="w-full px-4"
+    >
+      <Card className="bg-white/80 backdrop-blur-sm border border-slate-200/50 rounded-2xl shadow-md p-6 w-full max-w-sm mx-auto">
+        <div className="text-center mb-4">
+          <p className="text-sm font-medium text-slate-500 uppercase tracking-wider mb-2">
+            Información del menú
+          </p>
+          <h2 className="text-2xl font-bold text-slate-800 tracking-tight">
+            {title}
+          </h2>
         </div>
+
+        {/* Logo */}
+        <div className="flex flex-col items-center space-y-4 mb-3">
+          <Label
+            htmlFor="logo"
+            className={`w-32 h-32 rounded-full overflow-hidden flex items-center justify-center 
+            cursor-pointer transition-all duration-300 transform hover:scale-105
+            ${
+              logoPreview
+                ? "ring-4 ring-slate-200 shadow-xl"
+                : "border-4 border-dashed border-slate-300 bg-slate-50 shadow-lg"
+            }`}
+          >
+            {loadingLogo ? (
+              <Spinner className="w-8 h-8 text-orange-500" />
+            ) : logoPreview ? (
+              <Image
+                src={logoPreview}
+                alt="Logo preview"
+                width={100}
+                height={100}
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <BookImage className="w-8 h-8 text-slate-400" />
+            )}
+          </Label>
+        </div>
+        {/* Botón Editar */}
+        <InfoDialog
+          defaultTitle={title}
+          defaultPos={pos}
+          defaultLogo={logo}
+          defaultBackground={background}
+          onSubmit={(data) => {
+            // acá enviás al padre
+            onImagesSubmit?.(data);
+          }}
+          trigger={
+            <Button className="w-full mt-3 bg-orange-500 text-white py-6 rounded-xl">
+              Editar
+            </Button>
+          }
+        />
       </Card>
     </motion.div>
   );
 };
 
-export default ImagesEditor;
+export default MenuInfoPage;
 
 // card imagenes del menú
 {

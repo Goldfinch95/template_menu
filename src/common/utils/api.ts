@@ -9,7 +9,7 @@ import {
 const BASE_URL = "http://localhost:3000/api/menus";
 const CATEGORIES_BASE_URL = "http://localhost:3000/api/categories";
 const ITEM_BASE_URL = "http://localhost:3000/api/items";
-const TENANT_HEADER = { "x-tenant-subdomain": "amaxlote" };
+const TENANT_HEADER = { "x-tenant-subdomain": "amax" };
 
 // --- 🔹 Obtener todos los menús (para Home)
 export const getMenus = async (): Promise<Menu[]> => {
