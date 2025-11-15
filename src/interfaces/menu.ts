@@ -61,15 +61,15 @@ export interface ImageItems {
 
 export interface newMenu {
   userId: 1; // temporalmente lo fijo en 1
-  backgroundImage: File;
+  backgroundImage: File | null;
   color: {
     primary: string;
     secondary: string;
   };
-  logo: File;
+  logo: File | null;
   pos: string;
   title: string;
-  categories: [];
+  categories: any[]; 
 }
 
 // nueva categoria

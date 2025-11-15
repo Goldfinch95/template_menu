@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import {
   Dialog,
   DialogContent,
@@ -14,8 +14,13 @@ import { Input } from "@/common/components/ui/input";
 import { Label } from "@/common/components/ui/label";
 import { Button } from "@/common/components/ui/button";
 import Image from "next/image";
-import { ImageIcon, Upload } from "lucide-react";
+import { ImageIcon, Upload, X } from "lucide-react";
 import { HexColorPicker } from "react-colorful";
+import { motion } from "framer-motion";
+import { cn } from "@/common/utils/utils";
+import { DialogClose } from "@radix-ui/react-dialog";
+import { createMenu } from "@/common/utils/api";
+import { newMenu } from "@/interfaces/menu";
 
 interface InfoDialogProps {
   trigger?: React.ReactNode;
@@ -27,7 +32,11 @@ interface InfoDialogProps {
     title: string;
     pos: string;
     logo: File | null;
-    background: File | null;
+    backgroundImage: File | null;
+    color: {
+      primary: string;
+      secondary: string;
+    };
   }) => void;
 }
 
@@ -51,6 +60,20 @@ const InfoDialog = ({
     defaultBackground || null
   );
 
+  // estado de los colores primario y secundario y su activacion
+  const [primaryColor, setPrimaryColor] = useState("#d4d4d4");
+  const [secondaryColor, setSecondaryColor] = useState("#262626");
+  const [activeColorInput, setActiveColorInput] = useState<
+    "primary" | "secondary"
+  >("primary");
+
+  // estado de color SELECCIONADO
+  const [color, setColor] = useState("#ffffff");
+
+  // Agregar refs para los inputs
+  const primaryInputRef = useRef<HTMLInputElement>(null);
+  const secondaryInputRef = useRef<HTMLInputElement>(null);
+
   const handleImageChange = (
     e: React.ChangeEvent<HTMLInputElement>,
     setterFile: (f: File | null) => void,
@@ -68,12 +91,77 @@ const InfoDialog = ({
 
   //disparar los alert cuando faltan los campos obligatorios.
 
+  // validación y formato del input
+  const formatHex = (value: string) => {
+    if (!value.startsWith("#")) value = "#" + value;
+    return value.replace(/[^#0-9A-Fa-f]/g, "").slice(0, 7);
+  };
+
+  // manejo de cambios de input
+  const handleInputChange = (type: "primary" | "secondary", value: string) => {
+    const formatted = formatHex(value);
+    // ver en consola para testeo
+    //console.log(`[Input ${type}] Cambió a:`, formatted);
+    if (type === "primary") {
+      setPrimaryColor(formatted);
+      setColor(formatted);
+      setActiveColorInput("primary");
+    } else {
+      setSecondaryColor(formatted);
+      setColor(formatted);
+      setActiveColorInput("secondary");
+    }
+  };
+
+  // foco en input -> actualiza picker también
+  const handleInputFocus = (type: "primary" | "secondary") => {
+    setActiveColorInput(type);
+    const selectedColor = type === "primary" ? primaryColor : secondaryColor;
+    setColor(selectedColor);
+  };
+
+  // click en preview -> activa picker y enfoca input
+  const handlePreviewClick = (type: "primary" | "secondary") => {
+    setActiveColorInput(type);
+    const selectedColor = type === "primary" ? primaryColor : secondaryColor;
+    setColor(selectedColor);
+    if (type === "primary") primaryInputRef.current?.focus();
+    else secondaryInputRef.current?.focus();
+  };
+
+  // cambio desde el picker
+  const detectColorChange = (newColor: string) => {
+    setColor(newColor);
+    if (activeColorInput === "primary") setPrimaryColor(newColor);
+    else setSecondaryColor(newColor);
+  };
+
   //subir los datos al back
-  const handleSubmit = () => {
-    console.log("este es el", title);
-    console.log("esta es la direccion", pos);
-    console.log("esta es el logo", logoFile);
-    console.log("este es el background", backgroundFile);
+  const handleSubmit = async() => {
+    
+    //si es un nuevo menu
+    try{
+        const payload: newMenu = {
+      title: title.trim(),
+      pos: pos.trim(),
+      userId: 1, 
+      logo: logoFile ?? null,
+      backgroundImage: backgroundFile ?? null,
+      color: {
+        primary: primaryColor,
+        secondary: secondaryColor,
+      },
+       categories: [],
+    };
+    //console.log("📤 Enviando datos al backend:", payload);
+    const createdMenu = await createMenu(payload);
+    console.log("✅ Menú creado:", createdMenu);
+    } catch (error) {
+    console.error("❌ Error al guardar:", error);
+  }
+
+    // si editamos menu
+
     /*onSubmit({
       title,
       pos,
@@ -86,7 +174,12 @@ const InfoDialog = ({
     <Dialog>
       <DialogTrigger asChild>{trigger}</DialogTrigger>
 
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-md  max-h-[80vh] overflow-y-auto">
+        {/* Botón de cerrar */}
+        <DialogClose className="absolute right-4 top-4 rounded-full p-2 hover:bg-white/70 transition-colors z-50">
+          <X className="h-5 w-5 text-orange-400" />
+        </DialogClose>
+
         <DialogHeader>
           <DialogTitle className="text-xl font-semibold text-black">
             Editar información
@@ -95,36 +188,39 @@ const InfoDialog = ({
 
         <div className="space-y-5 py-4">
           {/* Título */}
-          <div className="flex flex-col space-y-1">
-            <Label className="text-black" htmlFor="title">
-              Título
+          <div className="flex flex-col space-y-2">
+            <Label
+              className="text-slate-600 text-sm font-medium"
+              htmlFor="title"
+            >
+              Nombre del Menú
             </Label>
             <Input
               id="title"
               placeholder="Ej: La Pizzería de Mario"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              className="text-black"
+              className="h-11 pr-10 text-black bg-white/80 border-slate-200 focus-visible:ring-orange-400 text-sm placeholder:text-slate-400"
             />
           </div>
 
           {/* POS */}
           <div className="flex flex-col space-y-1">
-            <Label className="text-black" htmlFor="pos">
-              Dirección
+            <Label className="text-slate-600 text-sm font-medium" htmlFor="pos">
+              Ubicación / Puntos de Venta
             </Label>
             <Input
               id="pos"
-              placeholder="Ej: Av. Siempre Viva 123"
+              placeholder="Ej: Av. Principal 123, Centro"
               value={pos}
               onChange={(e) => setPos(e.target.value)}
-              className="text-black"
+              className="h-11 pr-10 text-black bg-white/80 border-slate-200 focus-visible:ring-orange-400 text-sm placeholder:text-slate-400"
             />
           </div>
 
           {/* Logo */}
-          <div className="flex flex-col space-y-2">
-            <Label className="text-black">Logo</Label>
+          <div className="flex flex-col justify-center space-y-2">
+            <Label className="text-slate-600 text-sm font-medium">Logo</Label>
             <input
               type="file"
               accept="image/*"
@@ -134,27 +230,31 @@ const InfoDialog = ({
                 handleImageChange(e, setLogoFile, setLogoPreview)
               }
             />
-            <Label
-              htmlFor="logoInput"
-              className="w-24 h-24 rounded-full bg-slate-100 border border-slate-300 flex items-center justify-center overflow-hidden cursor-pointer hover:ring-2 hover:ring-orange-400 transition-all"
-            >
-              {logoPreview ? (
-                <Image
-                  src={logoPreview}
-                  alt="Logo preview"
-                  width={100}
-                  height={100}
-                  className="object-cover w-full h-full"
-                />
-              ) : (
-                <Upload className="w-6 h-6 text-slate-500" />
-              )}
-            </Label>
+            <div className="flex flex-col justify-center items-center">
+              <Label
+                htmlFor="logoInput"
+                className="w-24 h-24 rounded-full bg-slate-100 border border-slate-300 flex items-center justify-center overflow-hidden cursor-pointer hover:ring-2 hover:ring-orange-400 transition-all"
+              >
+                {logoPreview ? (
+                  <Image
+                    src={logoPreview}
+                    alt="Logo preview"
+                    width={100}
+                    height={100}
+                    className="object-cover w-full h-full"
+                  />
+                ) : (
+                  <Upload className="w-6 h-6 text-slate-500" />
+                )}
+              </Label>
+            </div>
           </div>
 
           {/* Background */}
-          <div className="flex flex-col space-y-2">
-            <Label className="text-black">Imagen de fondo</Label>
+          <div className="flex flex-col justify-center space-y-3">
+            <Label className="text-slate-600 text-sm font-medium">
+              Imagen de fondo
+            </Label>
             <input
               type="file"
               accept="image/*"
@@ -185,15 +285,120 @@ const InfoDialog = ({
               )}
             </Label>
           </div>
+          {/* color picker */}
+          <div className="flex flex-col justify-center space-y-1">
+            <Label className="text-slate-600 text-sm font-medium">
+              Selector de colores
+            </Label>
+            <HexColorPicker
+              color={color}
+              onChange={detectColorChange}
+              style={{
+                width: "100%",
+                height: "220px",
+                borderRadius: "1rem",
+              }}
+            />
+          </div>
+          {/* inputs del color picker */}
+          <div className="space-y-3">
+            <Label className="text-slate-700 text-sm font-medium">
+              Color Base
+            </Label>
+            <div className="flex items-center gap-4">
+              {/* preview del input primario con animación */}
+              <motion.div
+                layoutId="color-preview-primary"
+                onClick={() => handlePreviewClick("primary")}
+                className={cn(
+                  "w-10 h-10 rounded-lg border shadow-inner cursor-pointer",
+                  activeColorInput === "primary"
+                    ? "ring-2 ring-orange-400"
+                    : "border-white/50"
+                )}
+                style={{ backgroundColor: primaryColor }}
+                animate={{
+                  scale: activeColorInput === "primary" ? 1.1 : 1,
+                  boxShadow:
+                    activeColorInput === "primary"
+                      ? "0 0 10px rgba(251,146,60,0.4)"
+                      : "0 0 0px rgba(0,0,0,0)",
+                }}
+                transition={{
+                  type: "spring",
+                  stiffness: 300,
+                  damping: 20,
+                }}
+              />
+
+              {/* input primario */}
+              <Input
+                ref={primaryInputRef}
+                type="text"
+                value={primaryColor}
+                onChange={(e) => handleInputChange("primary", e.target.value)}
+                onFocus={() => handleInputFocus("primary")}
+                className="font-mono text-black text-sm bg-white/80 border-slate-200 focus-visible:ring-orange-400"
+                placeholder="Color base"
+              />
+            </div>
+          </div>
+          <div className="space-y-3">
+            <div className="flex flex-col gap-2 mt-2">
+              <Label className="text-slate-700 text-sm font-medium">
+                Color Secundario
+              </Label>
+              <div className="flex items-center gap-4">
+                {/* preview del input secundario con animación */}
+                <motion.div
+                  layoutId="color-preview-secondary"
+                  onClick={() => handlePreviewClick("secondary")}
+                  className={cn(
+                    "w-10 h-10 rounded-lg border shadow-inner cursor-pointer",
+                    activeColorInput === "secondary"
+                      ? "ring-2 ring-orange-400"
+                      : "border-white/50"
+                  )}
+                  style={{ backgroundColor: secondaryColor }}
+                  animate={{
+                    scale: activeColorInput === "secondary" ? 1.1 : 1,
+                    boxShadow:
+                      activeColorInput === "secondary"
+                        ? "0 0 10px rgba(251,146,60,0.4)"
+                        : "0 0 0px rgba(0,0,0,0)",
+                  }}
+                  transition={{
+                    type: "spring",
+                    stiffness: 300,
+                    damping: 20,
+                  }}
+                />
+
+                <Input
+                  ref={secondaryInputRef}
+                  type="text"
+                  value={secondaryColor}
+                  onChange={(e) =>
+                    handleInputChange("secondary", e.target.value)
+                  }
+                  onFocus={() => handleInputFocus("secondary")}
+                  className="font-mono text-black text-sm bg-white/80 border-slate-200 focus-visible:ring-orange-400"
+                  placeholder="Color secundario"
+                />
+              </div>
+            </div>
+          </div>
         </div>
 
         <DialogFooter>
-          <Button
-            className="bg-orange-500 hover:bg-orange-600"
-            onClick={handleSubmit}
-          >
-            Guardar
-          </Button>
+          <DialogClose asChild>
+            <Button
+              className="bg-orange-500 hover:bg-orange-600"
+              onClick={handleSubmit}
+            >
+              Guardar
+            </Button>
+          </DialogClose>
         </DialogFooter>
       </DialogContent>
     </Dialog>
