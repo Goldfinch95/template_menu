@@ -30,45 +30,43 @@ import { ImageIcon, Edit3, X, Check } from "lucide-react";
 import InfoDialog from "./components/InfoDialog";
 
 interface InfoEditorProps {
+  menuId?: number;
   title: string;
   pos: string;
   logo?: string;
   background?: string;
   primary: string;
   secondary: string;
-  onImagesSubmit?: (images: {
-    logo: File | null;
-    backgroundImage: File | null;
-  }) => void;
+  onUpdated?: () => void;
 }
 
 const MenuInfoPage = ({
   title,
+  menuId,
   logo,
   pos,
   primary,
   secondary,
   background,
-  onImagesSubmit,
+  onUpdated,
 }: InfoEditorProps) => {
   // estado para el preview de logo
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
   // estado de carga del logo
   const [loadingLogo, setLoadingLogo] = useState(false);
+  
 
   // variable para el caso de que se cree un nuevo menu.
   const isEmpty = !title && !logo;
 
-  useEffect(() => {
+   useEffect(() => {
     if (logo) setLoadingLogo(true);
     const timer = setTimeout(() => {
-      if (logo) {
-        setLogoPreview(logo);
-        setLoadingLogo(false);
-      }
+      setLogoPreview(logo || null);
+      setLoadingLogo(false);
     }, 700);
     return () => clearTimeout(timer);
-  }, [logo]);
+  }, [logo, title]);
 
   /* // Estados para el logo y la imagen de fondo
   const [logoFile, setLogoFile] = useState<File | null>(logo || null);
@@ -171,10 +169,12 @@ const MenuInfoPage = ({
             </p>
 
             <InfoDialog
+              menuId={menuId}
               defaultTitle={title}
               defaultPos={pos}
               defaultLogo={logo}
               defaultBackground={background}
+              onUpdated={onUpdated}
               onSubmit={(data) => {
                 // acá enviás al padre
                 onImagesSubmit?.(data);
@@ -240,10 +240,12 @@ const MenuInfoPage = ({
         </div>
         {/* Botón Editar */}
         <InfoDialog
+          menuId={menuId}
           defaultTitle={title}
           defaultPos={pos}
           defaultLogo={logo}
           defaultBackground={background}
+          onUpdated={onUpdated}
           onSubmit={(data) => {
             // acá enviás al padre
             onImagesSubmit?.(data);

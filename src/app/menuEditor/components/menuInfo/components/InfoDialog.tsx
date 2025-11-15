@@ -19,34 +19,27 @@ import { HexColorPicker } from "react-colorful";
 import { motion } from "framer-motion";
 import { cn } from "@/common/utils/utils";
 import { DialogClose } from "@radix-ui/react-dialog";
-import { createMenu } from "@/common/utils/api";
-import { newMenu } from "@/interfaces/menu";
+import { createMenu, updateMenu } from "@/common/utils/api";
+import { Menu, newMenu } from "@/interfaces/menu";
 
 interface InfoDialogProps {
   trigger?: React.ReactNode;
+  menuId?: number;
   defaultTitle?: string;
   defaultPos?: string;
   defaultLogo?: string;
   defaultBackground?: string;
-  onSubmit: (data: {
-    title: string;
-    pos: string;
-    logo: File | null;
-    backgroundImage: File | null;
-    color: {
-      primary: string;
-      secondary: string;
-    };
-  }) => void;
+  onUpdated?: () => void;
 }
 
 const InfoDialog = ({
   trigger,
+  menuId,
   defaultTitle = "",
   defaultPos = "",
   defaultLogo,
   defaultBackground,
-  onSubmit,
+  onUpdated,
 }: InfoDialogProps) => {
   //estados para el titulo,direccion
   const [title, setTitle] = useState(defaultTitle);
@@ -137,37 +130,61 @@ const InfoDialog = ({
   };
 
   //subir los datos al back
-  const handleSubmit = async() => {
-    
-    //si es un nuevo menu
-    try{
+  const handleSubmit = async () => {
+    console.log("🧪 menuId recibido:", menuId);
+    try {
+      // si es un menu nuevo
+      if (!menuId) {
         const payload: newMenu = {
-      title: title.trim(),
-      pos: pos.trim(),
-      userId: 1, 
-      logo: logoFile ?? null,
-      backgroundImage: backgroundFile ?? null,
-      color: {
-        primary: primaryColor,
-        secondary: secondaryColor,
-      },
-       categories: [],
-    };
-    //console.log("📤 Enviando datos al backend:", payload);
-    const createdMenu = await createMenu(payload);
-    console.log("✅ Menú creado:", createdMenu);
+          title: title.trim(),
+          pos: pos.trim(),
+          userId: 1,
+          logo: logoFile ?? null,
+          backgroundImage: backgroundFile ?? null,
+          color: {
+            primary: primaryColor,
+            secondary: secondaryColor,
+          },
+          categories: [],
+        };
+        //crear BD
+        const createdMenu = await createMenu(payload);
+        console.log("✅ Menú creado:", createdMenu);
+        //notificar
+        onUpdated?.();
+        
+        return;
+      }
+
+      // editar un menu
+      else {
+        const payload: Partial<Menu> = {
+          title: title.trim(),
+          pos: pos.trim(),
+          color: {
+            primary: primaryColor,
+            secondary: secondaryColor,
+          },
+        };
+
+        // Logo
+        if (logoFile) payload.logo = logoFile;
+        else payload.logo = defaultLogo ?? "";
+
+        // Background
+        if (backgroundFile) payload.backgroundImage = backgroundFile;
+        else payload.backgroundImage = defaultBackground ?? "";
+
+        console.log("📤 Enviando actualización:", payload);
+        //editar BD
+        const updated = await updateMenu(menuId, payload);
+        console.log("✅ Menú actualizado:", updated);
+        //notificar
+        onUpdated?.();
+      }
     } catch (error) {
-    console.error("❌ Error al guardar:", error);
-  }
-
-    // si editamos menu
-
-    /*onSubmit({
-      title,
-      pos,
-      logo: logoFile,
-      background: backgroundFile,
-    });*/
+      console.error("❌ Error al guardar:", error);
+    }
   };
 
   return (

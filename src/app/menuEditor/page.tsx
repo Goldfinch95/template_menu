@@ -48,9 +48,16 @@ const MenuEditorContent = () => {
   const searchParams = useSearchParams();
   // estado para el router
   const router = useRouter();
+//estado de recarga
+  const [refresh, setRefresh] = useState(false);
+
+  useEffect(() => {
+  console.log("♻ REFRESH ACTIVADO");
+}, [refresh]);
 
   //cargar menú existente si hay id en los parámetros
   useEffect(() => {
+    console.log("🔄 REFRESH cambió →", refresh);
     const menuId = searchParams.get("id");
     if (!menuId) return;
 
@@ -63,7 +70,7 @@ const MenuEditorContent = () => {
       }
     };
     loadMenu();
-  }, [searchParams]);
+  }, [searchParams, refresh]);
 
   // 🆕 Función para combinar datos del menú para la vista previa
   const getPreviewData = useMemo(() => {
@@ -340,13 +347,14 @@ const MenuEditorContent = () => {
           {/* AQUI DEBE IR UNA ALERTA DE ERROR EN CASO DE QUE EL FORMULARIO NO ESTE COMPLETO /*}
           {/*Sección de imagenes del menú*/}
           <MenuInfo
+            menuId={menu.id}
             title={menu.title}
             pos={menu.pos}
             logo={menu.logo}
             background={menu.backgroundImage}
-            primary = {menu.color?.primary}
-            secondary = {menu.color?.secondary}
-            onImagesSubmit={reciveRestaurantImages}
+            primary={menu.color?.primary}
+            secondary={menu.color?.secondary}
+            onUpdated={() => setRefresh(prev => !prev)}
           />
 
           {/*Información básica */}
