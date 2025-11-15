@@ -15,8 +15,9 @@ import { Label } from "@/common/components/ui/label";
 import { Button } from "@/common/components/ui/button";
 import Image from "next/image";
 import { ImageIcon, Upload } from "lucide-react";
+import { HexColorPicker } from "react-colorful";
 
-interface EditImagesDialogProps {
+interface InfoDialogProps {
   trigger?: React.ReactNode;
   defaultTitle?: string;
   defaultPos?: string;
@@ -37,13 +38,14 @@ const InfoDialog = ({
   defaultLogo,
   defaultBackground,
   onSubmit,
-}: EditImagesDialogProps) => {
+}: InfoDialogProps) => {
+  //estados para el titulo,direccion
   const [title, setTitle] = useState(defaultTitle);
   const [pos, setPos] = useState(defaultPos);
-
+  //estado para los archivos logo y background
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [backgroundFile, setBackgroundFile] = useState<File | null>(null);
-
+  //estados para mostrar el preview de logo y background
   const [logoPreview, setLogoPreview] = useState(defaultLogo || null);
   const [backgroundPreview, setBackgroundPreview] = useState(
     defaultBackground || null
@@ -64,13 +66,20 @@ const InfoDialog = ({
     }
   };
 
+  //disparar los alert cuando faltan los campos obligatorios.
+
+  //subir los datos al back
   const handleSubmit = () => {
-    onSubmit({
+    console.log("este es el", title);
+    console.log("esta es la direccion", pos);
+    console.log("esta es el logo", logoFile);
+    console.log("este es el background", backgroundFile);
+    /*onSubmit({
       title,
       pos,
       logo: logoFile,
       background: backgroundFile,
-    });
+    });*/
   };
 
   return (
@@ -87,7 +96,9 @@ const InfoDialog = ({
         <div className="space-y-5 py-4">
           {/* Título */}
           <div className="flex flex-col space-y-1">
-            <Label className="text-black" htmlFor="title">Título</Label>
+            <Label className="text-black" htmlFor="title">
+              Título
+            </Label>
             <Input
               id="title"
               placeholder="Ej: La Pizzería de Mario"
@@ -99,7 +110,9 @@ const InfoDialog = ({
 
           {/* POS */}
           <div className="flex flex-col space-y-1">
-            <Label className="text-black" htmlFor="pos">Dirección</Label>
+            <Label className="text-black" htmlFor="pos">
+              Dirección
+            </Label>
             <Input
               id="pos"
               placeholder="Ej: Av. Siempre Viva 123"
@@ -175,7 +188,10 @@ const InfoDialog = ({
         </div>
 
         <DialogFooter>
-          <Button className="bg-orange-500 hover:bg-orange-600" onClick={handleSubmit}>
+          <Button
+            className="bg-orange-500 hover:bg-orange-600"
+            onClick={handleSubmit}
+          >
             Guardar
           </Button>
         </DialogFooter>

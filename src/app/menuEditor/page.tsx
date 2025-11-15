@@ -344,8 +344,8 @@ const MenuEditorContent = () => {
             pos={menu.pos}
             logo={menu.logo}
             background={menu.backgroundImage}
-            primary = {menu.color.primary}
-            secondary = {menu.color.secondary}
+            primary = {menu.color?.primary}
+            secondary = {menu.color?.secondary}
             onImagesSubmit={reciveRestaurantImages}
           />
 
