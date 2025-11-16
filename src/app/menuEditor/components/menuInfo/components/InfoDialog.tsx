@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
@@ -21,51 +21,81 @@ import { cn } from "@/common/utils/utils";
 import { DialogClose } from "@radix-ui/react-dialog";
 import { createMenu, updateMenu } from "@/common/utils/api";
 import { Menu, newMenu } from "@/interfaces/menu";
+import {
+  Alert,
+  AlertDescription,
+  AlertTitle,
+} from "@/common/components/ui/alert";
 
 interface InfoDialogProps {
   trigger?: React.ReactNode;
   menuId?: number;
-  defaultTitle?: string;
-  defaultPos?: string;
-  defaultLogo?: string;
-  defaultBackground?: string;
-  onUpdated?: () => void;
+  menuTitle?: string;
+  menuPos?: string;
+  menuLogo?: string;
+  menuBackground?: string;
+  menuPrimary?: string;
+  menuSecondary?: string;
+  onUpdated?: (menuTitle: string, menuLogo: string) => void;
 }
 
 const InfoDialog = ({
   trigger,
   menuId,
-  defaultTitle = "",
-  defaultPos = "",
-  defaultLogo,
-  defaultBackground,
+  menuTitle = "",
+  menuPos = "",
+  menuLogo,
+  menuBackground,
+  menuPrimary,
+  menuSecondary,
   onUpdated,
 }: InfoDialogProps) => {
   //estados para el titulo,direccion
-  const [title, setTitle] = useState(defaultTitle);
-  const [pos, setPos] = useState(defaultPos);
+  const [title, setTitle] = useState(menuTitle);
+  const [pos, setPos] = useState(menuPos);
   //estado para los archivos logo y background
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [backgroundFile, setBackgroundFile] = useState<File | null>(null);
   //estados para mostrar el preview de logo y background
-  const [logoPreview, setLogoPreview] = useState(defaultLogo || null);
+  const [logoPreview, setLogoPreview] = useState(menuLogo || null);
   const [backgroundPreview, setBackgroundPreview] = useState(
-    defaultBackground || null
+    menuBackground || null
   );
 
   // estado de los colores primario y secundario y su activacion
-  const [primaryColor, setPrimaryColor] = useState("#d4d4d4");
-  const [secondaryColor, setSecondaryColor] = useState("#262626");
+  const [primaryColor, setPrimaryColor] = useState(menuPrimary || "#d4d4d4");
+  const [secondaryColor, setSecondaryColor] = useState(
+    menuSecondary || "#262626"
+  );
   const [activeColorInput, setActiveColorInput] = useState<
     "primary" | "secondary"
   >("primary");
 
+  //estado de alerta
+  const [alertMessage, setAlertMessage] = useState<string | null>(null);
+
   // estado de color SELECCIONADO
-  const [color, setColor] = useState("#ffffff");
+  const [color, setColor] = useState(primaryColor);
+
+  //
+  const [open, setOpen] = useState(true);
+
+  //
+  const alertRef = useRef<HTMLDivElement>(null);
 
   // Agregar refs para los inputs
   const primaryInputRef = useRef<HTMLInputElement>(null);
   const secondaryInputRef = useRef<HTMLInputElement>(null);
+
+  // Desplazarse a la alerta cuando se establece un mensaje de error
+  useEffect(() => {
+    if (alertMessage && alertRef.current) {
+      alertRef.current.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+      });
+    }
+  }, [alertMessage]);
 
   const handleImageChange = (
     e: React.ChangeEvent<HTMLInputElement>,
@@ -129,9 +159,40 @@ const InfoDialog = ({
     else setSecondaryColor(newColor);
   };
 
+  //VALIDACION DE DATOS
+  const validateFields = () => {
+    if (title.trim().length <= 3) {
+      setAlertMessage("El título debe tener más de 3 caracteres.");
+      return false;
+    }
+    if (!logoFile) {
+      setAlertMessage("El logo es obligatorio y debe ser una imagen.");
+      return false;
+    }
+    if (!backgroundFile) {
+      setAlertMessage("El fondo es obligatorio y debe ser una imagen.");
+      return false;
+    }
+    if (!/^#[0-9A-Fa-f]{6}$/.test(primaryColor)) {
+      setAlertMessage("El color primario debe ser un código HEX válido.");
+      return false;
+    }
+    if (!/^#[0-9A-Fa-f]{6}$/.test(secondaryColor)) {
+      setAlertMessage("El color secundario debe ser un código HEX válido.");
+      return false;
+    }
+    setAlertMessage(null); // Si pasa todas las validaciones, limpiamos el mensaje
+    return true;
+  };
+
   //subir los datos al back
   const handleSubmit = async () => {
     console.log("🧪 menuId recibido:", menuId);
+    const isValid = validateFields();
+    if (!isValid) {
+      // Si la validación falla, no continuamos con el submit
+      return;
+    }
     try {
       // si es un menu nuevo
       if (!menuId) {
@@ -150,9 +211,13 @@ const InfoDialog = ({
         //crear BD
         const createdMenu = await createMenu(payload);
         console.log("✅ Menú creado:", createdMenu);
+        console.log(createdMenu.id);
         //notificar
-        onUpdated?.();
-        
+        if (createdMenu && createdMenu.id) {
+          console.log("🔄 Enviando el ID del menú creado al padre...");
+          onUpdated?.(createdMenu.title, createdMenu.logo || ""); // Pasamos el nuevo `menuId` al padre
+        }
+
         return;
       }
 
@@ -169,19 +234,20 @@ const InfoDialog = ({
 
         // Logo
         if (logoFile) payload.logo = logoFile;
-        else payload.logo = defaultLogo ?? "";
+        else payload.logo = menuLogo ?? "";
 
         // Background
         if (backgroundFile) payload.backgroundImage = backgroundFile;
-        else payload.backgroundImage = defaultBackground ?? "";
+        else payload.backgroundImage = menuBackground ?? "";
 
         console.log("📤 Enviando actualización:", payload);
         //editar BD
         const updated = await updateMenu(menuId, payload);
         console.log("✅ Menú actualizado:", updated);
         //notificar
-        onUpdated?.();
+        onUpdated?.(updated.id);
       }
+      setOpen(false);
     } catch (error) {
       console.error("❌ Error al guardar:", error);
     }
@@ -204,6 +270,19 @@ const InfoDialog = ({
         </DialogHeader>
 
         <div className="space-y-5 py-4">
+          {/*mostrar alertas */}
+          {alertMessage && (
+            <Alert
+              ref={alertRef}
+              className="mb-4 bg-red-100 border border-red-400 text-red-700 p-4 rounded-md flex items-center"
+            >
+              <div className="mr-3">
+                <X className="w-6 h-6" />
+              </div>
+              <AlertTitle>Error:</AlertTitle>
+              <AlertDescription>{alertMessage}</AlertDescription>
+            </Alert>
+          )}
           {/* Título */}
           <div className="flex flex-col space-y-2">
             <Label
@@ -408,14 +487,12 @@ const InfoDialog = ({
         </div>
 
         <DialogFooter>
-          <DialogClose asChild>
-            <Button
-              className="bg-orange-500 hover:bg-orange-600"
-              onClick={handleSubmit}
-            >
-              Guardar
-            </Button>
-          </DialogClose>
+          <Button
+            className="bg-orange-500 hover:bg-orange-600"
+            onClick={handleSubmit}
+          >
+            Guardar
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

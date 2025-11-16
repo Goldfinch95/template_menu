@@ -5,7 +5,7 @@
 
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { Input } from "@/common/components/ui/input";
 import { Label } from "@radix-ui/react-label";
 import { Card } from "@/common/components/ui/card";
@@ -28,45 +28,81 @@ import { Button } from "@/common/components/ui/button";
 import { motion } from "framer-motion";
 import { ImageIcon, Edit3, X, Check } from "lucide-react";
 import InfoDialog from "./components/InfoDialog";
+import { getMenu } from "@/common/utils/api";
+import { Menu } from "@/interfaces/menu";
 
 interface InfoEditorProps {
-  menuId?: number;
-  title: string;
-  pos: string;
-  logo?: string;
-  background?: string;
-  primary: string;
-  secondary: string;
-  onUpdated?: () => void;
+  menuId: number;
 }
 
-const MenuInfoPage = ({
-  title,
-  menuId,
-  logo,
-  pos,
-  primary,
-  secondary,
-  background,
-  onUpdated,
-}: InfoEditorProps) => {
+const MenuInfoPage = ({ menuId }: InfoEditorProps) => {
+  // estado para el menú
+  const [menu, setMenu] = useState<Menu>({} as Menu);
   // estado para el preview de logo
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
   // estado de carga del logo
   const [loadingLogo, setLoadingLogo] = useState(false);
-  
+  // estado de carga
+  const [loading, setLoading] = useState(true);
+  // estado para determinar si es un menú vacío (nuevo)
+  const [isEmpty, setIsEmpty] = useState<boolean>(false);
 
-  // variable para el caso de que se cree un nuevo menu.
-  const isEmpty = !title && !logo;
+  const [newMenuTitle, setNewMenuTitle] = useState<string>(""); // Título del nuevo menú
+  const [newMenuLogo, setNewMenuLogo] = useState<string>("");
 
-   useEffect(() => {
-    if (logo) setLoadingLogo(true);
-    const timer = setTimeout(() => {
-      setLogoPreview(logo || null);
-      setLoadingLogo(false);
-    }, 700);
-    return () => clearTimeout(timer);
-  }, [logo, title]);
+  // 🔥 Función para cargar/recargar el menú desde la API
+  const fetchMenuData = useCallback(async () => {
+    console.log("el menu es", menuId);
+    //si no hay menu
+    if (!menuId) {
+      setIsEmpty(true);
+      setLoading(false);
+      return;
+    }
+
+    setLoading(true);
+    //si hay menu
+    try {
+      const [menuData] = await Promise.all([
+        getMenu(menuId),
+        new Promise((resolve) => setTimeout(resolve, 2000)), // Delay de 2 segundos
+      ]);
+      console.log("📥 Menú cargado:", menuData);
+      setMenu(menuData);
+      setIsEmpty(false);
+    } catch (error) {
+      console.error("❌ Error al obtener el menú", error);
+    } finally {
+      setLoading(false);
+    }
+  }, [menuId]);
+
+  // Llamada inicial a la API para obtener el menú
+  useEffect(() => {
+    console.log("🔍 Menu ID recibido:", menuId);
+    fetchMenuData();
+  }, [menuId, fetchMenuData]);
+
+  const handleMenuCreated = (menuTitle: string, menuLogo: string) => {
+    console.log(menuTitle);
+    setNewMenuTitle(menuTitle);
+    setNewMenuLogo(menuLogo);
+    setIsEmpty(false);
+  };
+
+  // 🎯 Función que se pasa al hijo para que notifique cambios
+  const handleMenuUpdated = () => {
+    console.log("🔄 Hijo notificó cambios, recargando menú...");
+    fetchMenuData(); // Vuelve a hacer la petición GET
+  };
+
+  if (loading) {
+    return (
+      <div className="w-full flex justify-center items-center">
+        <Spinner className="w-12 h-12 text-orange-500" />
+      </div>
+    );
+  }
 
   /* // Estados para el logo y la imagen de fondo
   const [logoFile, setLogoFile] = useState<File | null>(logo || null);
@@ -169,16 +205,14 @@ const MenuInfoPage = ({
             </p>
 
             <InfoDialog
-              menuId={menuId}
-              defaultTitle={title}
-              defaultPos={pos}
-              defaultLogo={logo}
-              defaultBackground={background}
-              onUpdated={onUpdated}
-              onSubmit={(data) => {
-                // acá enviás al padre
-                onImagesSubmit?.(data);
-              }}
+              menuId={menu.id}
+              menuTitle={menu.title}
+              menuPos={menu.pos}
+              menuLogo={menu.logo}
+              menuBackground={menu.backgroundImage}
+              menuPrimary={menu.color?.primary}
+              menuSecondary={menu.color?.secondary}
+              onUpdated={handleMenuCreated}
               trigger={
                 <Button className="w-full mt-3 bg-orange-500 text-white py-6 rounded-xl">
                   Editar
@@ -207,7 +241,7 @@ const MenuInfoPage = ({
             Información del menú
           </p>
           <h2 className="text-2xl font-bold text-slate-800 tracking-tight">
-            {title}
+            {menuId === undefined ? newMenuTitle : menu.title}
           </h2>
         </div>
 
@@ -216,18 +250,30 @@ const MenuInfoPage = ({
           <Label
             htmlFor="logo"
             className={`w-32 h-32 rounded-full overflow-hidden flex items-center justify-center 
-            cursor-pointer transition-all duration-300 transform hover:scale-105
-            ${
-              logoPreview
-                ? "ring-4 ring-slate-200 shadow-xl"
-                : "border-4 border-dashed border-slate-300 bg-slate-50 shadow-lg"
-            }`}
+  cursor-pointer transition-all duration-300 transform hover:scale-105
+  ${
+    menu.logo || isEmpty
+      ? "ring-4 ring-slate-200 shadow-xl"
+      : "border-4 border-dashed border-slate-300 bg-slate-50 shadow-lg"
+  }`}
           >
-            {loadingLogo ? (
+            {loading ? (
               <Spinner className="w-8 h-8 text-orange-500" />
-            ) : logoPreview ? (
+            ) : menuId === undefined ? ( // Verificar si menuId es undefined
+              newMenuLogo ? (
+                <Image
+                  src={newMenuLogo}
+                  alt="Logo preview"
+                  width={100}
+                  height={100}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <BookImage className="w-8 h-8 text-slate-400" />
+              )
+            ) : menu.logo ? ( // Si menuId tiene un valor, mostrar logo del menú cargado
               <Image
-                src={logoPreview}
+                src={menu.logo}
                 alt="Logo preview"
                 width={100}
                 height={100}
@@ -240,16 +286,14 @@ const MenuInfoPage = ({
         </div>
         {/* Botón Editar */}
         <InfoDialog
-          menuId={menuId}
-          defaultTitle={title}
-          defaultPos={pos}
-          defaultLogo={logo}
-          defaultBackground={background}
-          onUpdated={onUpdated}
-          onSubmit={(data) => {
-            // acá enviás al padre
-            onImagesSubmit?.(data);
-          }}
+          menuId={menu.id}
+          menuTitle={menu.title}
+          menuPos={menu.pos}
+          menuLogo={menu.logo}
+          menuBackground={menu.backgroundImage}
+          menuPrimary={menu.color?.primary}
+          menuSecondary={menu.color?.secondary}
+          onUpdated={handleMenuUpdated}
           trigger={
             <Button className="w-full mt-3 bg-orange-500 text-white py-6 rounded-xl">
               Editar

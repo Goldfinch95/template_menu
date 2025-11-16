@@ -348,13 +348,6 @@ const MenuEditorContent = () => {
           {/*Sección de imagenes del menú*/}
           <MenuInfo
             menuId={menu.id}
-            title={menu.title}
-            pos={menu.pos}
-            logo={menu.logo}
-            background={menu.backgroundImage}
-            primary={menu.color?.primary}
-            secondary={menu.color?.secondary}
-            onUpdated={() => setRefresh(prev => !prev)}
           />
 
           {/*Información básica */}
