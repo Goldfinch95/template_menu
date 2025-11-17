@@ -5,13 +5,14 @@ import {
   newCategory,
   newMenu,
 } from "@/interfaces/menu";
+import { promises } from "dns";
 
 const BASE_URL = "http://localhost:3000/api/menus";
 const CATEGORIES_BASE_URL = "http://localhost:3000/api/categories";
 const ITEM_BASE_URL = "http://localhost:3000/api/items";
 const TENANT_HEADER = { "x-tenant-subdomain": "amax" };
 
-// --- 🔹 Obtener todos los menús (para Home)
+// Obtener todos los menús
 export const getMenus = async (): Promise<Menu[]> => {
   try {
     const response = await fetch(BASE_URL, {
@@ -20,7 +21,7 @@ export const getMenus = async (): Promise<Menu[]> => {
         "Content-Type": "application/json",
         ...TENANT_HEADER,
       },
-      cache: "no-store", // evita que Next.js lo cachee
+      cache: "no-store",
     });
 
     if (!response.ok) {
@@ -39,7 +40,9 @@ export const getMenus = async (): Promise<Menu[]> => {
   }
 };
 
-// --- 🔹 Obtener un menú específico (menuEditor)
+//CRUD MENÚ
+
+// Obtener un menú específico
 export const getMenu = async (id: string | number): Promise<Menu> => {
   try {
     const response = await fetch(`${BASE_URL}/${id}`, {
@@ -59,7 +62,7 @@ export const getMenu = async (id: string | number): Promise<Menu> => {
   }
 };
 
-/// 🔹 Crear un nuevo menú (menuEditor)
+/// Crear un NUEVO menú
 export const createMenu = async (data: newMenu): Promise<Menu> => {
   try {
     const formData = new FormData();
@@ -111,7 +114,7 @@ export const createMenu = async (data: newMenu): Promise<Menu> => {
   }
 };
 
-// --- 🔹 Actualizar un menú existente
+// ACTUALIZAR menú
 export const updateMenu = async (
   id: string | number,
   data: Partial<Menu>
@@ -169,7 +172,7 @@ export const updateMenu = async (
   }
 };
 
-// --- 🔹 Eliminar un menú
+// ELIMINAR menú
 export const deleteMenu = async (id: string | number): Promise<void> => {
   try {
     const response = await fetch(`${BASE_URL}/${id}`, {
@@ -182,55 +185,48 @@ export const deleteMenu = async (id: string | number): Promise<void> => {
 
     if (!response.ok) throw new Error(`Error al eliminar menú ${id}`);
 
-    console.log(`✅ Menú ${id} eliminado correctamente.`);
+    //console.log(` Menú ${id} eliminado correctamente.`);
   } catch (error) {
     console.error("❌ Error al eliminar menú:", error);
     throw error;
   }
 };
 
-// --- 🔹 CATEGORÍAS
+// CRUD categorias
 
 // Crear una nueva categoría
-export const createCategory = async (categoryData) => {
-  const formData = new FormData();
-
-  formData.append("title", categoryData.title);
-  formData.append("menuId", categoryData.menuId);
-
-  categoryData.items.forEach((item, itemIndex) => {
-    formData.append(`items[${itemIndex}][title]`, item.title);
-    formData.append(`items[${itemIndex}][description]`, item.description || "");
-    formData.append(`items[${itemIndex}][price]`, item.price || 0);
-
-    item.images?.forEach((img, imgIndex) => {
-      if (img instanceof File) {
-        const fileField = `item_${itemIndex}_img_${imgIndex}`;
-        // 🔹 asociamos el fileField en JSON
-        formData.append(`items[${itemIndex}][images][${imgIndex}][fileField]`, fileField);
-        // 🔹 y subimos el archivo con ese nombre
-        formData.append(fileField, img);
-      } else if (typeof img === "object" && img.url) {
-        // 🔹 imagen ya existente
-        formData.append(`items[${itemIndex}][images][${imgIndex}][url]`, img.url);
-      }
+export const createCategory = async (
+  data: newCategory
+): Promise<Categories> => {
+  try {
+    const response = await fetch(CATEGORIES_BASE_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...TENANT_HEADER,
+      },
+      body: JSON.stringify({
+        menuId: data.menuId,
+        title: data.title,
+      }),
     });
-  });
 
-  console.groupCollapsed(`📦 Enviando categoría "${categoryData.title}"`);
-  for (let [key, val] of formData.entries()) {
-    console.log(key, val instanceof File ? `File(${val.name})` : val);
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(
+        `Error al crear categoría: ${response.status} - ${errorText}`
+      );
+    }
+
+    const newCategory: Categories = await response.json();
+    console.log("✅ Categoría creada correctamente");
+    return newCategory;
+  } catch (error) {
+    console.error("❌ Error al crear categoría:", error);
+    throw error;
   }
-  console.groupEnd();
-
-  const res = await fetch("/api/categories", {
-    method: "POST",
-    headers: TENANT_HEADER, // 👈 agregado
-    body: formData,
-  });
-
-  return await res.json();
 };
+
 // Editar una categoria
 export const updateCategory = async (
   categoryId: number,
@@ -248,7 +244,10 @@ export const updateCategory = async (
     if (categoryData.items) {
       categoryData.items.forEach((item, itemIndex) => {
         formData.append(`items[${itemIndex}][title]`, item.title);
-        formData.append(`items[${itemIndex}][description]`, item.description || "");
+        formData.append(
+          `items[${itemIndex}][description]`,
+          item.description || ""
+        );
         formData.append(`items[${itemIndex}][price]`, String(item.price || 0));
 
         // Si el item tiene un ID, incluirlo para que el backend sepa que es un item existente
@@ -260,15 +259,24 @@ export const updateCategory = async (
           if (img instanceof File) {
             const fileField = `item_${itemIndex}_img_${imgIndex}`;
             // 🔹 asociamos el fileField en JSON
-            formData.append(`items[${itemIndex}][images][${imgIndex}][fileField]`, fileField);
+            formData.append(
+              `items[${itemIndex}][images][${imgIndex}][fileField]`,
+              fileField
+            );
             // 🔹 y subimos el archivo con ese nombre
             formData.append(fileField, img);
           } else if (typeof img === "object" && img.url) {
             // 🔹 imagen ya existente
-            formData.append(`items[${itemIndex}][images][${imgIndex}][url]`, img.url);
+            formData.append(
+              `items[${itemIndex}][images][${imgIndex}][url]`,
+              img.url
+            );
             // Si la imagen tiene id, incluirlo
             if (img.id) {
-              formData.append(`items[${itemIndex}][images][${imgIndex}][id]`, String(img.id));
+              formData.append(
+                `items[${itemIndex}][images][${imgIndex}][id]`,
+                String(img.id)
+              );
             }
           }
         });

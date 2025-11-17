@@ -76,7 +76,6 @@ export interface newMenu {
 export interface newCategory {
   menuId: number;
   title: string;
-  items?: newItem[];
 }
 
 // nuevo item

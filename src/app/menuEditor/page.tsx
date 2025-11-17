@@ -13,6 +13,7 @@ import { deleteMenu, getMenu } from "@/common/utils/api";
 //subcomponetes
 import NavbarEditor from "@/app/menuEditor/components/NavbarEditor";
 import MenuInfo from "./components/menuInfo/page";
+import MenuCatPage from "./components/menuCat/page";
 import CategoryEditor from "./components/CategoryEditor";
 import FloatingActions from "./components/FloatingActions";
 
@@ -46,16 +47,9 @@ const MenuEditorContent = () => {
   const searchParams = useSearchParams();
   // estado para el router
   const router = useRouter();
-//estado de recarga
-  const [refresh, setRefresh] = useState(false);
-
-  useEffect(() => {
-  console.log("♻ REFRESH ACTIVADO");
-}, [refresh]);
 
   //cargar menú existente si hay id en los parámetros
   useEffect(() => {
-    console.log("🔄 REFRESH cambió →", refresh);
     const menuId = searchParams.get("id");
     if (!menuId) return;
 
@@ -68,7 +62,7 @@ const MenuEditorContent = () => {
       }
     };
     loadMenu();
-  }, [searchParams, refresh]);
+  }, [searchParams]);
 
   // 🆕 Función para combinar datos del menú para la vista previa
   const getPreviewData = useMemo(() => {
@@ -343,10 +337,8 @@ const MenuEditorContent = () => {
       >
         <div className="space-y-8">
           {/*Sección de imagenes del menú*/}
-          <MenuInfo
-            menuId={menu.id}
-          />
-          <div className="py-1"></div>
+          <MenuInfo menuId={menu.id} />
+          <MenuCatPage menuId={menu.id} />
           <CategoryEditor
             onCategoriesChange={receiveRestaurantCategories}
             onEditCategory={receiveEditedCategory}

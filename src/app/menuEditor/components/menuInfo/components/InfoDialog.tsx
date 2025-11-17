@@ -36,8 +36,8 @@ interface InfoDialogProps {
   menuBackground?: string;
   menuPrimary?: string;
   menuSecondary?: string;
-  onCreated?: (newMenuId: number) => void;  // 🔥 Para cuando se crea
-  onUpdated?: (menuId: number) => void; 
+  onCreated?: (newMenuId: number) => void; // 🔥 Para cuando se crea
+  onUpdated?: (menuId: number) => void;
 }
 
 const InfoDialog = ({
@@ -79,8 +79,6 @@ const InfoDialog = ({
   // estado de color SELECCIONADO
   const [color, setColor] = useState(primaryColor);
 
-  
-
   //Agrega refs para el alerta
   const alertRef = useRef<HTMLDivElement>(null);
 
@@ -97,7 +95,14 @@ const InfoDialog = ({
     setPrimaryColor(menuPrimary || "#d4d4d4");
     setSecondaryColor(menuSecondary || "#262626");
     setColor(menuPrimary || "#d4d4d4");
-  }, [menuTitle, menuPos, menuLogo, menuBackground, menuPrimary, menuSecondary]);
+  }, [
+    menuTitle,
+    menuPos,
+    menuLogo,
+    menuBackground,
+    menuPrimary,
+    menuSecondary,
+  ]);
 
   // Desplazarse a la alerta cuando se establece un mensaje de error
   useEffect(() => {
@@ -209,7 +214,7 @@ const InfoDialog = ({
 
   //subir los datos al back
   const handleSubmit = async () => {
-    console.log("🧪 menuId recibido:", menuId);
+    //console.log("🧪 menuId recibido:", menuId);
     const isValid = validateFields();
     // Si la validación falla, no continuamos con el submit
     if (!isValid) return;
@@ -217,8 +222,8 @@ const InfoDialog = ({
       // si es un menu nuevo
       if (!menuId) {
         const payload: newMenu = {
-          title: title.trim(),
-          pos: pos.trim(),
+          title: title,
+          pos: pos,
           userId: 1,
           logo: logoFile ?? null,
           backgroundImage: backgroundFile ?? null,
@@ -230,19 +235,19 @@ const InfoDialog = ({
         };
         //crear BD
         const createdMenu = await createMenu(payload);
-        console.log("✅ Menú creado:", createdMenu);
-        
+        //console.log("✅ Menú creado:", createdMenu);
+
         //notificar
         if (createdMenu && createdMenu.id) {
-         console.log("🔄 Notificando al padre con el nuevo ID:", createdMenu.id);
+          //console.log("🔄 Notificando al padre con el nuevo ID:", createdMenu.id);
           onCreated?.(createdMenu.id); // Pasamos el nuevo `menuId` al padre
         }
       }
       // editar un menu
       else {
         const payload: Partial<Menu> = {
-          title: title.trim(),
-          pos: pos.trim(),
+          title: title,
+          pos: pos,
           color: {
             primary: primaryColor,
             secondary: secondaryColor,
@@ -257,10 +262,10 @@ const InfoDialog = ({
         if (backgroundFile) payload.backgroundImage = backgroundFile;
         else payload.backgroundImage = menuBackground ?? "";
 
-        console.log("📤 Enviando actualización:", payload);
+        //console.log("📤 Enviando actualización:", payload);
         //editar BD
         const updated = await updateMenu(menuId, payload);
-        console.log("✅ Menú actualizado:", updated);
+        //console.log("✅ Menú actualizado:", updated);
         //notificar
         onUpdated?.(menuId);
       }

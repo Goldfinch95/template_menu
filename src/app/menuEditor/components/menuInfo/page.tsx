@@ -33,7 +33,8 @@ const MenuInfoPage = ({ menuId }: InfoEditorProps) => {
 
   // 🔥 Función para cargar/recargar el menú desde la API
   const fetchMenuData = useCallback(async (id?: number) => {
-    console.log("📥 Intentando cargar menu con ID:", id);
+
+    //console.log("📥 Intentando cargar menu con ID:", id);
 
     //si no hay menu
     if (!id) {
@@ -49,7 +50,7 @@ const MenuInfoPage = ({ menuId }: InfoEditorProps) => {
         getMenu(id),
         new Promise((resolve) => setTimeout(resolve, 2000)), // Delay de 2 segundos
       ]);
-      console.log("📥 Menú cargado:", menuData);
+      //console.log("📥 Menú cargado:", menuData);
       setMenu(menuData);
       setIsEmpty(false);
     } catch (error) {
@@ -61,7 +62,7 @@ const MenuInfoPage = ({ menuId }: InfoEditorProps) => {
 
   // Llamada inicial a la API para obtener el menú
   useEffect(() => {
-    console.log("🔍 Menu ID recibido:", menuId);
+    //console.log("🔍 Menu ID recibido:", menuId);
     setCurrentMenuId(menuId);
     fetchMenuData(menuId);
   }, [menuId, fetchMenuData]);
@@ -69,14 +70,14 @@ const MenuInfoPage = ({ menuId }: InfoEditorProps) => {
   //Crea el menu y lo actualiza
 
   const handleMenuCreated = (newId: number) => {
-    console.log("🎉 Menú creado con ID:", newId);
+    //console.log("🎉 Menú creado con ID:", newId);
     setCurrentMenuId(newId);
     fetchMenuData(newId);
   };
 
   // 🎯 Función que se pasa al hijo para que notifique cambios
   const handleMenuUpdated = () => {
-    console.log("🔄 Menú actualizado, recargando...");
+    //console.log("🔄 Menú actualizado, recargando...");
     fetchMenuData(currentMenuId); // Vuelve a hacer la petición GET
   };
 
