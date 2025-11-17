@@ -77,8 +77,7 @@ const InfoDialog = ({
   // estado de color SELECCIONADO
   const [color, setColor] = useState(primaryColor);
 
-  //
-  const [open, setOpen] = useState(true);
+  
 
   //
   const alertRef = useRef<HTMLDivElement>(null);
