@@ -160,28 +160,38 @@ const InfoDialog = ({
   };
 
   //VALIDACION DE DATOS
+  // VALIDACIÓN DE DATOS (acumulativa)
   const validateFields = () => {
+    const errors: string[] = [];
+
     if (title.trim().length <= 3) {
-      setAlertMessage("El título debe tener más de 3 caracteres.");
-      return false;
+      errors.push("• El título debe tener más de 3 caracteres.");
     }
-    if (!logoFile) {
-      setAlertMessage("El logo es obligatorio y debe ser una imagen.");
-      return false;
+
+    if (!logoFile && !menuLogo) {
+      errors.push("• El logo es obligatorio.");
     }
-    if (!backgroundFile) {
-      setAlertMessage("El fondo es obligatorio y debe ser una imagen.");
-      return false;
+
+    if (!backgroundFile && !menuLogo) {
+      errors.push("• El fondo es obligatorio.");
     }
+
     if (!/^#[0-9A-Fa-f]{6}$/.test(primaryColor)) {
-      setAlertMessage("El color primario debe ser un código HEX válido.");
-      return false;
+      errors.push("• El color primario debe ser un código HEX válido.");
     }
+
     if (!/^#[0-9A-Fa-f]{6}$/.test(secondaryColor)) {
-      setAlertMessage("El color secundario debe ser un código HEX válido.");
+      errors.push("• El color secundario debe ser un código HEX válido.");
+    }
+
+    // Si hay errores → mostrarlos
+    if (errors.length > 0) {
+      setAlertMessage(errors.join("\n")); // <-- convierte array a texto con saltos de línea
       return false;
     }
-    setAlertMessage(null); // Si pasa todas las validaciones, limpiamos el mensaje
+
+    // Si pasa todas las validaciones → limpiar alerta
+    setAlertMessage(null);
     return true;
   };
 
@@ -274,13 +284,16 @@ const InfoDialog = ({
           {alertMessage && (
             <Alert
               ref={alertRef}
-              className="mb-4 bg-red-100 border border-red-400 text-red-700 p-4 rounded-md flex items-center"
+              className="mb-4 bg-red-100 border border-red-400 text-red-700 p-4 rounded-md flex items-start gap-3"
             >
-              <div className="mr-3">
-                <X className="w-6 h-6" />
+              {/* Icono */}
+              <X className="w-6 h-6" />
+              <div className="font-semibold">
+                <AlertTitle>Error:</AlertTitle>
+                <AlertDescription className="whitespace-pre-line mt-1">
+                  {alertMessage}
+                </AlertDescription>
               </div>
-              <AlertTitle>Error:</AlertTitle>
-              <AlertDescription>{alertMessage}</AlertDescription>
             </Alert>
           )}
           {/* Título */}
@@ -329,7 +342,11 @@ const InfoDialog = ({
             <div className="flex flex-col justify-center items-center">
               <Label
                 htmlFor="logoInput"
-                className="w-24 h-24 rounded-full bg-slate-100 border border-slate-300 flex items-center justify-center overflow-hidden cursor-pointer hover:ring-2 hover:ring-orange-400 transition-all"
+                className={`w-24 h-24 rounded-full bg-slate-100 flex items-center justify-center overflow-hidden cursor-pointer hover:ring-2 hover:ring-orange-400 transition-all ${
+                  logoPreview
+                    ? "border-none"
+                    : "border-2 border-dashed border-slate-300"
+                }`}
               >
                 {logoPreview ? (
                   <Image
@@ -363,7 +380,11 @@ const InfoDialog = ({
 
             <Label
               htmlFor="backgroundInput"
-              className="w-full h-32 bg-slate-100 border border-slate-300 rounded-xl flex items-center justify-center overflow-hidden cursor-pointer hover:ring-2 hover:ring-orange-400 transition-all"
+              className={`w-full h-32 bg-slate-100 rounded-xl flex items-center justify-center overflow-hidden cursor-pointer hover:ring-2 hover:ring-orange-400 transition-all ${
+                backgroundPreview
+                  ? "border-none"
+                  : "border-2 border-dashed border-slate-300"
+              }`}
             >
               {backgroundPreview ? (
                 <Image

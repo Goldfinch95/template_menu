@@ -13,8 +13,6 @@ import { deleteMenu, getMenu } from "@/common/utils/api";
 //subcomponetes
 import NavbarEditor from "@/app/menuEditor/components/NavbarEditor";
 import MenuInfo from "./components/menuInfo/page";
-import InfoEditor from "./components/InfoEditor";
-import ColorEditor from "./components/ColorEditor";
 import CategoryEditor from "./components/CategoryEditor";
 import FloatingActions from "./components/FloatingActions";
 
@@ -344,23 +342,9 @@ const MenuEditorContent = () => {
         "
       >
         <div className="space-y-8">
-          {/* AQUI DEBE IR UNA ALERTA DE ERROR EN CASO DE QUE EL FORMULARIO NO ESTE COMPLETO /*}
           {/*Sección de imagenes del menú*/}
           <MenuInfo
             menuId={menu.id}
-          />
-
-          {/*Información básica */}
-          <InfoEditor
-            title={menu.title}
-            pos={menu.pos}
-            onInfoSubmit={reciveRestaurantInformation}
-          />
-          {/* Colores */}
-          <ColorEditor
-            primary={menu.color?.primary}
-            secondary={menu.color?.secondary}
-            onColorsChange={reciveRestaurantColors}
           />
           <div className="py-1"></div>
           <CategoryEditor
