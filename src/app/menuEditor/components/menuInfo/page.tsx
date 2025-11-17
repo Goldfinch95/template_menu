@@ -36,25 +36,26 @@ interface InfoEditorProps {
 }
 
 const MenuInfoPage = ({ menuId }: InfoEditorProps) => {
+  // estado del menuId seleccionado
+  const [currentMenuId, setCurrentMenuId] = useState<number | undefined>(
+    menuId
+  );
   // estado para el menú
   const [menu, setMenu] = useState<Menu>({} as Menu);
-  // estado para el preview de logo
-  const [logoPreview, setLogoPreview] = useState<string | null>(null);
-  // estado de carga del logo
-  const [loadingLogo, setLoadingLogo] = useState(false);
   // estado de carga
   const [loading, setLoading] = useState(true);
   // estado para determinar si es un menú vacío (nuevo)
   const [isEmpty, setIsEmpty] = useState<boolean>(false);
 
-  const [newMenuTitle, setNewMenuTitle] = useState<string>(""); // Título del nuevo menú
-  const [newMenuLogo, setNewMenuLogo] = useState<string>("");
+  /*const [newMenuTitle, setNewMenuTitle] = useState<string>(""); // Título del nuevo menú
+  const [newMenuLogo, setNewMenuLogo] = useState<string>("");*/
 
   // 🔥 Función para cargar/recargar el menú desde la API
-  const fetchMenuData = useCallback(async () => {
-    console.log("el menu es", menuId);
+  const fetchMenuData = useCallback(async (id?: number) => {
+    console.log("📥 Intentando cargar menu con ID:", id);
+
     //si no hay menu
-    if (!menuId) {
+    if (!id) {
       setIsEmpty(true);
       setLoading(false);
       return;
@@ -64,7 +65,7 @@ const MenuInfoPage = ({ menuId }: InfoEditorProps) => {
     //si hay menu
     try {
       const [menuData] = await Promise.all([
-        getMenu(menuId),
+        getMenu(id),
         new Promise((resolve) => setTimeout(resolve, 2000)), // Delay de 2 segundos
       ]);
       console.log("📥 Menú cargado:", menuData);
@@ -75,25 +76,27 @@ const MenuInfoPage = ({ menuId }: InfoEditorProps) => {
     } finally {
       setLoading(false);
     }
-  }, [menuId]);
+  }, []);
 
   // Llamada inicial a la API para obtener el menú
   useEffect(() => {
     console.log("🔍 Menu ID recibido:", menuId);
-    fetchMenuData();
+    setCurrentMenuId(menuId);
+    fetchMenuData(menuId);
   }, [menuId, fetchMenuData]);
 
-  const handleMenuCreated = (menuTitle: string, menuLogo: string) => {
-    console.log(menuTitle);
-    setNewMenuTitle(menuTitle);
-    setNewMenuLogo(menuLogo);
-    setIsEmpty(false);
+  //Crea el menu y lo actualiza
+
+  const handleMenuCreated = (newId: number) => {
+    console.log("🎉 Menú creado con ID:", newId);
+    setCurrentMenuId(newId);
+    fetchMenuData(newId);
   };
 
   // 🎯 Función que se pasa al hijo para que notifique cambios
   const handleMenuUpdated = () => {
-    console.log("🔄 Hijo notificó cambios, recargando menú...");
-    fetchMenuData(); // Vuelve a hacer la petición GET
+    console.log("🔄 Menú actualizado, recargando...");
+    fetchMenuData(currentMenuId); // Vuelve a hacer la petición GET
   };
 
   if (loading) {
@@ -205,14 +208,8 @@ const MenuInfoPage = ({ menuId }: InfoEditorProps) => {
             </p>
 
             <InfoDialog
-              menuId={menu.id}
-              menuTitle={menu.title}
-              menuPos={menu.pos}
-              menuLogo={menu.logo}
-              menuBackground={menu.backgroundImage}
-              menuPrimary={menu.color?.primary}
-              menuSecondary={menu.color?.secondary}
-              onUpdated={handleMenuCreated}
+              menuId={currentMenuId}
+              onCreated={handleMenuCreated}
               trigger={
                 <Button className="w-full mt-3 bg-orange-500 text-white py-6 rounded-xl">
                   Editar
@@ -241,37 +238,22 @@ const MenuInfoPage = ({ menuId }: InfoEditorProps) => {
             Información del menú
           </p>
           <h2 className="text-2xl font-bold text-slate-800 tracking-tight">
-            {menuId === undefined ? newMenuTitle : menu.title}
+            {menu.title}
           </h2>
         </div>
 
         {/* Logo */}
         <div className="flex flex-col items-center space-y-4 mb-3">
-          <Label
-            htmlFor="logo"
+          <div
             className={`w-32 h-32 rounded-full overflow-hidden flex items-center justify-center 
-  cursor-pointer transition-all duration-300 transform hover:scale-105
-  ${
-    menu.logo || isEmpty
-      ? "ring-4 ring-slate-200 shadow-xl"
-      : "border-4 border-dashed border-slate-300 bg-slate-50 shadow-lg"
-  }`}
+              transition-all duration-300 transform
+              ${
+                menu.logo
+                  ? "ring-4 ring-slate-200 shadow-xl"
+                  : "border-4 border-dashed border-slate-300 bg-slate-50 shadow-lg"
+              }`}
           >
-            {loading ? (
-              <Spinner className="w-8 h-8 text-orange-500" />
-            ) : menuId === undefined ? ( // Verificar si menuId es undefined
-              newMenuLogo ? (
-                <Image
-                  src={newMenuLogo}
-                  alt="Logo preview"
-                  width={100}
-                  height={100}
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <BookImage className="w-8 h-8 text-slate-400" />
-              )
-            ) : menu.logo ? ( // Si menuId tiene un valor, mostrar logo del menú cargado
+            {menu.logo ? (
               <Image
                 src={menu.logo}
                 alt="Logo preview"
@@ -282,11 +264,11 @@ const MenuInfoPage = ({ menuId }: InfoEditorProps) => {
             ) : (
               <BookImage className="w-8 h-8 text-slate-400" />
             )}
-          </Label>
+          </div>
         </div>
         {/* Botón Editar */}
         <InfoDialog
-          menuId={menu.id}
+          menuId={currentMenuId}
           menuTitle={menu.title}
           menuPos={menu.pos}
           menuLogo={menu.logo}

@@ -36,7 +36,8 @@ interface InfoDialogProps {
   menuBackground?: string;
   menuPrimary?: string;
   menuSecondary?: string;
-  onUpdated?: (menuTitle: string, menuLogo: string) => void;
+  onCreated?: (newMenuId: number) => void;  // 🔥 Para cuando se crea
+  onUpdated?: (menuId: number) => void; 
 }
 
 const InfoDialog = ({
@@ -48,6 +49,7 @@ const InfoDialog = ({
   menuBackground,
   menuPrimary,
   menuSecondary,
+  onCreated,
   onUpdated,
 }: InfoDialogProps) => {
   //estados para el titulo,direccion
@@ -79,12 +81,23 @@ const InfoDialog = ({
 
   
 
-  //
+  //Agrega refs para el alerta
   const alertRef = useRef<HTMLDivElement>(null);
 
   // Agregar refs para los inputs
   const primaryInputRef = useRef<HTMLInputElement>(null);
   const secondaryInputRef = useRef<HTMLInputElement>(null);
+
+  // 🔥 CAMBIO 2: Actualizar los estados cuando cambien las props
+  useEffect(() => {
+    setTitle(menuTitle);
+    setPos(menuPos);
+    setLogoPreview(menuLogo || null);
+    setBackgroundPreview(menuBackground || null);
+    setPrimaryColor(menuPrimary || "#d4d4d4");
+    setSecondaryColor(menuSecondary || "#262626");
+    setColor(menuPrimary || "#d4d4d4");
+  }, [menuTitle, menuPos, menuLogo, menuBackground, menuPrimary, menuSecondary]);
 
   // Desplazarse a la alerta cuando se establece un mensaje de error
   useEffect(() => {
@@ -163,7 +176,7 @@ const InfoDialog = ({
   const validateFields = () => {
     const errors: string[] = [];
 
-    if (title.trim().length <= 3) {
+    if (title.trim().length < 3) {
       errors.push("• El título debe tener más de 3 caracteres.");
     }
 
@@ -198,10 +211,8 @@ const InfoDialog = ({
   const handleSubmit = async () => {
     console.log("🧪 menuId recibido:", menuId);
     const isValid = validateFields();
-    if (!isValid) {
-      // Si la validación falla, no continuamos con el submit
-      return;
-    }
+    // Si la validación falla, no continuamos con el submit
+    if (!isValid) return;
     try {
       // si es un menu nuevo
       if (!menuId) {
@@ -220,16 +231,13 @@ const InfoDialog = ({
         //crear BD
         const createdMenu = await createMenu(payload);
         console.log("✅ Menú creado:", createdMenu);
-        console.log(createdMenu.id);
+        
         //notificar
         if (createdMenu && createdMenu.id) {
-          console.log("🔄 Enviando el ID del menú creado al padre...");
-          onUpdated?.(createdMenu.title, createdMenu.logo || ""); // Pasamos el nuevo `menuId` al padre
+         console.log("🔄 Notificando al padre con el nuevo ID:", createdMenu.id);
+          onCreated?.(createdMenu.id); // Pasamos el nuevo `menuId` al padre
         }
-
-        return;
       }
-
       // editar un menu
       else {
         const payload: Partial<Menu> = {
@@ -254,9 +262,8 @@ const InfoDialog = ({
         const updated = await updateMenu(menuId, payload);
         console.log("✅ Menú actualizado:", updated);
         //notificar
-        onUpdated?.(updated.id);
+        onUpdated?.(menuId);
       }
-      setOpen(false);
     } catch (error) {
       console.error("❌ Error al guardar:", error);
     }
