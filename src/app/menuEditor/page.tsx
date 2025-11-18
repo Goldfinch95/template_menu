@@ -49,20 +49,24 @@ const MenuEditorContent = () => {
   const router = useRouter();
 
   //cargar menú existente si hay id en los parámetros
-  useEffect(() => {
-    const menuId = searchParams.get("id");
-    if (!menuId) return;
+  const fetchMenuData = useCallback(async (menuId: string) => {
+        try {
+            const menuData = await getMenu(menuId);
+            setMenu(menuData);
+            console.log("✅ Menú y categorías cargadas:", menuData.categories.length);
+        } catch (error) {
+            console.error("❌ Error al cargar el menú:", error);
+        }
+    }, []); // Dependencias vacías, ya que menuId viene del useEffect.
 
-    const loadMenu = async () => {
-      try {
-        const menuData = await getMenu(menuId);
-        setMenu(menuData);
-      } catch (error) {
-        console.error("❌ Error al cargar el menú:", error);
-      }
-    };
-    loadMenu();
-  }, [searchParams]);
+    // Cargar menú existente si hay id en los parámetros
+    useEffect(() => {
+        const menuId = searchParams.get("id");
+        if (!menuId) return;
+
+        // Llamamos a la función de carga
+        fetchMenuData(menuId);
+    }, [searchParams, fetchMenuData]);
 
   // 🆕 Función para combinar datos del menú para la vista previa
   const getPreviewData = useMemo(() => {
@@ -338,14 +342,14 @@ const MenuEditorContent = () => {
         <div className="space-y-8">
           {/*Sección de imagenes del menú*/}
           <MenuInfo menuId={menu.id} />
-          <MenuCatPage menuId={menu.id} />
-          <CategoryEditor
+          <MenuCatPage menuId={menu.id} menuCategories={menu.categories} onCategoryChange={() => fetchMenuData(String(menu.id))} />
+          {/*<CategoryEditor
             onCategoriesChange={receiveRestaurantCategories}
             onEditCategory={receiveEditedCategory}
             onDeleteCategory={receiveCategoryForDelete}
             categoriesToDelete={categoriesToDelete}
             categories={menu.categories}
-          />
+          />*/}
 
           {/* Eliminar menu */}
           <button
@@ -359,7 +363,7 @@ const MenuEditorContent = () => {
       </motion.section>
 
       {/* Botones flotantes */}
-      <FloatingActions
+      {/*<FloatingActions
         menu={menu}
         newMenu={newMenu}
         newCategory={newCategory}
@@ -367,7 +371,7 @@ const MenuEditorContent = () => {
         categoriesToDelete={categoriesToDelete}
         onDeleteComplete={clearCategoriesToDelete}
         onPreviewClick={handlePreviewClick}
-      />
+      />*/}
 
       {/* Modal de Preview */}
       {showPreview && (

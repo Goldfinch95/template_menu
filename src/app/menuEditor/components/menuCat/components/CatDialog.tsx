@@ -25,9 +25,10 @@ import { createCategory } from "@/common/utils/api";
 interface CatDialogProps {
   trigger?: React.ReactNode;
   menuId?: number;
+  onCategoryCreated?: () => void;
 }
 
-const CatDialog = ({ trigger, menuId }: CatDialogProps) => {
+const CatDialog = ({ trigger, menuId, onCategoryCreated }: CatDialogProps) => {
   // Estado para almacenar el título de la categoría
   const [title, setTitle] = useState("");
   //estado de alerta
@@ -35,8 +36,8 @@ const CatDialog = ({ trigger, menuId }: CatDialogProps) => {
   // Estado para controlar la apertura/cierre del Dialog
   const [isOpen, setIsOpen] = useState(false);
 
-   //Agrega ref para el alerta
-    const alertRef = useRef<HTMLDivElement>(null);
+  //Agrega ref para el alerta
+  const alertRef = useRef<HTMLDivElement>(null);
 
   // VALIDACIÓN DE DATOS (acumulativa)
   const validateFields = () => {
@@ -73,6 +74,9 @@ const CatDialog = ({ trigger, menuId }: CatDialogProps) => {
       //console.log("categoria creada,reiniciando input")
       if (response) {
         setTitle("");
+        if (onCategoryCreated) {
+          onCategoryCreated();
+        }
         setIsOpen(false); // Limpiar el campo
       }
     } catch (error) {
@@ -125,14 +129,12 @@ const CatDialog = ({ trigger, menuId }: CatDialogProps) => {
           </div>
         </div>
         <DialogFooter>
-            <DialogClose>
-                <Button
+          <Button
             onClick={handleSave}
             className="bg-orange-500 hover:bg-orange-600"
           >
             Guardar
           </Button>
-            </DialogClose>
         </DialogFooter>
       </DialogContent>
     </Dialog>

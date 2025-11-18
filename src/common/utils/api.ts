@@ -319,19 +319,21 @@ export const deleteCategory = async (categoryId: number): Promise<void> => {
     const response = await fetch(`${CATEGORIES_BASE_URL}/${categoryId}`, {
       method: "DELETE",
       headers: {
+        "Content-Type": "application/json",
         ...TENANT_HEADER,
       },
     });
 
+    // El backend responde con 204 No Content en caso de éxito, lo cual es correcto.
     if (!response.ok) {
       const errorText = await response.text();
       throw new Error(
         `Error al eliminar categoría: ${response.status} - ${errorText}`
       );
     }
-
-    // Como el backend responde con 204 (No Content), no hay body que parsear
-    console.log("✅ Categoría eliminada correctamente");
+    
+    // Opcional: Log para confirmar en el front
+    console.log(`✅ Categoría ${categoryId} eliminada correctamente.`);
   } catch (error) {
     console.error("❌ Error al eliminar categoría:", error);
     throw error;
