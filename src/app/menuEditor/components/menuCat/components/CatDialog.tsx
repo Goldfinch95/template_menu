@@ -18,8 +18,7 @@ import {
 
 import { X } from "lucide-react";
 import { Button } from "@/common/components/ui/button";
-import { newCategory, Categories } from "@/interfaces/menu";
-import { number } from "framer-motion";
+import { newCategory } from "@/interfaces/menu";
 import { createCategory } from "@/common/utils/api";
 
 interface CatDialogProps {

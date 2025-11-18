@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { Card } from "@/common/components/ui/card";
 import { Button } from "@/common/components/ui/button";
-import { Plus, Edit2, Trash2, X } from "lucide-react";
+import { Plus, Edit2, Trash2 } from "lucide-react";
 import CatDialog from "./components/CatDialog";
 import { Categories } from "@/interfaces/menu";
 import { deleteCategory, updateCategory } from "@/common/utils/api";
