@@ -1,4 +1,6 @@
-import React, { useEffect, useState } from "react";
+"use client"
+
+import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { Card } from "@/common/components/ui/card";
 import { Button } from "@/common/components/ui/button";
@@ -18,18 +20,16 @@ const MenuCatPage = ({
   menuCategories,
   onCategoryChange,
 }: CatEditorProps) => {
+
   // Estado para manejar los títulos editables de todas las categorías
-  // Clave: categoryId, Valor: título actual del input
   const [categoryTitles, setCategoryTitles] = useState<Record<number, string>>(
     {}
   );
-  // Estado para manejar el "loading" de cada botón de edición
+
+  // Estado para manejar la carga
   const [savingId, setSavingId] = useState<number | null>(null);
 
-  // 1. Efecto para inicializar/actualizar los títulos
-  
-
-  // Función para manejar el cambio en el input (editable)
+  // Editar categoria local
   const handleTitleChange = (categoryId: number, newTitle: string) => {
     setCategoryTitles((prev) => ({
       ...prev,
@@ -37,7 +37,7 @@ const MenuCatPage = ({
     }));
   };
 
-  // Función para GUARDAR la edición (handleEditSave)
+  // GUARDAR edición de categoria
   const handleEditSave = async (categoryId: number) => {
     const newTitle = categoryTitles[categoryId];
 
@@ -53,10 +53,10 @@ const MenuCatPage = ({
     setSavingId(categoryId); // Activa el estado de carga para el botón
 
     try {
-      // 3. Llamar a la API de actualización (sin validaciones frontales, por ahora)
+      //  actualizar en la BD
       await updateCategory(categoryId, { title: newTitle });
 
-      // 4. Notificar al componente padre para que recargue el menú (refresco)
+      //  Notificar
       await onCategoryChange();
 
       console.log(`✅ Categoría ${categoryId} actualizada: ${newTitle}`);
@@ -68,10 +68,10 @@ const MenuCatPage = ({
     }
   };
 
-  // borrar categorias
+  // Borrar Categoria
   const handleDelete = async (categoryId: number) => {
     try {
-      // 1. Llamar a la API para borrar
+      // 1. borrar en la BD
       await deleteCategory(categoryId);
 
       // 2. Notificar
