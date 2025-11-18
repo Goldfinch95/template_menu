@@ -264,7 +264,7 @@ const InfoDialog = ({
 
         //console.log("📤 Enviando actualización:", payload);
         //editar BD
-        const updated = await updateMenu(menuId, payload);
+        await updateMenu(menuId, payload);
         //console.log("✅ Menú actualizado:", updated);
         //notificar
         onUpdated?.(menuId);
