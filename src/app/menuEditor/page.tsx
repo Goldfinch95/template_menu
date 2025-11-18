@@ -54,6 +54,7 @@ const MenuEditorContent = () => {
             const menuData = await getMenu(menuId);
             setMenu(menuData);
             console.log("✅ Menú y categorías cargadas:", menuData.categories.length);
+            
         } catch (error) {
             console.error("❌ Error al cargar el menú:", error);
         }
@@ -343,13 +344,13 @@ const MenuEditorContent = () => {
           {/*Sección de imagenes del menú*/}
           <MenuInfo menuId={menu.id} />
           <MenuCatPage menuId={menu.id} menuCategories={menu.categories} onCategoryChange={() => fetchMenuData(String(menu.id))} />
-          {/*<CategoryEditor
+          <CategoryEditor
             onCategoriesChange={receiveRestaurantCategories}
             onEditCategory={receiveEditedCategory}
             onDeleteCategory={receiveCategoryForDelete}
             categoriesToDelete={categoriesToDelete}
             categories={menu.categories}
-          />*/}
+          />
 
           {/* Eliminar menu */}
           <button

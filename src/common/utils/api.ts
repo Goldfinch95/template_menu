@@ -194,7 +194,7 @@ export const deleteMenu = async (id: string | number): Promise<void> => {
 
 // CRUD categorias
 
-// Crear una nueva categoría
+// CREAR una nueva categoría
 export const createCategory = async (
   data: newCategory
 ): Promise<Categories> => {
@@ -227,7 +227,7 @@ export const createCategory = async (
   }
 };
 
-// Editar una categoria
+// EDITAR una categoria
 export const updateCategory = async (
   categoryId: number,
   data: Partial<Categories> // Usamos Partial<Categories> para datos de actualización
@@ -258,7 +258,7 @@ export const updateCategory = async (
   }
 };
 
-// Eliminar una categoría
+// ELIMINAR una categoría
 export const deleteCategory = async (categoryId: number): Promise<void> => {
   try {
     const response = await fetch(`${CATEGORIES_BASE_URL}/${categoryId}`, {
@@ -285,26 +285,10 @@ export const deleteCategory = async (categoryId: number): Promise<void> => {
   }
 };
 
-// ITEMS
+// CRUD items
 
-// Eliminar un item
-export const deleteItem = async (itemId: number): Promise<void> => {
-  try {
-    const response = await fetch(`${ITEM_BASE_URL}/${itemId}`, {
-      method: "DELETE",
-      headers: {
-        ...TENANT_HEADER,
-      },
-    });
+//Crear un item
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(
-        `Error al eliminar item: ${response.status} - ${errorText}`
-      );
-    }
-  } catch (error) {
-    console.error("❌ Error al eliminar item:", error);
-    throw error;
-  }
-};
+
+
+
