@@ -79,7 +79,9 @@ const CatDialog = ({ trigger, menuId, onCategoryCreated }: CatDialogProps) => {
         setIsOpen(false); // Limpiar el campo
       }
     } catch (error) {
-      console.log("No se pudo crear la categoría");
+      console.error("❌ Error al crear la categoría:", error); // 👈 ¡Usamos la variable 'error'!
+      // Opcional: Mostrar un mensaje más amigable al usuario
+      setAlertMessage("No se pudo crear la categoría. Inténtalo de nuevo.");
     }
   };
 
