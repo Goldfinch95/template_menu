@@ -300,20 +300,18 @@ const MenuCatPage = ({
 
                       <div className="pt-4 mt-4 border-t border-slate-300">
                         <ItemDialog
-                                  categoryId={category.id}
-                                  
-                                  onItemSaved={onCategoryChange} // para refrescar al guardar
-                                  trigger={
-                                    <Button
-                                      size="sm"
-                                      variant="outline"
-                                      className="w-full border-dashed border-slate-300 text-slate-500 hover:border-orange-400 hover:text-orange-500 rounded-xl py-5"
-                                    >
-                                      <Plus className="w-4 h-4 mr-2" /> Agregar plato
-                                    </Button>
-                                  }
-                                />
-                        
+                          categoryId={category.id}
+                          onItemSaved={onCategoryChange} // para refrescar al guardar
+                          trigger={
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="w-full border-dashed border-slate-300 text-slate-500 hover:border-orange-400 hover:text-orange-500 rounded-xl py-5"
+                            >
+                              <Plus className="w-4 h-4 mr-2" /> Agregar plato
+                            </Button>
+                          }
+                        />
                       </div>
                     </div>
                   </CollapsibleContent>

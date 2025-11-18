@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { Utensils, Pencil, Trash2, Plus, X, Upload } from "lucide-react";
-import { Items } from "@/interfaces/menu";
+import { Items, newItem } from "@/interfaces/menu";
 import {
   Dialog,
   DialogClose,
@@ -15,6 +15,7 @@ import {
 import { Input } from "@/common/components/ui/input";
 import { Label } from "@/common/components/ui/label";
 import { Button } from "@/common/components/ui/button";
+import { createItem } from "@/common/utils/api";
 
 interface ItemDialogProps {
   trigger: React.ReactNode;
@@ -29,6 +30,53 @@ const ItemDialog = ({
   categoryId,
   onItemSaved,
 }: ItemDialogProps) => {
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState<string>("");
+  const [price, setPrice] = useState<number | "">("");
+
+  const [images, setImages] = useState<File[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleSave = async () => {
+    setError(null);
+
+    if (!title.trim()) {
+      setError("El título es obligatorio");
+      return;
+    }
+    if (!price || isNaN(Number(price))) {
+      setError("El precio es obligatorio y debe ser un número");
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const payload: newItem = {
+        categoryId: categoryId,
+        title: title,
+        description: description,
+        price: Number(price),
+        images: images,
+      };
+
+      const createdItem = await createItem(payload);
+      console.log("✅ Item creado:", createdItem);
+      //notificar
+      /*if (createdItem && createdItem.id) {
+        //console.log("🔄 Notificando al padre con el nuevo ID:", createdMenu.id);
+        onItemSaved?.(createdMenu.id); // Pasamos el nuevo `menuId` al padre
+      }*/
+      // Cierra el dialog automáticamente (Shadcn)
+      document.querySelector<HTMLButtonElement>("[data-dialog-close]")?.click();
+    } catch (err: any) {
+      setError(err.message || "Error al guardar el ítem");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <Dialog>
       <DialogTrigger asChild>{trigger}</DialogTrigger>
@@ -42,9 +90,24 @@ const ItemDialog = ({
           </DialogTitle>
         </DialogHeader>
         <div className="space-y-4 mt-3">
-          <Input placeholder="Título del plato *" className="text-black" />
-          <Input placeholder="Descripción" className="text-black" />
-          <Input placeholder="Precio (ej: 1200.00)" className="text-black" />
+          <Input
+            placeholder="Título del plato"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            className="text-black"
+          />
+          <Input
+            placeholder="Descripción"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            className="text-black"
+          />
+          <Input
+            placeholder="Precio (ej: 1200.00)"
+            value={price}
+            onChange={(e) => setPrice(e.target.value)}
+            className="text-black"
+          />
         </div>
         <div className="relative w-full h-full group">
           <Input
@@ -52,20 +115,34 @@ const ItemDialog = ({
             accept="image/*"
             className="mt-4 hidden"
             id="image-upload-input"
+            onChange={(e) => {
+              const fileList = e.target.files;
+              if (fileList) setImages(Array.from(fileList));
+            }}
           />
           <Label
             htmlFor="image-upload-input"
-            className={`w-full h-64 rounded-2xl overflow-hidden 
-                                
-                                bg-slate-50 flex items-center justify-center cursor-pointer hover:border-orange-500 transition-all`}
-          ></Label>
+            className="w-full h-64 rounded-2xl overflow-hidden bg-slate-50 flex items-center justify-center cursor-pointer hover:border-orange-500 transition-all"
+          >
+            {images.length > 0 ? (
+              <span className="text-slate-600">
+                {images.length} imagen seleccionada
+              </span>
+            ) : (
+              <span className="text-slate-400">Subir imagen</span>
+            )}
+          </Label>
           <p className="text-base text-slate-400 mt-2">PNG, JPG hasta 10MB</p>
           <DialogFooter className="mt-5">
             <Button variant="outline" className="text-black">
               Cancelar
             </Button>
-            <Button className="bg-gradient-to-br from-orange-400 to-orange-500 text-white">
-              Guardar cambios
+            <Button
+              onClick={handleSave}
+              disabled={loading}
+              className="bg-gradient-to-br from-orange-400 to-orange-500 text-white"
+            >
+               {loading ? "Guardando..." : "Guardar cambios"}
             </Button>
           </DialogFooter>
         </div>
