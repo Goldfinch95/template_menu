@@ -1,11 +1,11 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Card } from "@/common/components/ui/card";
 import { Button } from "@/common/components/ui/button";
 import { Plus, Edit2, Trash2, X } from "lucide-react";
 import CatDialog from "./components/CatDialog";
 import { Categories } from "@/interfaces/menu";
-import { deleteCategory } from "@/common/utils/api";
+import { deleteCategory, updateCategory } from "@/common/utils/api";
 
 interface CatEditorProps {
   menuId: number;
@@ -13,10 +13,60 @@ interface CatEditorProps {
   onCategoryChange: () => Promise<void>;
 }
 
-const MenuCatPage = ({ menuId, menuCategories, onCategoryChange }: CatEditorProps) => {
-  useEffect(() => {
-    console.log("Categorías recibidas en MenuCatPage:", menuCategories);
-  }, [menuCategories]);
+const MenuCatPage = ({
+  menuId,
+  menuCategories,
+  onCategoryChange,
+}: CatEditorProps) => {
+  // Estado para manejar los títulos editables de todas las categorías
+  // Clave: categoryId, Valor: título actual del input
+  const [categoryTitles, setCategoryTitles] = useState<Record<number, string>>(
+    {}
+  );
+  // Estado para manejar el "loading" de cada botón de edición
+  const [savingId, setSavingId] = useState<number | null>(null);
+
+  // 1. Efecto para inicializar/actualizar los títulos
+  
+
+  // Función para manejar el cambio en el input (editable)
+  const handleTitleChange = (categoryId: number, newTitle: string) => {
+    setCategoryTitles((prev) => ({
+      ...prev,
+      [categoryId]: newTitle, // Actualiza solo el título de la categoría específica
+    }));
+  };
+
+  // Función para GUARDAR la edición (handleEditSave)
+  const handleEditSave = async (categoryId: number) => {
+    const newTitle = categoryTitles[categoryId];
+
+    // 1. Obtener el título original para la verificación (evitar llamadas innecesarias)
+    const originalCategory = menuCategories.find((c) => c.id === categoryId);
+
+    // 2. Comprobar si hay un cambio real
+    if (originalCategory && originalCategory.title === newTitle) {
+      console.log("No hay cambios para guardar en la categoría:", categoryId);
+      return; // No hace nada si el título es el mismo
+    }
+
+    setSavingId(categoryId); // Activa el estado de carga para el botón
+
+    try {
+      // 3. Llamar a la API de actualización (sin validaciones frontales, por ahora)
+      await updateCategory(categoryId, { title: newTitle });
+
+      // 4. Notificar al componente padre para que recargue el menú (refresco)
+      await onCategoryChange();
+
+      console.log(`✅ Categoría ${categoryId} actualizada: ${newTitle}`);
+    } catch (error) {
+      console.error("❌ Error al guardar la edición de categoría:", error);
+      alert("Error al guardar la categoría. Revisa la consola.");
+    } finally {
+      setSavingId(null); // Desactiva el estado de carga
+    }
+  };
 
   // borrar categorias
   const handleDelete = async (categoryId: number) => {
@@ -26,7 +76,6 @@ const MenuCatPage = ({ menuId, menuCategories, onCategoryChange }: CatEditorProp
 
       // 2. Notificar
       await onCategoryChange();
-
     } catch (error) {
       console.error("Error al eliminar categoría:", error);
       // Opcional: Muestra una notificación de error
@@ -61,27 +110,66 @@ const MenuCatPage = ({ menuId, menuCategories, onCategoryChange }: CatEditorProp
             {menuCategories && menuCategories.length > 0 ? (
               menuCategories.map((category) => (
                 <div
-                  key={category.id} // 👈 ¡CLAVE! React necesita una 'key' única para cada elemento mapeado.
+                  key={category.id}
                   className="flex items-center justify-between p-3 bg-white border border-slate-100 rounded-lg shadow-sm"
                 >
-                  <span className="font-semibold text-slate-700">
-                    {category.title} {/* Muestra el título de la categoría */}
-                  </span>
+                  {/* INPUT EDITABLE (se muestra siempre) */}
+                  <input
+                    type="text"
+                    // Usamos el estado local o un fallback si categoryTitles aún no se ha inicializado
+                    value={categoryTitles[category.id] ?? category.title}
+                    onChange={(e) =>
+                      handleTitleChange(category.id, e.target.value)
+                    }
+                    className="flex-1 p-1 font-semibold text-slate-700 bg-transparent border-b border-transparent focus:border-orange-500 focus:outline-none transition-colors"
+                  />
+
+                  {/* BOTONES DE ACCIÓN */}
                   <div className="flex space-x-2">
-                    {/* Botón para editar */}
+                    {/* Botón Guardar/Editar */}
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="h-8 w-8 text-orange-500 hover:text-orange-600"
+                      // Deshabilitado si ya está guardando
+                      disabled={savingId === category.id}
+                      // Al hacer clic, se llama a handleEditSave para enviar los datos
+                      onClick={() => handleEditSave(category.id)}
+                      className="h-8 w-8 text-orange-500 hover:text-orange-600 relative"
                     >
-                      <Edit2 className="h-4 w-4" />
+                      {/* Mostrar un spinner si está guardando, sino el ícono de edición */}
+                      {savingId === category.id ? (
+                        // Puedes usar un spinner si tienes uno (ej: de shadcn/ui)
+                        // O solo deshabilitar y confiar en el estilo
+                        <svg
+                          className="animate-spin h-4 w-4 text-orange-500"
+                          xmlns="http://www.w3.org/2000/svg"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                        >
+                          <circle
+                            className="opacity-25"
+                            cx="12"
+                            cy="12"
+                            r="10"
+                            stroke="currentColor"
+                            strokeWidth="4"
+                          ></circle>
+                          <path
+                            className="opacity-75"
+                            fill="currentColor"
+                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                          ></path>
+                        </svg>
+                      ) : (
+                        <Edit2 className="h-4 w-4" />
+                      )}
                     </Button>
-                    {/* Botón para eliminar */}
+
+                    {/* Botón Eliminar */}
                     <Button
                       variant="ghost"
                       size="icon"
                       className="h-8 w-8 text-red-500 hover:bg-red-50"
-                      // Llamar a la función handleDelete al hacer clic
                       onClick={() => handleDelete(category.id)}
                     >
                       <Trash2 className="h-4 w-4" />
@@ -90,7 +178,6 @@ const MenuCatPage = ({ menuId, menuCategories, onCategoryChange }: CatEditorProp
                 </div>
               ))
             ) : (
-              // Mensaje si no hay categorías
               <p className="text-sm text-slate-400 italic mt-6">
                 No hay categorías creadas aún.
               </p>

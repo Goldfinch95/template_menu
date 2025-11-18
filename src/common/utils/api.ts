@@ -230,85 +230,30 @@ export const createCategory = async (
 // Editar una categoria
 export const updateCategory = async (
   categoryId: number,
-  categoryData: { title?: string; items?: Items[] }
+  data: Partial<Categories> // Usamos Partial<Categories> para datos de actualización
 ): Promise<Categories> => {
   try {
-    const formData = new FormData();
-
-    // Campo título (opcional)
-    if (categoryData.title !== undefined) {
-      formData.append("title", categoryData.title);
-    }
-
-    // Items (opcional)
-    if (categoryData.items) {
-      categoryData.items.forEach((item, itemIndex) => {
-        formData.append(`items[${itemIndex}][title]`, item.title);
-        formData.append(
-          `items[${itemIndex}][description]`,
-          item.description || ""
-        );
-        formData.append(`items[${itemIndex}][price]`, String(item.price || 0));
-
-        // Si el item tiene un ID, incluirlo para que el backend sepa que es un item existente
-        if (item.id) {
-          formData.append(`items[${itemIndex}][id]`, String(item.id));
-        }
-
-        item.images?.forEach((img, imgIndex) => {
-          if (img instanceof File) {
-            const fileField = `item_${itemIndex}_img_${imgIndex}`;
-            // 🔹 asociamos el fileField en JSON
-            formData.append(
-              `items[${itemIndex}][images][${imgIndex}][fileField]`,
-              fileField
-            );
-            // 🔹 y subimos el archivo con ese nombre
-            formData.append(fileField, img);
-          } else if (typeof img === "object" && img.url) {
-            // 🔹 imagen ya existente
-            formData.append(
-              `items[${itemIndex}][images][${imgIndex}][url]`,
-              img.url
-            );
-            // Si la imagen tiene id, incluirlo
-            if (img.id) {
-              formData.append(
-                `items[${itemIndex}][images][${imgIndex}][id]`,
-                String(img.id)
-              );
-            }
-          }
-        });
-      });
-    }
-
-    console.groupCollapsed(`📦 Actualizando categoría ID: ${categoryId}`);
-    for (let [key, val] of formData.entries()) {
-      console.log(key, val instanceof File ? `File(${val.name})` : val);
-    }
-    console.groupEnd();
-
     const response = await fetch(`${CATEGORIES_BASE_URL}/${categoryId}`, {
-      method: "PUT",
+      method: "PUT", // 💡 Método PUT para actualización
       headers: {
+        "Content-Type": "application/json",
         ...TENANT_HEADER,
-        // ⚠️ NO incluir Content-Type con FormData
       },
-      body: formData,
+      body: JSON.stringify(data), // 💡 Enviamos solo los datos a actualizar (ej: { title: 'Nuevo Título' })
     });
 
     if (!response.ok) {
       const errorText = await response.text();
       throw new Error(
-        `Error al editar categoría: ${response.status} - ${errorText}`
+        `Error al actualizar categoría ${categoryId}: ${response.status} - ${errorText}`
       );
-    }
+    } // El backend devuelve la categoría actualizada
 
     const updatedCategory: Categories = await response.json();
+    console.log(`✅ Categoría ${categoryId} actualizada correctamente`);
     return updatedCategory;
   } catch (error) {
-    console.error("❌ Error al editar categoría:", error);
+    console.error("❌ Error al actualizar categoría:", error);
     throw error;
   }
 };
@@ -331,7 +276,7 @@ export const deleteCategory = async (categoryId: number): Promise<void> => {
         `Error al eliminar categoría: ${response.status} - ${errorText}`
       );
     }
-    
+
     // Opcional: Log para confirmar en el front
     console.log(`✅ Categoría ${categoryId} eliminada correctamente.`);
   } catch (error) {
