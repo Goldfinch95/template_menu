@@ -15,12 +15,12 @@ import {
 import { Input } from "@/common/components/ui/input";
 import { Label } from "@/common/components/ui/label";
 import { Button } from "@/common/components/ui/button";
-import { createItem } from "@/common/utils/api";
+import { createItem, updateItem } from "@/common/utils/api";
 
 interface ItemDialogProps {
   trigger: React.ReactNode;
   categoryId: number;
-  item?: any; // Tu interfaz Items si la tenés
+  item?: Items; // Tu interfaz Items si la tenés
   onItemSaved?: () => void;
 }
 
@@ -38,6 +38,29 @@ const ItemDialog = ({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Detectar si estamos en modo EDITAR
+  const isEditMode = !!item;
+
+  // Estado para controlar la apertura/cierre del Dialog
+    const [isOpen, setIsOpen] = useState(false);
+
+  // Cargar datos del item cuando estamos editando
+  useEffect(() => {
+    if (item) {
+      setTitle(item.title || "");
+      setDescription(item.description || "");
+      setPrice(item.price?.toString() || "");
+      // Las imágenes existentes no se cargan como File[], 
+      // pero podrías mostrarlas de otra forma si lo necesitas
+    } else {
+      // Limpiar el formulario si no hay item (modo crear)
+      setTitle("");
+      setDescription("");
+      setPrice("");
+      setImages([]);
+    }
+  }, [item]);
+
   const handleSave = async () => {
     setError(null);
 
@@ -52,8 +75,22 @@ const ItemDialog = ({
 
     setLoading(true);
     console.log(categoryId)
+
     try {
-      const payload: newItem = {
+      //si estamos editando
+      if(isEditMode){
+        const payload: Partial<Items> = {
+          title: title,
+          description: description || undefined,
+          price: Number(price),
+          //images: images
+        };
+        console.log("🔄 Actualizando item:", item.id, payload);
+        await updateItem(item.id, payload);
+
+      }
+      else{
+        const payload: newItem = {
         categoryId: Number(categoryId),
         title: title,
         description: description,
@@ -61,15 +98,13 @@ const ItemDialog = ({
         //images: images,
       };
       console.log("✅ payload:", payload);
-      const createdItem = await createItem(payload);
-      console.log("✅ Item creado:", createdItem);
+      await createItem(payload);
+      }
       //notificar
-      /*if (createdItem && createdItem.id) {
-        //console.log("🔄 Notificando al padre con el nuevo ID:", createdMenu.id);
-        onItemSaved?.(createdMenu.id); // Pasamos el nuevo `menuId` al padre
-      }*/
+     onItemSaved?.();
       // Cierra el dialog automáticamente (Shadcn)
       document.querySelector<HTMLButtonElement>("[data-dialog-close]")?.click();
+      setIsOpen(false);
     } catch (err: any) {
       setError(err.message || "Error al guardar el ítem");
     } finally {
@@ -78,7 +113,7 @@ const ItemDialog = ({
   };
 
   return (
-    <Dialog>
+    <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>{trigger}</DialogTrigger>
       <DialogContent className="rounded-2xl max-w-md bg-white/90 backdrop-blur-xl border border-white/30">
         <DialogClose className="absolute right-4 top-4 rounded-full p-2 hover:bg-white/70 transition-colors z-50">
@@ -86,7 +121,7 @@ const ItemDialog = ({
         </DialogClose>
         <DialogHeader>
           <DialogTitle className="text-slate-800 text-lg font-semibold">
-            Editar plato
+            {isEditMode ? "Editar plato" : "Crear plato"}
           </DialogTitle>
         </DialogHeader>
         <div className="space-y-4 mt-3">
@@ -143,7 +178,11 @@ const ItemDialog = ({
               disabled={loading}
               className="bg-gradient-to-br from-orange-400 to-orange-500 text-white"
             >
-               {loading ? "Guardando..." : "Guardar cambios"}
+               {loading
+                ? "Guardando..."
+                : isEditMode
+                ? "Guardar cambios"
+                : "Crear plato"}
             </Button>
           </DialogFooter>
         </div>

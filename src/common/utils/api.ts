@@ -323,3 +323,34 @@ export const createItem = async (data: newItem): Promise<Items> => {
     throw error;
   }
 };
+
+//Editar un item
+export const updateItem = async (
+  itemId: number,
+  data: Partial<Items>
+): Promise<Items> => {
+  try {
+    const response = await fetch(`${ITEM_BASE_URL}/${itemId}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        ...TENANT_HEADER,
+      },
+      body: JSON.stringify(data),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(
+        `Error al actualizar ítem ${itemId}: ${response.status} - ${errorText}`
+      );
+    }
+
+    const updatedItem: Items = await response.json();
+    console.log(`✅ Ítem ${itemId} actualizado correctamente`);
+    return updatedItem;
+  } catch (error) {
+    console.error("❌ Error al actualizar ítem:", error);
+    throw error;
+  }
+};
