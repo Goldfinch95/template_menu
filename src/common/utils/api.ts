@@ -289,34 +289,25 @@ export const deleteCategory = async (categoryId: number): Promise<void> => {
 // CRUD items
 
 //Crear un item
-
 export const createItem = async (data: newItem): Promise<Items> => {
   try {
-    const formData = new FormData(); // 1. Campos obligatorios y de texto
+    const payload = {
+      categoryId: data.categoryId,
+      title: data.title,
+      price: data.price,
+      description: data.description || undefined,
+      // Omitimos las imágenes por ahora
+    };
 
-    formData.append("categoryId", String(data.categoryId));
-    formData.append("title", data.title); // El precio debe ser un número en el backend, por lo que lo enviamos como string
-    // si el backend lo parsea, o como número si es necesario. Aquí lo enviamos como string.
-    formData.append("price", String(data.price)); // 2. Campos opcionales
-
-    if (data.description) {
-      formData.append("description", data.description);
-    } // 3. Archivos (Imágenes)
-
-    if (data.images && data.images.length > 0) {
-      data.images.forEach((file) => {
-        // Asumimos que el backend espera un campo "images" o "images[]" para archivos
-        formData.append("images", file);
-      });
-    }
+    console.log("📤 Enviando payload:", payload);
 
     const response = await fetch(ITEM_BASE_URL, {
       method: "POST",
       headers: {
-        // ⚠️ IMPORTANTE: NO incluir "Content-Type": "application/json" con FormData
+        "Content-Type": "application/json",
         ...TENANT_HEADER,
       },
-      body: formData,
+      body: JSON.stringify(payload),
     });
 
     if (!response.ok) {
@@ -325,7 +316,7 @@ export const createItem = async (data: newItem): Promise<Items> => {
     }
 
     const newItem: Items = await response.json();
-    console.log("✅ Ítem creado correctamente");
+    console.log("✅ Ítem creado correctamente:", newItem);
     return newItem;
   } catch (error) {
     console.error("❌ Error al crear ítem:", error);

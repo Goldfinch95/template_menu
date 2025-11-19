@@ -38,7 +38,7 @@ export interface Items {
   description: string;
   id: number;
   images: ImageItems[];
-  price: string;
+  price: number;
   title: string;
   updatedAt: string;
 }
@@ -52,7 +52,7 @@ export interface ImageItems {
   itemId: number;
   sortOrder: number;
   updatedAt: string;
-  url: Array<{ url: string } | File>;
+  url: string;
 }
 
 // INTERFAZ PARA CREACION
@@ -69,7 +69,7 @@ export interface newMenu {
   logo: File | null;
   pos: string;
   title: string;
-  categories: any[]; 
+  categories: Categories[]; 
 }
 
 // nueva categoria
@@ -80,11 +80,18 @@ export interface newCategory {
 
 // nuevo item
 export interface newItem {
-  description: string;
   categoryId: number;
-  images?: File[];
-  price: string;
   title: string;
+  description: string;
+  price: number;
+  images?: ImageItems[];
+  
+}
+
+export interface newImage {
+  id: number;
+  itemId: number;
+  url: File;
 }
 
 // INTERFAZ PARA EDICION

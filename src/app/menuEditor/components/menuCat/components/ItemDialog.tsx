@@ -32,7 +32,7 @@ const ItemDialog = ({
 }: ItemDialogProps) => {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState<string>("");
-  const [price, setPrice] = useState<number | "">("");
+  const [price, setPrice] = useState<string | "">("");
 
   const [images, setImages] = useState<File[]>([]);
   const [loading, setLoading] = useState(false);
@@ -51,16 +51,16 @@ const ItemDialog = ({
     }
 
     setLoading(true);
-
+    console.log(categoryId)
     try {
       const payload: newItem = {
-        categoryId: categoryId,
+        categoryId: Number(categoryId),
         title: title,
         description: description,
         price: Number(price),
-        images: images,
+        //images: images,
       };
-
+      console.log("✅ payload:", payload);
       const createdItem = await createItem(payload);
       console.log("✅ Item creado:", createdItem);
       //notificar
@@ -104,6 +104,7 @@ const ItemDialog = ({
           />
           <Input
             placeholder="Precio (ej: 1200.00)"
+            type="number"
             value={price}
             onChange={(e) => setPrice(e.target.value)}
             className="text-black"
