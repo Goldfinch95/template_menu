@@ -21,7 +21,7 @@ import {
 import CatDialog from "./components/CatDialog";
 import ItemDialog from "./components/ItemDialog";
 import { Categories } from "@/interfaces/menu";
-import { deleteCategory, updateCategory } from "@/common/utils/api";
+import { deleteCategory, updateCategory, deleteItem } from "@/common/utils/api";
 import { cn } from "@/common/utils/utils";
 
 interface CatEditorProps {
@@ -47,6 +47,8 @@ const MenuCatPage = ({
 
   // Estado para manejar la carga
   const [savingId, setSavingId] = useState<number | null>(null);
+
+  const [deletingItemId, setDeletingItemId] = useState<number | null>(null);
 
   // Editar categoria local
   const handleTitleChange = (categoryId: number, newTitle: string) => {
@@ -101,6 +103,23 @@ const MenuCatPage = ({
       // showToast("Error al eliminar la categoría.", "error");
     }
   };
+
+  // borrar categoria item
+  const handleDeleteItem = async (itemId: number) => {
+  
+  setDeletingItemId(itemId);
+
+  try {
+    await deleteItem(itemId);
+    await onCategoryChange(); // Refresca los datos
+    console.log(`✅ Ítem ${itemId} eliminado correctamente`);
+  } catch (error) {
+    console.error("❌ Error al eliminar ítem:", error);
+    alert("Error al eliminar el plato. Revisa la consola.");
+  } finally {
+    setDeletingItemId(null);
+  }
+};
 
   return (
     <motion.div
@@ -285,10 +304,7 @@ const MenuCatPage = ({
                                   size="sm"
                                   variant="ghost"
                                   className="text-red-500 hover:text-red-600"
-                                  onClick={() => {
-                                    // TODO: Implementar deleteItem(category.id, item.id)
-                                    console.log("Delete item:", item.id);
-                                  }}
+                                  onClick={() => handleDeleteItem(item.id)}
                                 >
                                   <Trash2 className="w-4 h-4" />
                                 </Button>

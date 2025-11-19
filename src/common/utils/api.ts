@@ -354,3 +354,29 @@ export const updateItem = async (
     throw error;
   }
 };
+
+// borrar un item
+export const deleteItem = async (itemId: number): Promise<void> => {
+  try {
+    const response = await fetch(`${ITEM_BASE_URL}/${itemId}`, {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+        ...TENANT_HEADER,
+      },
+    });
+
+    // El backend responde con 204 No Content en caso de éxito
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(
+        `Error al eliminar ítem: ${response.status} - ${errorText}`
+      );
+    }
+
+    console.log(`✅ Ítem ${itemId} eliminado correctamente.`);
+  } catch (error) {
+    console.error("❌ Error al eliminar ítem:", error);
+    throw error;
+  }
+};
