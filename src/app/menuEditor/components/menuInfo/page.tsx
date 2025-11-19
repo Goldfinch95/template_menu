@@ -14,9 +14,10 @@ import { Menu } from "@/interfaces/menu";
 
 interface InfoEditorProps {
   menuId: number;
+  onMenuCreated: () => void;
 }
 
-const MenuInfoPage = ({ menuId }: InfoEditorProps) => {
+const MenuInfoPage = ({ menuId,  onMenuCreated }: InfoEditorProps) => {
   // estado del menuId seleccionado
   const [currentMenuId, setCurrentMenuId] = useState<number | undefined>(
     menuId
@@ -69,10 +70,12 @@ const MenuInfoPage = ({ menuId }: InfoEditorProps) => {
 
   //Crea el menu y lo actualiza
 
-  const handleMenuCreated = (newId: number) => {
-    //console.log("🎉 Menú creado con ID:", newId);
-    setCurrentMenuId(newId);
-    fetchMenuData(newId);
+  const handleMenuCreated = (newMenuId: number) => {
+    //console.log("🎉 Menú creado con ID:", newMenuId);
+    onMenuCreated(newMenuId);
+
+    setCurrentMenuId(newMenuId);
+     fetchMenuData(newMenuId);
   };
 
   // 🎯 Función que se pasa al hijo para que notifique cambios

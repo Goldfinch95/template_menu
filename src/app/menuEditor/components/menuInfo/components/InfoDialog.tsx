@@ -238,10 +238,8 @@ const InfoDialog = ({
         //console.log("✅ Menú creado:", createdMenu);
 
         //notificar
-        if (createdMenu && createdMenu.id) {
-          //console.log("🔄 Notificando al padre con el nuevo ID:", createdMenu.id);
-          onCreated?.(createdMenu.id); // Pasamos el nuevo `menuId` al padre
-        }
+        //console.log("🔄 Notificando al padre con el nuevo ID:", createdMenu.id);
+        onCreated?.(createdMenu.id); // Pasamos el nuevo `menuId` al padre
       }
       // editar un menu
       else {

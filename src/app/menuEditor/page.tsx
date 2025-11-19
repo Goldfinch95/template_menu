@@ -21,6 +21,11 @@ import { Trash2, X } from "lucide-react";
 
 import { motion } from "framer-motion";
 
+interface InfoEditorProps {
+  menuId: number;
+  onMenuCreated: (newMenuId: number) => void; // 🔥 Ahora recibe el ID
+}
+
 const MenuEditorContent = () => {
   //Estado para el menu
   const [menu, setMenu] = useState<Menu>({} as Menu);
@@ -50,24 +55,23 @@ const MenuEditorContent = () => {
 
   //cargar menú existente si hay id en los parámetros
   const fetchMenuData = useCallback(async (menuId: string) => {
-        try {
-            const menuData = await getMenu(menuId);
-            setMenu(menuData);
-            console.log("✅ Menú y categorías cargadas:", menuData.categories.length);
-            
-        } catch (error) {
-            console.error("❌ Error al cargar el menú:", error);
-        }
-    }, []); // Dependencias vacías, ya que menuId viene del useEffect.
+    try {
+      const menuData = await getMenu(menuId);
+      setMenu(menuData);
+      //console.log("✅ Menú y categorías cargadas:", menuData.categories.length);
+    } catch (error) {
+      console.error("❌ Error al cargar el menú:", error);
+    }
+  }, []); // Dependencias vacías, ya que menuId viene del useEffect.
 
-    // Cargar menú existente si hay id en los parámetros
-    useEffect(() => {
-        const menuId = searchParams.get("id");
-        if (!menuId) return;
+  // Cargar menú existente si hay id en los parámetros
+  useEffect(() => {
+    const menuId = searchParams.get("id");
+    if (!menuId) return;
 
-        // Llamamos a la función de carga
-        fetchMenuData(menuId);
-    }, [searchParams, fetchMenuData]);
+    // Llamamos a la función de carga
+    fetchMenuData(menuId);
+  }, [searchParams, fetchMenuData]);
 
   // 🆕 Función para combinar datos del menú para la vista previa
   const getPreviewData = useMemo(() => {
@@ -342,8 +346,22 @@ const MenuEditorContent = () => {
       >
         <div className="space-y-8">
           {/*Sección de imagenes del menú*/}
-          <MenuInfo menuId={menu.id} />
-          <MenuCatPage menuId={menu.id} menuCategories={menu.categories} onCategoryChange={() => fetchMenuData(String(menu.id))} />
+          <MenuInfo
+            menuId={menu.id}
+            onMenuCreated={(newMenuId) => {
+              console.log(
+                "🔔 Abuelo notificado - Nuevo menú creado con ID:",
+                newMenuId
+              );
+              // 🔥 Recargar el menú con el nuevo ID
+              fetchMenuData(String(newMenuId));
+            }}
+          />
+          <MenuCatPage
+            menuId={menu.id}
+            menuCategories={menu.categories}
+            onCategoryChange={() => fetchMenuData(String(menu.id))}
+          />
           <CategoryEditor
             onCategoriesChange={receiveRestaurantCategories}
             onEditCategory={receiveEditedCategory}

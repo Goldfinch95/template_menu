@@ -66,7 +66,7 @@ const CatDialog = ({ trigger, menuId, onCategoryCreated }: CatDialogProps) => {
 
       const payload: newCategory = {
         title: title,
-        menuId: menuId,
+        menuId: Number(menuId),
       };
       //console.log("el payload es", payload)
       const response = await createCategory(payload);
