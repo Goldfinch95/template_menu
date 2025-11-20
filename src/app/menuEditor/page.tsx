@@ -58,7 +58,7 @@ const MenuEditorContent = () => {
     try {
       const menuData = await getMenu(menuId);
       setMenu(menuData);
-      console.log(menuData)
+      console.log(menuData);
       //console.log("✅ Menú y categorías cargadas:", menuData.categories.length);
     } catch (error) {
       console.error("❌ Error al cargar el menú:", error);
@@ -354,7 +354,9 @@ const MenuEditorContent = () => {
                 "🔔 Abuelo notificado - Nuevo menú creado con ID:",
                 newMenuId
               );
-              // 🔥 Recargar el menú con el nuevo ID
+              //actualiza
+              router.push(`/menuEditor?id=${newMenuId}`);
+              //recarga
               fetchMenuData(String(newMenuId));
             }}
           />
