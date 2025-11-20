@@ -15,7 +15,7 @@ import {
 import { Input } from "@/common/components/ui/input";
 import { Label } from "@/common/components/ui/label";
 import { Button } from "@/common/components/ui/button";
-import { createItem, updateItem } from "@/common/utils/api";
+import { createItem, updateItem, upsertItemImages } from "@/common/utils/api";
 
 interface ItemDialogProps {
   trigger: React.ReactNode;
@@ -34,7 +34,8 @@ const ItemDialog = ({
   const [description, setDescription] = useState<string>("");
   const [price, setPrice] = useState<string | "">("");
 
-  const [images, setImages] = useState<File[]>([]);
+  const [selectedImage, setSelectedImage] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string>("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -42,7 +43,7 @@ const ItemDialog = ({
   const isEditMode = !!item;
 
   // Estado para controlar la apertura/cierre del Dialog
-    const [isOpen, setIsOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
 
   // Cargar datos del item cuando estamos editando
   useEffect(() => {
@@ -50,17 +51,59 @@ const ItemDialog = ({
       setTitle(item.title || "");
       setDescription(item.description || "");
       setPrice(item.price?.toString() || "");
-      // Las imágenes existentes no se cargan como File[], 
-      // pero podrías mostrarlas de otra forma si lo necesitas
+
+      // Mostrar imagen existente si hay
+      if (item.images && item.images.length > 0) {
+        setPreviewUrl(item.images[0].url);
+      }
     } else {
       // Limpiar el formulario si no hay item (modo crear)
       setTitle("");
       setDescription("");
       setPrice("");
-      setImages([]);
+      setSelectedImage(null);
+      setPreviewUrl("");
     }
   }, [item]);
 
+  // Limpiar preview URL cuando se desmonta
+  useEffect(() => {
+    return () => {
+      if (previewUrl && previewUrl.startsWith("blob:")) {
+        URL.revokeObjectURL(previewUrl);
+      }
+    };
+  }, [previewUrl]);
+
+  //cambio de imagen visual
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      // Validar tamaño (10MB)
+      if (file.size > 10 * 1024 * 1024) {
+        setError("La imagen no puede superar los 10MB");
+        return;
+      }
+
+      // Validar tipo
+      if (!file.type.startsWith("image/")) {
+        setError("Solo se permiten imágenes");
+        return;
+      }
+
+      setSelectedImage(file);
+
+      // Crear preview
+      if (previewUrl && previewUrl.startsWith("blob:")) {
+        URL.revokeObjectURL(previewUrl);
+      }
+      const newPreviewUrl = URL.createObjectURL(file);
+      setPreviewUrl(newPreviewUrl);
+      setError(null);
+    }
+  };
+
+  //guardar item en la BD
   const handleSave = async () => {
     setError(null);
 
@@ -68,17 +111,19 @@ const ItemDialog = ({
       setError("El título es obligatorio");
       return;
     }
-    if (!price || isNaN(Number(price))) {
-      setError("El precio es obligatorio y debe ser un número");
+    if (!price || isNaN(Number(price)) || Number(price) <= 0) {
+      setError("El precio es obligatorio y debe ser mayor a 0");
       return;
     }
 
     setLoading(true);
-    console.log(categoryId)
+    console.log(categoryId);
 
     try {
-      //si estamos editando
-      if(isEditMode){
+      let savedItemId = item?.id;
+      //si estamos editando item
+
+      if (isEditMode) {
         const payload: Partial<Items> = {
           title: title,
           description: description || undefined,
@@ -87,21 +132,66 @@ const ItemDialog = ({
         };
         console.log("🔄 Actualizando item:", item.id, payload);
         await updateItem(item.id, payload);
+        savedItemId = item.id;
+        // Si hay una nueva imagen seleccionada, subirla
+        const existingImageId = item.images?.[0]?.id;
 
+        if (selectedImage) {
+          console.log("📸 Subiendo nueva imagen para item existente");
+
+          // Si ya existía una imagen, la actualizamos; si no, la creamos
+          const existingImageId = item.images?.[0]?.id;
+
+          const images = [
+            {
+              ...(existingImageId && { id: existingImageId }), // Si existe, incluir el ID
+              fileField: "file_0",
+              alt: title,
+              sortOrder: 0,
+              active: true,
+            },
+          ];
+
+          await upsertItemImages(savedItemId, images, [selectedImage]);
+        }
       }
-      else{
+      //si estamos creando item
+      else {
         const payload: newItem = {
-        categoryId: Number(categoryId),
-        title: title,
-        description: description,
-        price: Number(price),
-        //images: images,
-      };
-      console.log("✅ payload:", payload);
-      await createItem(payload);
+          categoryId: Number(categoryId),
+          title: title,
+          description: description,
+          price: Number(price),
+          //images: images,
+        };
+        console.log("✅ payload:", payload);
+        const newItem = await createItem(payload);
+        savedItemId = newItem.id;
+        // Si hay una imagen seleccionada subirla al ítem recién creado
+
+        // Si hay una imagen seleccionada, subirla al ítem recién creado
+        if (selectedImage) {
+          console.log("📸 Subiendo imagen del nuevo ítem:", {
+            itemId: savedItemId,
+            fileName: selectedImage.name,
+            fileSize: selectedImage.size,
+            fileType: selectedImage.type,
+          });
+
+          const images = [
+            {
+              fileField: "file_0",
+              alt: title,
+              sortOrder: 0,
+              active: true,
+            },
+          ];
+
+          await upsertItemImages(savedItemId, images, [selectedImage]);
+        }
       }
       //notificar
-     onItemSaved?.();
+      onItemSaved?.();
       // Cierra el dialog automáticamente (Shadcn)
       document.querySelector<HTMLButtonElement>("[data-dialog-close]")?.click();
       setIsOpen(false);
@@ -151,21 +241,29 @@ const ItemDialog = ({
             accept="image/*"
             className="mt-4 hidden"
             id="image-upload-input"
-            onChange={(e) => {
-              const fileList = e.target.files;
-              if (fileList) setImages(Array.from(fileList));
-            }}
+            onChange={handleImageChange}
           />
           <Label
             htmlFor="image-upload-input"
-            className="w-full h-64 rounded-2xl overflow-hidden bg-slate-50 flex items-center justify-center cursor-pointer hover:border-orange-500 transition-all"
+            className="block w-full h-64 rounded-2xl overflow-hidden bg-slate-50 border-2 border-dashed border-slate-300 hover:border-orange-500 transition-all cursor-pointer"
           >
-            {images.length > 0 ? (
-              <span className="text-slate-600">
-                {images.length} imagen seleccionada
-              </span>
+            {previewUrl ? (
+              <div className="relative w-full h-full">
+                <img
+                  src={previewUrl}
+                  alt="Preview"
+                  className="w-full h-full object-cover"
+                />
+                <div className="absolute inset-0 bg-black/40 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center">
+                  <span className="text-white font-medium">Cambiar imagen</span>
+                </div>
+              </div>
             ) : (
-              <span className="text-slate-400">Subir imagen</span>
+              <div className="flex flex-col items-center justify-center h-full">
+                <span className="text-slate-400">
+                  {selectedImage ? "1 imagen seleccionada" : "Subir imagen"}
+                </span>
+              </div>
             )}
           </Label>
           <p className="text-base text-slate-400 mt-2">PNG, JPG hasta 10MB</p>
@@ -178,7 +276,7 @@ const ItemDialog = ({
               disabled={loading}
               className="bg-gradient-to-br from-orange-400 to-orange-500 text-white"
             >
-               {loading
+              {loading
                 ? "Guardando..."
                 : isEditMode
                 ? "Guardar cambios"

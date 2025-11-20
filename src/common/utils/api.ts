@@ -5,12 +5,14 @@ import {
   newCategory,
   newMenu,
   newItem,
+  newImage,
 } from "@/interfaces/menu";
 import { promises } from "dns";
 
 const BASE_URL = "http://localhost:3000/api/menus";
 const CATEGORIES_BASE_URL = "http://localhost:3000/api/categories";
 const ITEM_BASE_URL = "http://localhost:3000/api/items";
+const IMAGES_BASE_URL = "http://localhost:3000/api/images";
 const TENANT_HEADER = { "x-tenant-subdomain": "amax" };
 
 // Obtener todos los menús
@@ -299,7 +301,7 @@ export const createItem = async (data: newItem): Promise<Items> => {
       // Omitimos las imágenes por ahora
     };
 
-    console.log("📤 Enviando payload:", payload);
+    //console.log("📤 Enviando payload:", payload);
 
     const response = await fetch(ITEM_BASE_URL, {
       method: "POST",
@@ -316,7 +318,7 @@ export const createItem = async (data: newItem): Promise<Items> => {
     }
 
     const newItem: Items = await response.json();
-    console.log("✅ Ítem creado correctamente:", newItem);
+    //console.log("✅ Ítem creado correctamente:", newItem);
     return newItem;
   } catch (error) {
     console.error("❌ Error al crear ítem:", error);
@@ -377,6 +379,61 @@ export const deleteItem = async (itemId: number): Promise<void> => {
     console.log(`✅ Ítem ${itemId} eliminado correctamente.`);
   } catch (error) {
     console.error("❌ Error al eliminar ítem:", error);
+    throw error;
+  }
+};
+
+//CRUD de imagenes
+
+//la solicitud PUT debe ir aqui
+export const upsertItemImages = async (
+  itemId: number,
+  images: Array<{
+    id?: number;
+    url?: string;
+    fileField?: string;
+    alt?: string;
+    sortOrder?: number;
+    active?: boolean;
+    _delete?: boolean;
+  }>,
+  files?: File[]
+): Promise<{ ok: boolean }> => {
+  try {
+    const formData = new FormData();
+
+    // Agregar el array de imágenes como JSON string
+    formData.append("images", JSON.stringify(images));
+
+    // Agregar los archivos si existen
+    if (files && files.length > 0) {
+      files.forEach((file, index) => {
+        // El fieldname debe coincidir con el fileField en el objeto images
+        formData.append(`file_${index}`, file);
+      });
+    }
+
+    const response = await fetch(`${IMAGES_BASE_URL}/items/${itemId}`, {
+      method: "PUT",
+      headers: {
+        // ⚠️ NO incluir Content-Type con FormData
+        ...TENANT_HEADER,
+      },
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(
+        `Error al actualizar imágenes: ${response.status} - ${errorText}`
+      );
+    }
+
+    const result = await response.json();
+    console.log(`✅ Imágenes del ítem ${itemId} actualizadas correctamente`);
+    return result;
+  } catch (error) {
+    console.error("❌ Error al actualizar imágenes:", error);
     throw error;
   }
 };

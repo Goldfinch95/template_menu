@@ -89,9 +89,9 @@ export interface newItem {
 }
 
 export interface newImage {
-  id: number;
   itemId: number;
   url: File;
+  alt: string;
 }
 
 // INTERFAZ PARA EDICION
