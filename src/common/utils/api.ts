@@ -1,4 +1,6 @@
 import {
+  User,
+  RegisterData,
   Menu,
   Categories,
   Items,
@@ -9,11 +11,53 @@ import {
 } from "@/interfaces/menu";
 import { promises } from "dns";
 
+const USERS_BASE_URL = "http://localhost:3000/api/users";
 const BASE_URL = "http://localhost:3000/api/menus";
 const CATEGORIES_BASE_URL = "http://localhost:3000/api/categories";
 const ITEM_BASE_URL = "http://localhost:3000/api/items";
 const IMAGES_BASE_URL = "http://localhost:3000/api/images";
 const TENANT_HEADER = { "x-tenant-subdomain": "amax" };
+
+//registrarse
+export const registerUser = async (data: RegisterData): Promise<User> => {
+  try {
+    const response = await fetch(USERS_BASE_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        // No incluimos TENANT_HEADER porque es un registro nuevo
+      },
+      body: JSON.stringify({
+        name: data.name,
+        lastName: data.lastName,
+        email: data.email,
+        cel: data.cel,
+        roleId: data.roleId,
+        password: data.password,
+        subdomain: data.password
+      }),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      // Manejar errores específicos del backend
+      if (response.status === 409) {
+        throw new Error("El email o subdominio ya está en uso");
+      }
+      throw new Error(
+        `Error al registrar usuario: ${response.status} - ${errorText}`
+      );
+    }
+
+    const newUser: User = await response.json();
+    console.log("✅ Usuario registrado correctamente");
+    return newUser;
+  } catch (error) {
+    console.error("❌ Error al registrar usuario:", error);
+    throw error;
+  }
+};
+
 
 // Obtener todos los menús
 export const getMenus = async (): Promise<Menu[]> => {

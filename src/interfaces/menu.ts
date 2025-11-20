@@ -1,5 +1,32 @@
 //  INTERFAZ GENERAL
 
+
+//user
+export interface User {
+  id: number;
+  name: string;
+  lastName: string;
+  email: string;
+  cel?: string;
+  roleId?: number;
+  subdomain: string;
+  active: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+//registro de usuario
+export interface RegisterData {
+  name: string;
+  lastName: string;
+  email: string;
+  cel?: string;
+  roleId?: number;
+  password: string;
+  subdomain: string; //revisar con naza
+}
+
+
 // menu
 export interface Menu {
   active: boolean;
