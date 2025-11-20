@@ -12,6 +12,11 @@ import {
   DialogFooter,
   DialogTitle,
 } from "@/common/components/ui/dialog";
+import {
+  Alert,
+  AlertDescription,
+  AlertTitle,
+} from "@/common/components/ui/alert";
 import { Input } from "@/common/components/ui/input";
 import { Label } from "@/common/components/ui/label";
 import { Button } from "@/common/components/ui/button";
@@ -38,6 +43,8 @@ const ItemDialog = ({
   const [previewUrl, setPreviewUrl] = useState<string>("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const [alertMessage, setAlertMessage] = useState<string | null>(null);
 
   // Detectar si estamos en modo EDITAR
   const isEditMode = !!item;
@@ -75,6 +82,35 @@ const ItemDialog = ({
     };
   }, [previewUrl]);
 
+  //validacion
+  const validateFields = () => {
+    const errors: string[] = [];
+
+    // Validación título
+    if (title.trim().length < 3) {
+      errors.push("• El título debe tener al menos 3 caracteres.");
+    }
+
+    // Validación precio
+    if (!price || isNaN(Number(price)) || Number(price) <= 0) {
+      errors.push("• El precio debe ser un número mayor a 0.");
+    }
+
+    // Validación imagen (si querés que sea obligatoria)
+    if (!isEditMode && !previewUrl) {
+      errors.push("• Debes subir una imagen del plato.");
+    }
+
+    // Si HAY errores → mostrar alerta
+    if (errors.length > 0) {
+      setAlertMessage(errors.join("\n"));
+      return false;
+    }
+
+    // Si está todo OK → limpiar alerta
+    setAlertMessage(null);
+    return true;
+  };
   //cambio de imagen visual
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -106,6 +142,9 @@ const ItemDialog = ({
   //guardar item en la BD
   const handleSave = async () => {
     setError(null);
+
+    const isValid = validateFields();
+    if (!isValid) return;
 
     if (!title.trim()) {
       setError("El título es obligatorio");
@@ -214,6 +253,17 @@ const ItemDialog = ({
             {isEditMode ? "Editar plato" : "Crear plato"}
           </DialogTitle>
         </DialogHeader>
+        {alertMessage && (
+          <Alert className="mb-4 bg-red-100 border border-red-400 text-red-700 p-4 rounded-xl flex items-start gap-3">
+            <X className="w-5 h-5 mt-1" />
+            <div>
+              <AlertTitle className="font-semibold">Error:</AlertTitle>
+              <AlertDescription className="whitespace-pre-line mt-1">
+                {alertMessage}
+              </AlertDescription>
+            </div>
+          </Alert>
+        )}
         <div className="space-y-4 mt-3">
           <Input
             placeholder="Título del plato"
