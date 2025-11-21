@@ -17,7 +17,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${openSans.className} antialiased min-h-screen`}
+        className={`${openSans.className} antialiased`}
       >
         {children}
       </body>

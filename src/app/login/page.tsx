@@ -1,14 +1,19 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Card } from "@/common/components/ui/card";
+import {
+  Alert,
+  AlertDescription,
+  AlertTitle,
+} from "@/common/components/ui/alert";
+
 import { Button } from "@/common/components/ui/button";
 import { Input } from "@/common/components/ui/input";
 import { Label } from "@/common/components/ui/label";
 import { AnimatePresence, motion } from "framer-motion";
 import { Manrope } from "next/font/google";
-import { UtensilsCrossed, ArrowLeft } from "lucide-react";
+import { UtensilsCrossed, X, Eye, EyeOff } from "lucide-react";
 import { loginUser } from "@/common/utils/api";
 
 const manrope = Manrope({ subsets: ["latin"] });
@@ -16,39 +21,55 @@ const manrope = Manrope({ subsets: ["latin"] });
 export default function LoginPage() {
   const router = useRouter();
 
-  const [form, setForm] = useState({
-    email: "",
-    password: "",
-  });
-
+  const [form, setForm] = useState({ email: "", password: "" });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [alertMessage, setAlertMessage] = useState<string | null>(null);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
-    // Limpiar error cuando el usuario empieza a escribir
     if (error) setError(null);
   };
 
-  const handleSubmit = async () => {
-    // Validación básica
-    if (!form.email || !form.password) {
-      setError("Por favor completá todos los campos");
-      return;
+  const [showPassword, setShowPassword] = useState(false);
+
+  // VALIDACIÓN DE DATOS (acumulativa)
+  const validateFields = () => {
+    const errors: string[] = [];
+
+    // Validar email
+    if (!form.email) {
+      errors.push("• El email es obligatorio.");
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) {
+      errors.push("• Ingresá un email válido.");
     }
 
+    // Validar contraseña
+    if (!form.password) {
+      errors.push("• La contraseña es obligatoria.");
+    } else if (form.password.length < 8) {
+      errors.push("• La contraseña debe tener al menos 8 caracteres.");
+    }
+
+    // Mostrar errores acumulados
+    if (errors.length > 0) {
+      setAlertMessage(errors.join("\n"));
+      return false;
+    }
+
+    // Sin errores → limpiar alerta
+    setAlertMessage(null);
+    return true;
+  };
+
+  const handleSubmit = async () => {
+    if (!validateFields()) return;
     setLoading(true);
-    setError(null);
-    // Simulación de login
+
     try {
-      const response = await loginUser({
-        email: form.email,
-        password: form.password,
-      });
-      console.log("✅ Login exitoso:", response.user);
+      await loginUser(form);
       router.push("/");
     } catch (err) {
-      console.error("❌ Error en login:", err);
       setError(
         err instanceof Error
           ? err.message
@@ -59,17 +80,12 @@ export default function LoginPage() {
     }
   };
 
-
   return (
     <main
       className="
-        min-h-screen
-        flex items-center justify-center 
+        h-screen w-full flex flex-col justify-between
         bg-gradient-to-b from-white via-[#FFF3EC] to-[#FFE6D3]
-        backdrop-blur-xl bg-white/60
-        border border-white/30
-        shadow-[0_8px_24px_rgba(0,0,0,0.08)]
-        px-5 py-8
+        px-6 py-10
       "
     >
       <AnimatePresence>
@@ -77,101 +93,159 @@ export default function LoginPage() {
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, ease: "easeOut" }}
-          className="w-full max-w-md"
+          className="flex flex-col w-full items-center"
         >
-          <Card className="relative p-8 rounded-3xl shadow-lg border-0 bg-white/70 backdrop-blur-md">
-            {/* Burbujas decorativas */}
-            <div className="absolute right-0 top-0 w-20 h-20 bg-white/40 rounded-full -mr-8 -mt-8" />
-            <div className="absolute right-4 bottom-0 w-16 h-16 bg-white/40 rounded-full" />
+          {/* Ícono principal */}
+          <div className="w-20 h-20 mb-6 rounded-3xl bg-gradient-to-br from-orange-400 to-orange-500 shadow-md flex items-center justify-center">
+            <UtensilsCrossed className="w-10 h-10 text-white" />
+          </div>
 
-            <div className="relative z-10">
-              {/* Ícono */}
-              <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-orange-400 to-orange-500 shadow-md flex items-center justify-center">
-                <UtensilsCrossed className="w-8 h-8 text-white" />
-              </div>
+          {/* Título */}
+          <h1
+            className={`${manrope.className} text-3xl font-extrabold text-center text-slate-900`}
+          >
+            Bienvenido
+          </h1>
+          <p className="text-center text-base text-slate-600 mt-1 mb-8">
+            Iniciá sesión para continuar
+          </p>
 
-              {/* Título */}
-              <h1
-                className={`${manrope.className} text-xl font-bold text-center text-slate-900`}
-              >
-                Iniciar sesión
-              </h1>
-              <p className="text-center text-sm text-slate-600 mb-8">
-                Accedé a tu cuenta
-              </p>
+          {/* MINI CARD */}
+          <div
+            className="
+              w-full max-w-md p-6 rounded-2xl shadow-lg
+              bg-white/70 backdrop-blur-md border border-white/40
+              space-y-5
+            "
+          >
+            <AnimatePresence>
+              {alertMessage && (
+                <motion.div
+                  initial={{ opacity: 0, y: -5 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -5 }}
+                  transition={{ duration: 0.25 }}
+                >
+                  <Alert className="bg-red-100 border border-red-300 text-red-800 rounded-lg p-4 flex gap-3">
+                    <X className="!w-6 !h-6 self-center" />
+                    <div>
+                      <AlertDescription className="whitespace-pre-line mt-1">
+                        {alertMessage}
+                      </AlertDescription>
+                    </div>
+                  </Alert>
+                </motion.div>
+              )}
+            </AnimatePresence>
 
-              {/* Formulario */}
-              <div className="space-y-5">
-                {/* Email */}
-                <div>
-                  <Label className="text-slate-700">Email</Label>
-                  <Input
-                    name="email"
-                    type="email"
-                    placeholder="correo@example.com"
-                    className="mt-1 bg-white/80 backdrop-blur-sm border border-slate-200 focus:ring-orange-400 focus:border-orange-400"
-                    value={form.email}
-                    onChange={handleChange}
-                    disabled={loading}
-                  />
-                </div>
-
-                {/* Password */}
-                <div>
-                  <Label className="text-slate-700">Contraseña</Label>
-                  <Input
-                    name="password"
-                    type="password"
-                    placeholder="••••••••"
-                    className="mt-1 bg-white/80 backdrop-blur-sm border border-slate-200 focus:ring-orange-400 focus:border-orange-400"
-                    value={form.password}
-                    onChange={handleChange}
-                    disabled={loading}
-                  />
-                </div>
-              </div>
-
-              {/* Botón submit */}
-              <Button
-                onClick={handleSubmit}
+            {/* Email */}
+            <div>
+              <Label className="text-slate-700">Email</Label>
+              <Input
+                name="email"
+                type="email"
+                placeholder="correo@example.com"
+                className="mt-2 bg-white/85
+  border-slate-300 
+  focus:!border-orange-500 focus:!ring-orange-500
+  transition-all duration-200"
+                value={form.email}
+                onChange={handleChange}
                 disabled={loading}
-                className="
-                  w-full mt-8 py-3 rounded-xl
-                  bg-gradient-to-r from-orange-400 to-orange-500 
-                  text-white font-semibold
-                  shadow-md hover:shadow-lg 
-                  active:scale-[0.98] transition-all duration-300
-                "
-              >
-                {loading ? "Ingresando..." : "Entrar"}
-              </Button>
-
-              {/* Link a register */}
-              <p className="text-center text-sm text-slate-600 mt-4">
-                ¿No tenés cuenta?
-                <span
-                  className="text-orange-500 font-medium cursor-pointer hover:underline ml-1"
-                  onClick={() => !loading && router.push("/register")}
-                >
-                  Crear cuenta
-                </span>
-              </p>
-
-              {/* Botón volver */}
-              <div className="flex justify-center mt-4">
-                {/*boton para volver a la pagina principal, si se hace */}
-                {/*<button
-                  onClick={() => router.push("/")}
-                  className="flex items-center text-sm text-slate-500 hover:text-slate-700 transition"
-                >
-                  <ArrowLeft className="w-4 h-4 mr-1" />
-                  Volver al inicio
-                </button>*/}
-              </div>
+              />
             </div>
-          </Card>
+
+            {/* Password */}
+            <div className="relative">
+              <Label className="text-slate-700">Contraseña</Label>
+              <Input
+                name="password"
+                type={showPassword ? "text" : "password"}
+                placeholder="••••••••"
+                className="mt-2 bg-white/85
+  border-slate-300 
+  focus:!border-orange-500 focus:!ring-orange-500
+  transition-all duration-200"
+                value={form.password}
+                onChange={handleChange}
+                disabled={loading}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword((prev) => !prev)}
+                className="
+      absolute right-3 bottom-1.5 
+      text-slate-600 hover:text-slate-800
+      transition-all duration-200
+    "
+              >
+                {showPassword ? (
+                  <Eye className="!w-6 !h-6" />
+                ) : (
+                  <EyeOff className="!w-6 !h-6" />
+                )}
+              </button>
+            </div>
+          </div>
         </motion.div>
       </AnimatePresence>
+      <AnimatePresence>
+        {error && (
+          <motion.div
+            initial={{ y: 100, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: 100, opacity: 0 }}
+            transition={{ duration: 0.35, ease: "easeOut" }}
+            className="
+        fixed bottom-40 left-1/2 -translate-x-1/2 
+        w-[90%] max-w-md 
+        bg-red-100 border border-red-300 text-red-900
+        px-5 py-4 rounded-2xl shadow-lg
+        flex items-center gap-4
+      "
+          >
+            <X className="w-7 h-7 text-red-700" strokeWidth={2.5} />
+
+            <div className="flex-1">
+              <p className="text-sm text-red-800">{error}</p>
+            </div>
+
+            <button
+              onClick={() => setError(null)}
+              className="text-red-700 font-bold text-lg px-2"
+            >
+              Cerrar
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* BOTÓN ABAJO ESTILO APP */}
+      <div className="w-full max-w-md mx-auto">
+        <Button
+          onClick={handleSubmit}
+          disabled={loading}
+          className="
+            w-full py-4 rounded-xl text-lg mt-6
+            bg-gradient-to-r from-orange-400 to-orange-500 
+            text-white font-semibold shadow-md hover:shadow-lg 
+            active:scale-[0.98] transition-all duration-300
+          "
+        >
+          {loading ? "Ingresando..." : "Entrar"}
+        </Button>
+
+        <p className="text-center text-sm text-slate-600 mt-4">
+          ¿No tenés cuenta?
+          <button
+            onClick={() => router.push("/register")}
+            disabled={loading}
+            className="text-orange-500 font-medium ml-1 hover:underline"
+          >
+            Crear cuenta
+          </button>
+        </p>
+      </div>
     </main>
   );
 }
