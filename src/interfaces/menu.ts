@@ -15,6 +15,28 @@ export interface User {
   updatedAt?: string;
 }
 
+//
+export interface LoginData {
+  email: string;
+  password: string;
+}
+
+//
+export interface LoginResponse {
+  message: string;
+  token: string;
+  user: {
+    id: number;
+    name: string;
+    lastName: string;
+    email: string;
+    cel: string;
+    roleId: number;
+    active: boolean;
+    subdomain: string;
+  };
+}
+
 //registro de usuario
 export interface RegisterData {
   name: string;
@@ -87,7 +109,7 @@ export interface ImageItems {
 // nuevo menu
 
 export interface newMenu {
-  userId: 1; // temporalmente lo fijo en 1
+  userId: number; // temporalmente lo fijo en 1
   backgroundImage: File | null;
   color: {
     primary: string;

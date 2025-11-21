@@ -1,5 +1,7 @@
 import {
   User,
+  LoginData,
+  LoginResponse,
   RegisterData,
   Menu,
   Categories,
@@ -34,7 +36,7 @@ export const registerUser = async (data: RegisterData): Promise<User> => {
         cel: data.cel,
         roleId: data.roleId,
         password: data.password,
-        subdomain: data.password
+        subdomain: data.password,
       }),
     });
 
@@ -58,6 +60,90 @@ export const registerUser = async (data: RegisterData): Promise<User> => {
   }
 };
 
+//logearse
+export const loginUser = async (data: LoginData): Promise<LoginResponse> => {
+  try {
+    const response = await fetch(`http://localhost:3000/api/auth/login`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        email: data.email.trim().toLowerCase(),
+        password: data.password.trim(),
+      }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+
+      // Manejar errores específicos del backend
+      if (response.status === 403 && errorData.message === "USER_INACTIVE") {
+        throw new Error("Tu cuenta está inactiva. Contacta al administrador.");
+      }
+
+      if (response.status === 401) {
+        throw new Error("Email o contraseña incorrectos");
+      }
+
+      throw new Error(
+        errorData.message || `Error al iniciar sesión: ${response.status}`
+      );
+    }
+
+    const loginResponse: LoginResponse = await response.json();
+
+    // Guardar el token en localStorage para futuras peticiones
+    if (loginResponse.token) {
+      localStorage.setItem("authToken", loginResponse.token);
+      localStorage.setItem("user", JSON.stringify(loginResponse.user));
+      localStorage.setItem("subdomain", loginResponse.user.subdomain);
+    }
+
+    console.log("✅ Login exitoso");
+    return loginResponse;
+  } catch (error) {
+    console.error("❌ Error al iniciar sesión:", error);
+    throw error;
+  }
+};
+
+// Función auxiliar para obtener el token
+export const getAuthToken = (): string | null => {
+  return localStorage.getItem("authToken");
+};
+
+// Función auxiliar para obtener el subdomain
+export const getSubdomain = (): string => {
+  return localStorage.getItem("subdomain") || "amax"; // fallback por si no hay
+};
+
+// Función auxiliar para obtener headers con tenant dinámico
+const getTenantHeaders = (): Record<string, string> => {
+  const subdomain = getSubdomain();
+  return {
+    "x-tenant-subdomain": subdomain,
+  };
+};
+
+// Función auxiliar para obtener headers con autenticación (si lo necesitas en el futuro)
+const getAuthHeaders = (): Record<string, string> => {
+  const token = getAuthToken();
+  const subdomain = getSubdomain();
+  
+  return {
+    "x-tenant-subdomain": subdomain,
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+  };
+};
+
+// Función auxiliar para logout
+export const logoutUser = (): void => {
+  localStorage.removeItem("authToken");
+  localStorage.removeItem("user");
+  localStorage.removeItem("subdomain"); // 👈 NUEVO
+  console.log("✅ Sesión cerrada");
+};
 
 // Obtener todos los menús
 export const getMenus = async (): Promise<Menu[]> => {
@@ -66,7 +152,7 @@ export const getMenus = async (): Promise<Menu[]> => {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
-        ...TENANT_HEADER,
+        ...getTenantHeaders(),
       },
       cache: "no-store",
     });
@@ -96,7 +182,7 @@ export const getMenu = async (id: string | number): Promise<Menu> => {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
-        ...TENANT_HEADER,
+        ...getTenantHeaders(),
       },
     });
 
@@ -144,7 +230,7 @@ export const createMenu = async (data: newMenu): Promise<Menu> => {
       method: "POST",
       headers: {
         // ⚠️ NO incluir Content-Type con FormData
-        ...TENANT_HEADER,
+        ...getTenantHeaders(),
       },
       body: formData,
     });
@@ -200,7 +286,7 @@ export const updateMenu = async (
       method: "PUT",
       headers: {
         // ⚠️ NO incluir Content-Type con FormData
-        ...TENANT_HEADER,
+        ...getTenantHeaders(),
       },
       body: formData,
     });
@@ -226,7 +312,7 @@ export const deleteMenu = async (id: string | number): Promise<void> => {
       method: "DELETE",
       headers: {
         "Content-Type": "application/json",
-        ...TENANT_HEADER,
+        ...getTenantHeaders(),
       },
     });
 
@@ -250,7 +336,7 @@ export const createCategory = async (
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        ...TENANT_HEADER,
+        ...getTenantHeaders(),
       },
       body: JSON.stringify({
         menuId: data.menuId,
@@ -284,7 +370,7 @@ export const updateCategory = async (
       method: "PUT", // 💡 Método PUT para actualización
       headers: {
         "Content-Type": "application/json",
-        ...TENANT_HEADER,
+        ...getTenantHeaders(),
       },
       body: JSON.stringify(data), // 💡 Enviamos solo los datos a actualizar (ej: { title: 'Nuevo Título' })
     });
@@ -312,7 +398,7 @@ export const deleteCategory = async (categoryId: number): Promise<void> => {
       method: "DELETE",
       headers: {
         "Content-Type": "application/json",
-        ...TENANT_HEADER,
+        ...getTenantHeaders(),
       },
     });
 
@@ -351,7 +437,7 @@ export const createItem = async (data: newItem): Promise<Items> => {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        ...TENANT_HEADER,
+        ...getTenantHeaders(),
       },
       body: JSON.stringify(payload),
     });
@@ -380,7 +466,7 @@ export const updateItem = async (
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
-        ...TENANT_HEADER,
+        ...getTenantHeaders(),
       },
       body: JSON.stringify(data),
     });
@@ -408,7 +494,7 @@ export const deleteItem = async (itemId: number): Promise<void> => {
       method: "DELETE",
       headers: {
         "Content-Type": "application/json",
-        ...TENANT_HEADER,
+        ...getTenantHeaders(),
       },
     });
 
@@ -461,7 +547,7 @@ export const upsertItemImages = async (
       method: "PUT",
       headers: {
         // ⚠️ NO incluir Content-Type con FormData
-        ...TENANT_HEADER,
+        ...getTenantHeaders(),
       },
       body: formData,
     });
