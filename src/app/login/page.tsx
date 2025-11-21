@@ -1,11 +1,10 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   Alert,
   AlertDescription,
-  AlertTitle,
 } from "@/common/components/ui/alert";
 
 import { Button } from "@/common/components/ui/button";
