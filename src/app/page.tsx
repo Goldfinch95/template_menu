@@ -10,7 +10,7 @@ import { Plus, UtensilsCrossed, ChevronRight, LogOut } from "lucide-react";
 import { Menu } from "@/interfaces/menu";
 import Image from "next/image";
 import { Manrope } from "next/font/google";
-import { getMenus } from "@/common/utils/api";
+import { getMenus, logoutUser } from "@/common/utils/api";
 import { AnimatePresence, motion } from "framer-motion";
 
 // fuente para titulos
@@ -63,6 +63,12 @@ export default function Home() {
     );
   };
 
+  // desconectarse y dirigirse a login o pagina principal
+  const handleLogout = () => {
+    logoutUser(); // Limpia localStorage
+    router.push("/login"); // Redirige al login
+  };
+
   return (
     /*{ contenedor principal}*/
     <main
@@ -98,7 +104,10 @@ export default function Home() {
                 </p>
               </div>
               {/* boton para deslogear */}
-              <Button className="p-3 rounded-lg bg-transparent active:scale-95 transition">
+              <Button
+                onClick={handleLogout}
+                className="p-3 rounded-lg bg-transparent active:scale-95 transition"
+              >
                 <LogOut className="w-5 h-5 text-slate-700 group-hover:text-red-500 transition-colors" />
               </Button>
             </div>
@@ -202,7 +211,7 @@ export default function Home() {
                         type: "spring",
                         stiffness: 110,
                         damping: 18,
-                        duration: 0.45, 
+                        duration: 0.45,
                       },
                     }}
                     whileHover={{ scale: 1.03 }}
