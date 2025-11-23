@@ -15,13 +15,20 @@ import { loginUser } from "@/common/utils/api";
 const manrope = Manrope({ subsets: ["latin"] });
 
 export default function LoginPage() {
-  const router = useRouter();
-
+  //ESTADOS
+  //formulario
   const [form, setForm] = useState({ email: "", password: "" });
+  //carga
   const [loading, setLoading] = useState(false);
+  //errores
   const [error, setError] = useState<string | null>(null);
+  //alertas
   const [alertMessage, setAlertMessage] = useState<string | null>(null);
 
+  //RUTA
+  const router = useRouter();
+
+  //CREACION DE FORMULARIO
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
     if (error) setError(null);
@@ -29,8 +36,10 @@ export default function LoginPage() {
 
   const [showPassword, setShowPassword] = useState(false);
 
-  // VALIDACIÓN DE DATOS (acumulativa)
-  const validateFields = (values: { email: string; password: string } = form) => {
+  // VALIDACION DE DATOS DE FORMULARIO
+  const validateFields = (
+    values: { email: string; password: string } = form
+  ) => {
     const errors: string[] = [];
 
     // Validar email
@@ -49,7 +58,7 @@ export default function LoginPage() {
       );
     }
 
-    // Mostrar errores acumulados
+    // Mostrar errores
     if (errors.length > 0) {
       setAlertMessage(errors.join("\n"));
       return false;
@@ -60,6 +69,7 @@ export default function LoginPage() {
     return true;
   };
 
+  // ENVIAR DATOS A LA BD
   const handleSubmit = async () => {
     //limpiar el formulario antes de enviar,controlar espacios inicio y final
     const cleanedForm = {
@@ -67,10 +77,12 @@ export default function LoginPage() {
       password: form.password.trim(),
     };
     setForm(cleanedForm);
+    //control de formulario,si es invalido retorno.
     if (!validateFields(cleanedForm)) return;
     setLoading(true);
 
     try {
+      //enviar datos a la BD
       await loginUser(cleanedForm);
       //dirigirse al exhibidor de menus
       router.push("/menuShowcase");
@@ -85,161 +97,225 @@ export default function LoginPage() {
     }
   };
 
+  //-----LOGIN-------//
   return (
     <main
       className="
-        h-screen w-full flex flex-col justify-between
+        h-screen w-full flex flex-col justify-center
         bg-gradient-to-b from-white via-[#FFF3EC] to-[#FFE6D3]
-        px-6 py-10
+        px-6 py-6
       "
     >
-      <AnimatePresence>
-        <motion.div
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, ease: "easeOut" }}
-          className="flex flex-col w-full items-center"
-        >
-          {/* Ícono principal */}
-          <div className="w-20 h-20 mb-6 rounded-3xl bg-gradient-to-br from-orange-400 to-orange-500 shadow-md flex items-center justify-center">
-            <UtensilsCrossed className="w-10 h-10 text-white" />
+      {/* CARD PRINCIPAL COMPACTO */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4 }}
+        className="
+          w-full max-w-md mx-auto 
+          bg-white/80 backdrop-blur-xl
+          rounded-3xl p-6 shadow-xl 
+          border border-white/50
+          space-y-5
+        "
+      >
+        {/* Ícono */}
+        <div className="flex justify-center">
+          <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-orange-400 to-orange-500 shadow-md flex items-center justify-center">
+            <UtensilsCrossed className="w-9 h-9 text-white" />
           </div>
+        </div>
 
-          {/* Título */}
+        {/* Título */}
+        <div className="text-center -mt-1">
           <h1
-            className={`${manrope.className} text-3xl font-extrabold text-center text-slate-900`}
+            className={`${manrope.className} text-2xl font-extrabold text-slate-900`}
           >
             Bienvenido
           </h1>
-          <p className="text-center text-base text-slate-600 mt-1 mb-8">
+          <p className="text-slate-600 text-sm mt-1">
             Iniciá sesión para continuar
           </p>
+        </div>
 
-          {/* MINI CARD */}
-          <div
+        {/* ALERTA */}
+        <AnimatePresence>
+          {alertMessage && (
+            <motion.div
+              initial={{ opacity: 0, y: -6 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -6 }}
+              transition={{ duration: 0.25 }}
+            >
+              <Alert className="flex bg-red-50 border border-red-300 text-red-800 rounded-xl px-3 py-3 shadow-sm">
+                <div className="flex gap-2">
+                  <div className="flex items-center">
+                    <X className="!w-6.5 !h-6.5" />
+                  </div>
+                  <AlertDescription className="text-sm whitespace-pre-line space-y-2">
+                    {alertMessage}
+                  </AlertDescription>
+                </div>
+              </Alert>
+            </motion.div>
+          )}
+        </AnimatePresence>
+        {/* Google Button */}
+        <Button
+          variant="outline"
+          disabled={loading}
+          className=" w-full flex items-center justify-center gap-3 h-11 rounded-xl text-base
+    border-slate-300 text-gray-700 bg-white
+
+    hover:bg-orange-50 hover:border-orange-400  /* solo desktop */
+    active:border-orange-400                    /* mobile */
+    focus:border-orange-400                     /* mobile */
+
+    backdrop-blur-sm shadow-sm hover:shadow-md
+    active:scale-[0.97] transition-all
+          "
+        >
+          <img
+            src="https://www.svgrepo.com/show/475656/google-color.svg"
+            alt="Google Icon"
+            className="w-5 h-5"
+          />
+          Continuar con Google
+        </Button>
+        {/* Divider */}
+        <div className="flex items-center my-6">
+          <span className="flex-1 h-px bg-gray-300"></span>
+          <span className="px-3 text-sm text-gray-500">o</span>
+          <span className="flex-1 h-px bg-gray-300"></span>
+        </div>
+
+        {/* EMAIL */}
+        <div className="space-y-1">
+          <Label className="text-slate-700 font-semibold">Email</Label>
+          <Input
+            name="email"
+            type="email"
+            placeholder="correo@example.com"
             className="
-              w-full max-w-md p-6 rounded-2xl shadow-lg
-              bg-white/70 backdrop-blur-md border border-white/40
-              space-y-5
+               bg-white
+    border-slate-300 shadow-sm
+
+    focus-visible:border-orange-400
+    focus-visible:ring-2 focus-visible:ring-orange-200/70
+
+    rounded-xl
+    transition-all duration-200
+            "
+            value={form.email}
+            onChange={handleChange}
+            disabled={loading}
+          />
+        </div>
+
+        {/* PASSWORD */}
+        <div className="space-y-1 relative">
+          <Label className="text-slate-700 font-semibold">Contraseña</Label>
+
+          <Input
+            name="password"
+            type={showPassword ? "text" : "password"}
+            placeholder="••••••••"
+            className="
+               bg-white
+    border-slate-300 shadow-sm
+
+    focus-visible:border-orange-400
+    focus-visible:ring-2 focus-visible:ring-orange-200/70
+
+    rounded-xl
+    transition-all duration-200
+            "
+            value={form.password}
+            onChange={handleChange}
+            disabled={loading}
+          />
+
+          <button
+            type="button"
+            onClick={() => setShowPassword((prev: any) => !prev)}
+            className="
+              absolute right-3 bottom-[10px] 
+              text-slate-500 hover:text-slate-700
             "
           >
-            <AnimatePresence>
-              {alertMessage && (
-                <motion.div
-                  initial={{ opacity: 0, y: -5 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -5 }}
-                  transition={{ duration: 0.25 }}
-                >
-                  <Alert className="bg-red-100 border border-red-300 text-red-800 rounded-lg p-4 flex gap-3">
-                    <X className="!w-10 !h-10 self-center" />
-                    <div>
-                      <AlertDescription className="whitespace-pre-line mt-1">
-                        {alertMessage}
-                      </AlertDescription>
-                    </div>
-                  </Alert>
-                </motion.div>
-              )}
-            </AnimatePresence>
+            {showPassword ? (
+              <Eye className="w-5 h-5" />
+            ) : (
+              <EyeOff className="w-5 h-5" />
+            )}
+          </button>
+        </div>
 
-            {/* Email */}
-            <div>
-              <Label className="text-slate-700">Email</Label>
-              <Input
-                name="email"
-                type="email"
-                placeholder="correo@example.com"
-                className="mt-2 bg-white/85
-  border-slate-300 
-  focus:!border-orange-500 focus:!ring-orange-500
-  transition-all duration-200"
-                value={form.email}
-                onChange={handleChange}
-                disabled={loading}
-              />
-            </div>
+        {/* GOOGLE BUTTON */}
+        <Button
+          variant="outline"
+          className="
+            w-full py-3 rounded-xl text-base 
+            bg-white/90 backdrop-blur-sm
+            border border-slate-300 text-slate-700
+            font-medium shadow-sm hover:shadow-md
+            active:scale-[0.97] transition-all
+            flex items-center gap-3 justify-center
+          "
+          disabled={loading}
+        >
+          <img
+            src="https://www.svgrepo.com/show/475656/google-color.svg"
+            alt="Google Icon"
+            className="w-5 h-5"
+          />
+          Continuar con Google
+        </Button>
+      </motion.div>
 
-            {/* Password */}
-            <div className="relative">
-              <Label className="text-slate-700">Contraseña</Label>
-              <Input
-                name="password"
-                type={showPassword ? "text" : "password"}
-                placeholder="••••••••"
-                className="mt-2 bg-white/85
-  border-slate-300 
-  focus:!border-orange-500 focus:!ring-orange-500
-  transition-all duration-200"
-                value={form.password}
-                onChange={handleChange}
-                disabled={loading}
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword((prev) => !prev)}
-                className="
-      absolute right-3 bottom-1.5 
-      text-slate-600 hover:text-slate-800
-      transition-all duration-200
-    "
-              >
-                {showPassword ? (
-                  <Eye className="!w-6 !h-6" />
-                ) : (
-                  <EyeOff className="!w-6 !h-6" />
-                )}
-              </button>
-            </div>
-          </div>
-        </motion.div>
-      </AnimatePresence>
+      {/* BOTÓN ENTRAR */}
+      <div className="w-full max-w-md mx-auto mt-4">
+        <Button
+          onClick={handleSubmit}
+          disabled={loading}
+          className="
+            w-full py-5 rounded-xl text-lg
+            bg-gradient-to-r from-orange-400 to-orange-500 
+            text-white font-semibold shadow-md hover:shadow-lg 
+            active:scale-[0.97] transition-all
+          "
+        >
+          {loading ? "Ingresando..." : "Entrar"}
+        </Button>
+      </div>
+
+      {/* ERROR FLOTANTE */}
       <AnimatePresence>
         {error && (
           <motion.div
             initial={{ y: 100, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: 100, opacity: 0 }}
-            transition={{ duration: 0.35, ease: "easeOut" }}
+            transition={{ duration: 0.35 }}
             className="
-        fixed bottom-30 left-1/2 -translate-x-1/2 
-        w-[90%] max-w-md 
-        bg-red-100 border border-red-300 text-red-900
-        px-5 py-4 rounded-2xl shadow-lg
-        flex items-center gap-4
-      "
+              fixed bottom-24 left-1/2 -translate-x-1/2 
+              w-[90%] max-w-md 
+              bg-red-100 border border-red-300 text-red-900
+              px-5 py-4 rounded-2xl shadow-lg
+              flex items-center gap-4
+            "
           >
-            <X className="w-7 h-7 text-red-700" strokeWidth={2.5} />
-
-            <div className="flex-1">
-              <p className="text-sm text-red-800">{error}</p>
-            </div>
-
+            <X className="w-7 h-7 text-red-700" />
+            <p className="flex-1 text-sm">{error}</p>
             <button
               onClick={() => setError(null)}
-              className="text-red-700 font-bold text-lg px-2"
+              className="text-red-700 font-bold px-2"
             >
               Cerrar
             </button>
           </motion.div>
         )}
       </AnimatePresence>
-
-      {/* BOTÓN ABAJO ESTILO APP */}
-      <div className="w-full max-w-md mx-auto">
-        <Button
-          onClick={handleSubmit}
-          disabled={loading}
-          className="
-            w-full py-6 rounded-xl text-lg mt-6
-            bg-gradient-to-r from-orange-400 to-orange-500 
-            text-white font-semibold shadow-md hover:shadow-lg 
-            active:scale-[0.98] transition-all duration-300
-          "
-        >
-          {loading ? "Ingresando..." : "Entrar"}
-        </Button>
-      </div>
     </main>
   );
 }
