@@ -365,13 +365,13 @@ const MenuEditorContent = () => {
             menuCategories={menu.categories}
             onCategoryChange={() => fetchMenuData(String(menu.id))}
           />
-          <CategoryEditor
+          {/*<CategoryEditor
             onCategoriesChange={receiveRestaurantCategories}
             onEditCategory={receiveEditedCategory}
             onDeleteCategory={receiveCategoryForDelete}
             categoriesToDelete={categoriesToDelete}
             categories={menu.categories}
-          />
+          />*/}
 
           {/* Eliminar menu */}
           <button
@@ -385,7 +385,7 @@ const MenuEditorContent = () => {
       </motion.section>
 
       {/* Botones flotantes */}
-      {/*<FloatingActions
+      <FloatingActions
         menu={menu}
         newMenu={newMenu}
         newCategory={newCategory}
@@ -393,7 +393,7 @@ const MenuEditorContent = () => {
         categoriesToDelete={categoriesToDelete}
         onDeleteComplete={clearCategoriesToDelete}
         onPreviewClick={handlePreviewClick}
-      />*/}
+      />
 
       {/* Modal de Preview */}
       {showPreview && (
