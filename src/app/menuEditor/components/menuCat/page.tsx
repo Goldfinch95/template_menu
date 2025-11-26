@@ -10,6 +10,16 @@ import {
   CollapsibleContent,
 } from "@/common/components/ui/collapsible";
 import {
+  Dialog,
+  DialogTrigger,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+  DialogClose,
+} from "@/common/components/ui/dialog";
+import {
   ChevronUp,
   ChevronDown,
   Plus,
@@ -24,6 +34,7 @@ import ItemDialog from "./components/ItemDialog";
 import { Categories } from "@/interfaces/menu";
 import { deleteCategory, updateCategory, deleteItem } from "@/common/utils/api";
 import { cn } from "@/common/utils/utils";
+import { AlertTriangle, X } from "lucide-react";
 
 interface CatEditorProps {
   menuId: number;
@@ -242,14 +253,47 @@ const MenuCatPage = ({
                       </Button>
 
                       {/* Botón Eliminar */}
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8 text-red-500 hover:bg-red-50"
-                        onClick={() => handleDelete(category.id)}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+                      <Dialog>
+                        <DialogTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 text-red-500 hover:bg-red-50"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </DialogTrigger>
+
+                        <DialogContent className="max-w-sm rounded-2xl p-6 shadow-xl [&>button]:hidden">
+                          {/* X personalizada */}
+                          <DialogClose className="absolute right-6 top-6 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground !flex items-center justify-center">
+                            <X className="h-5 w-5 text-red-600" />
+                          </DialogClose>
+
+                          <DialogHeader>
+                            <DialogTitle className="flex items-center gap-2 text-red-600">
+                              <AlertTriangle className="w-5 h-5" />
+                              Eliminar categoria
+                            </DialogTitle>
+                          </DialogHeader>
+                          <DialogDescription className="text-base text-slate-600 mt-2">
+                            ¿Estás seguro de que deseas eliminar esta categoría?
+                            Los platos dentro de ella también se eliminarán.
+                          </DialogDescription>
+                          <DialogFooter className="flex justify-end gap-2 mt-6">
+                            <DialogClose asChild>
+                              <Button variant="outline">Cancelar</Button>
+                            </DialogClose>
+
+                            <Button
+                              className="bg-red-600 hover:bg-red-700 text-white"
+                              onClick={() => handleDelete(category.id)}
+                            >
+                              Eliminar
+                            </Button>
+                          </DialogFooter>
+                        </DialogContent>
+                      </Dialog>
 
                       {/* 🆕 Botón de Plegar/Desplegar */}
                       <CollapsibleTrigger asChild>
@@ -328,14 +372,53 @@ const MenuCatPage = ({
                                     </Button>
                                   }
                                 />
-                                <Button
-                                  size="sm"
-                                  variant="ghost"
-                                  className="text-red-500 hover:text-red-600"
-                                  onClick={() => handleDeleteItem(item.id)}
-                                >
-                                  <Trash2 className="w-4 h-4" />
-                                </Button>
+                                <Dialog>
+                                  <DialogTrigger asChild>
+                                    <Button
+                                      size="sm"
+                                      variant="ghost"
+                                      className="text-red-500 hover:text-red-600"
+                                    >
+                                      <Trash2 className="w-4 h-4" />
+                                    </Button>
+                                  </DialogTrigger>
+
+                                  <DialogContent className="max-w-sm rounded-2xl p-6 shadow-xl [&>button]:hidden">
+                                    {/* X personalizada en naranja */}
+                                    <DialogClose className="absolute right-6 top-6 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground !flex items-center justify-center">
+                            <X className="h-5 w-5 text-red-600" />
+                          </DialogClose>
+
+                                    <DialogHeader>
+                                      <DialogTitle className="flex items-center gap-2 text-red-500">
+                                        <AlertTriangle className="w-5 h-5" />
+                                        Eliminar plato
+                                      </DialogTitle>
+                                    </DialogHeader>
+
+                                    <DialogDescription className="text-base text-slate-600 mt-2">
+                                      ¿Estás seguro de que deseas eliminar este
+                                      plato? Esta acción no se puede deshacer.
+                                    </DialogDescription>
+
+                                    <DialogFooter className="flex justify-end gap-2 mt-6">
+                                      <DialogClose asChild>
+                                        <Button variant="outline">
+                                          Cancelar
+                                        </Button>
+                                      </DialogClose>
+
+                                      <Button
+                                        className="bg-red-500 hover:bg-red-600 text-white"
+                                        onClick={() =>
+                                          handleDeleteItem(item.id)
+                                        }
+                                      >
+                                        Eliminar
+                                      </Button>
+                                    </DialogFooter>
+                                  </DialogContent>
+                                </Dialog>
                               </div>
                             </div>
                           );

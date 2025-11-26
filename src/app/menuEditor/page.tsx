@@ -389,7 +389,7 @@ const MenuEditorContent = () => {
 
                 <DialogContent className="max-w-sm rounded-2xl p-6 shadow-xl [&>button]:hidden">
                   <DialogClose className="absolute right-6 top-6 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground !flex items-center justify-center">
-                    <X className="h-5 w-5 text-orange-400" />
+                    <X className="h-5 w-5 text-red-600" />
                   </DialogClose>
 
                   <DialogHeader>
