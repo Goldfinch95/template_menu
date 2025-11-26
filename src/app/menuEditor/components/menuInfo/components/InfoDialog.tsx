@@ -182,23 +182,23 @@ const InfoDialog = ({
     const errors: string[] = [];
 
     if (title.trim().length < 3) {
-      errors.push("• El título debe tener más de 3 caracteres.");
+      errors.push("El título debe tener más de 3 caracteres.");
     }
 
     if (!logoFile && !menuLogo) {
-      errors.push("• El logo es obligatorio.");
+      errors.push("El logo es obligatorio.");
     }
 
     if (!backgroundFile && !menuLogo) {
-      errors.push("• El fondo es obligatorio.");
+      errors.push("El fondo es obligatorio.");
     }
 
     if (!/^#[0-9A-Fa-f]{6}$/.test(primaryColor)) {
-      errors.push("• El color primario debe ser un código HEX válido.");
+      errors.push("El color primario debe ser un código HEX válido.");
     }
 
     if (!/^#[0-9A-Fa-f]{6}$/.test(secondaryColor)) {
-      errors.push("• El color secundario debe ser un código HEX válido.");
+      errors.push("El color secundario debe ser un código HEX válido.");
     }
 
     // Si hay errores → mostrarlos
@@ -222,14 +222,14 @@ const InfoDialog = ({
       // si es un menu nuevo
       if (!menuId) {
         const payload: newMenu = {
-          title: title,
-          pos: pos,
+          title: title.trim(),
+          pos: pos.trim(),
           userId: 1,
           logo: logoFile ?? null,
           backgroundImage: backgroundFile ?? null,
           color: {
-            primary: primaryColor,
-            secondary: secondaryColor,
+            primary: primaryColor.trim(),
+            secondary: secondaryColor.trim(),
           },
           categories: [],
         };
@@ -244,11 +244,11 @@ const InfoDialog = ({
       // editar un menu
       else {
         const payload: Partial<Menu> = {
-          title: title,
-          pos: pos,
+          title: title.trim(),
+          pos: pos.trim(),
           color: {
-            primary: primaryColor,
-            secondary: secondaryColor,
+            primary: primaryColor.trim(),
+            secondary: secondaryColor.trim(),
           },
         };
 
@@ -276,16 +276,19 @@ const InfoDialog = ({
     <Dialog>
       <DialogTrigger asChild>{trigger}</DialogTrigger>
 
-      <DialogContent className="max-w-md  max-h-[80vh] overflow-y-auto">
+      <DialogContent className="max-w-md  max-h-[80vh] overflow-y-auto [&>button]:hidden">
         {/* Botón de cerrar */}
-        <DialogClose className="absolute right-4 top-4 rounded-full p-2 hover:bg-white/70 transition-colors z-50">
-          <X className="h-5 w-5 text-orange-400" />
-        </DialogClose>
 
         <DialogHeader>
-          <DialogTitle className="text-xl font-semibold text-black">
-            Editar información
-          </DialogTitle>
+          <div className="relative flex items-center justify-center">
+            <DialogTitle className="text-xl font-semibold text-black text-center">
+              Editar información
+            </DialogTitle>
+
+            <DialogClose className="absolute right-0 top-1/2 -translate-y-1/2 rounded-full p-2 hover:bg-white/70 transition-colors">
+              <X className="h-5 w-5 text-orange-400" />
+            </DialogClose>
+          </div>
         </DialogHeader>
 
         <div className="space-y-5 py-4">
@@ -293,13 +296,12 @@ const InfoDialog = ({
           {alertMessage && (
             <Alert
               ref={alertRef}
-              className="mb-4 bg-red-100 border border-red-400 text-red-700 p-4 rounded-md flex items-start gap-3"
+              className="mb-4 bg-red-100 border border-red-400 text-red-700 p-4 rounded-md flex items-center gap-3"
             >
               {/* Icono */}
-              <X className="w-6 h-6" />
-              <div className="font-semibold">
-                <AlertTitle>Error:</AlertTitle>
-                <AlertDescription className="whitespace-pre-line mt-1">
+              <X className="!w-6 !h-6 flex-shrink-0" />
+              <div className="">
+                <AlertDescription className="whitespace-pre-line text-base">
                   {alertMessage}
                 </AlertDescription>
               </div>
@@ -318,7 +320,10 @@ const InfoDialog = ({
               placeholder="Ej: La Pizzería de Mario"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              className="h-11 pr-10 text-black bg-white/80 border-slate-200 focus-visible:ring-orange-400 text-sm placeholder:text-slate-400"
+              className="bg-white border-slate-300 shadow-sm text-base
+                focus-visible:border-orange-400
+                focus-visible:ring-2 focus-visible:ring-orange-200/70
+                rounded-xl transition-all duration-200"
             />
           </div>
 
@@ -332,7 +337,10 @@ const InfoDialog = ({
               placeholder="Ej: Av. Principal 123, Centro"
               value={pos}
               onChange={(e) => setPos(e.target.value)}
-              className="h-11 pr-10 text-black bg-white/80 border-slate-200 focus-visible:ring-orange-400 text-sm placeholder:text-slate-400"
+              className="bg-white border-slate-300 shadow-sm text-base
+                focus-visible:border-orange-400
+                focus-visible:ring-2 focus-visible:ring-orange-200/70
+                rounded-xl transition-all duration-200"
             />
           </div>
 
@@ -464,7 +472,10 @@ const InfoDialog = ({
                 value={primaryColor}
                 onChange={(e) => handleInputChange("primary", e.target.value)}
                 onFocus={() => handleInputFocus("primary")}
-                className="font-mono text-black text-sm bg-white/80 border-slate-200 focus-visible:ring-orange-400"
+                className="bg-white border-slate-300 shadow-sm text-base
+                focus-visible:border-orange-400
+                focus-visible:ring-2 focus-visible:ring-orange-200/70
+                rounded-xl transition-all duration-200"
                 placeholder="Color base"
               />
             </div>
@@ -508,7 +519,10 @@ const InfoDialog = ({
                     handleInputChange("secondary", e.target.value)
                   }
                   onFocus={() => handleInputFocus("secondary")}
-                  className="font-mono text-black text-sm bg-white/80 border-slate-200 focus-visible:ring-orange-400"
+                  className="bg-white border-slate-300 shadow-sm text-base
+                focus-visible:border-orange-400
+                focus-visible:ring-2 focus-visible:ring-orange-200/70
+                rounded-xl transition-all duration-200"
                   placeholder="Color secundario"
                 />
               </div>

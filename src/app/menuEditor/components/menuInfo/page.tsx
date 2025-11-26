@@ -116,7 +116,7 @@ const MenuInfoPage = ({ menuId,  onMenuCreated }: InfoEditorProps) => {
 
             <p className="text-sm text-slate-500 max-w-[260px] leading-relaxed">
               Todavía no cargaste un logo ni un título. Podés configurarlos
-              desde el botón editar.
+              desde el botón Crear.
             </p>
 
             <InfoDialog
@@ -124,7 +124,7 @@ const MenuInfoPage = ({ menuId,  onMenuCreated }: InfoEditorProps) => {
               onCreated={handleMenuCreated}
               trigger={
                 <Button className="w-full mt-3 bg-orange-500 text-white py-6 rounded-xl">
-                  Editar
+                  Crear
                 </Button>
               }
             />

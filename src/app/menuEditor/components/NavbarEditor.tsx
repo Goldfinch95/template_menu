@@ -65,7 +65,7 @@ const NavbarEditor = () => {
             hover:bg-slate-100/70 active:scale-[0.95]
             transition-all duration-200"
           aria-label="Volver al inicio"
-          onClick={() => router.push("/")}
+          onClick={() => router.push("/menuShowcase")}
         >
           <ArrowLeft className="w-5 h-5 sm:w-5 sm:h-5 text-slate-700" />
         </Button>
