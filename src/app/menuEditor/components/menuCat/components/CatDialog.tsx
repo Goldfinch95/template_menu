@@ -15,6 +15,8 @@ import {
   AlertDescription,
   AlertTitle,
 } from "@/common/components/ui/alert";
+import { Input } from "@/common/components/ui/input";
+import { Label } from "@/common/components/ui/label";
 
 import { X } from "lucide-react";
 import { Button } from "@/common/components/ui/button";
@@ -43,7 +45,7 @@ const CatDialog = ({ trigger, menuId, onCategoryCreated }: CatDialogProps) => {
     const errors: string[] = [];
 
     if (title.trim().length < 3) {
-      errors.push("• El título debe tener más de 3 caracteres.");
+      errors.push("El título debe tener más de 3 caracteres.");
     }
     // Si hay errores → mostrarlos
     if (errors.length > 0) {
@@ -65,7 +67,7 @@ const CatDialog = ({ trigger, menuId, onCategoryCreated }: CatDialogProps) => {
       // Aquí debes reemplazar el URL de la API y el menúId por el adecuado
 
       const payload: newCategory = {
-        title: title,
+        title: title.trim(),
         menuId: Number(menuId),
       };
       //console.log("el payload es", payload)
@@ -88,44 +90,48 @@ const CatDialog = ({ trigger, menuId, onCategoryCreated }: CatDialogProps) => {
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>{trigger}</DialogTrigger>
-      <DialogContent className="max-w-md max-h-[80vh] overflow-y-auto">
-        <DialogClose className="absolute right-4 top-4 rounded-full p-2 hover:bg-white/70 transition-colors z-50">
-          <X className="h-5 w-5 text-orange-400" />
-        </DialogClose>
+      <DialogContent className="max-w-md max-h-[80vh] overflow-y-auto [&>button]:hidden">
         <DialogHeader>
-          <DialogTitle className="text-xl font-semibold text-black">
-            Crear Categoria
-          </DialogTitle>
+          <div className="relative flex items-center justify-center">
+            <DialogTitle className="text-xl font-semibold text-black text-center">
+              Crear Categoria
+            </DialogTitle>
+            <DialogClose className="absolute right-0">
+              <X className="h-5 w-5 text-orange-400" />
+            </DialogClose>
+          </div>
         </DialogHeader>
         <div className="space-y-5 py-4">
           {alertMessage && (
             <Alert
               ref={alertRef}
-              className="mb-4 bg-red-100 border border-red-400 text-red-700 p-4 rounded-md flex items-start gap-3"
+              className="mb-4 bg-red-100 border border-red-400 text-red-700 p-4 rounded-md 
+             flex items-center gap-3"
             >
-              <X className="w-6 h-6" />
-              <div className="font-semibold">
-                <AlertTitle>Error:</AlertTitle>
-                <AlertDescription className="whitespace-pre-line mt-1">
-                  {alertMessage}
-                </AlertDescription>
-              </div>
+              <X className="!w-6 !h-6 mb-[2.5px]" />
+
+              <AlertDescription className="text-base leading-tight flex items-center">
+                {alertMessage}
+              </AlertDescription>
             </Alert>
           )}
-          <div className="flex flex-col">
-            <label
-              className="text-sm font-medium text-gray-700"
+          <div className="flex flex-col space-y-2">
+            <Label
+              className="text-slate-700 text-base"
               htmlFor="categoryTitle"
             >
               Título de la Categoría
-            </label>
-            <input
+            </Label>
+            <Input
               type="text"
               id="categoryTitle"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="Ingresa el título de la categoría"
-              className="text-black mt-2 p-3 border border-slate-300 rounded-xl w-full text-sm"
+              className="bg-white border-slate-300 shadow-sm text-base
+                focus-visible:border-orange-400
+                focus-visible:ring-2 focus-visible:ring-orange-200/70
+                rounded-xl transition-all duration-200"
             />
           </div>
         </div>

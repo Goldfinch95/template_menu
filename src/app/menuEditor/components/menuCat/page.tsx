@@ -18,6 +18,7 @@ import {
   Utensils,
   Pencil,
 } from "lucide-react";
+import { Spinner } from "@/common/components/ui/spinner";
 import CatDialog from "./components/CatDialog";
 import ItemDialog from "./components/ItemDialog";
 import { Categories } from "@/interfaces/menu";
@@ -35,6 +36,14 @@ const MenuCatPage = ({
   menuCategories,
   onCategoryChange,
 }: CatEditorProps) => {
+  // 🔒 No renderizar si no hay menuId
+  if (!menuId) {
+    return null;
+  }
+
+  // Estado de carga
+  const [loading, setLoading] = useState(true);
+
   // 🆕 Estado para controlar la categoría desplegada (usando su ID)
   const [expandedCategoryId, setExpandedCategoryId] = useState<number | null>(
     null
@@ -49,6 +58,17 @@ const MenuCatPage = ({
   const [savingId, setSavingId] = useState<number | null>(null);
 
   const [deletingItemId, setDeletingItemId] = useState<number | null>(null);
+
+  // Efecto para simular carga inicial con delay
+  useEffect(() => {
+    const loadCategories = async () => {
+      setLoading(true);
+      await new Promise((resolve) => setTimeout(resolve, 2000)); // Delay de 2 segundos
+      setLoading(false);
+    };
+
+    loadCategories();
+  }, [menuId, menuCategories]);
 
   // Editar categoria local
   const handleTitleChange = (categoryId: number, newTitle: string) => {
@@ -106,20 +126,28 @@ const MenuCatPage = ({
 
   // borrar categoria item
   const handleDeleteItem = async (itemId: number) => {
-  
-  setDeletingItemId(itemId);
+    setDeletingItemId(itemId);
 
-  try {
-    await deleteItem(itemId);
-    await onCategoryChange(); // Refresca los datos
-    console.log(`✅ Ítem ${itemId} eliminado correctamente`);
-  } catch (error) {
-    console.error("❌ Error al eliminar ítem:", error);
-    alert("Error al eliminar el plato. Revisa la consola.");
-  } finally {
-    setDeletingItemId(null);
+    try {
+      await deleteItem(itemId);
+      await onCategoryChange(); // Refresca los datos
+      console.log(`✅ Ítem ${itemId} eliminado correctamente`);
+    } catch (error) {
+      console.error("❌ Error al eliminar ítem:", error);
+      alert("Error al eliminar el plato. Revisa la consola.");
+    } finally {
+      setDeletingItemId(null);
+    }
+  };
+
+  // Renderizar spinner durante la carga
+  if (loading) {
+    return (
+      <div className="w-full flex justify-center items-center py-10">
+        <Spinner className="w-12 h-12 text-orange-500" />
+      </div>
+    );
   }
-};
 
   return (
     <motion.div
