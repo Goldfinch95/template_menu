@@ -45,7 +45,7 @@ const CatDialog = ({ trigger, menuId, onCategoryCreated }: CatDialogProps) => {
     const errors: string[] = [];
 
     if (title.trim().length < 3) {
-      errors.push("El título debe tener más de 3 caracteres.");
+      errors.push("• El título debe tener más de 3 caracteres.");
     }
     // Si hay errores → mostrarlos
     if (errors.length > 0) {
@@ -103,23 +103,17 @@ const CatDialog = ({ trigger, menuId, onCategoryCreated }: CatDialogProps) => {
         </DialogHeader>
         <div className="space-y-5 py-4">
           {alertMessage && (
-            <Alert
-              ref={alertRef}
-              className="mb-4 bg-red-100 border border-red-400 text-red-700 p-4 rounded-md 
-             flex items-center gap-3"
-            >
-              <X className="!w-6 !h-6 mb-[2.5px]" />
-
-              <AlertDescription className="text-base leading-tight flex items-center">
-                {alertMessage}
-              </AlertDescription>
+            <Alert className="mb-4 bg-red-100 border border-red-400 text-red-700 p-4 rounded-xl flex items-start gap-3">
+              <X className="w-5 h-5 mt-1" />
+              <div>
+                <AlertDescription className="whitespace-pre-line mt-1">
+                  {alertMessage}
+                </AlertDescription>
+              </div>
             </Alert>
           )}
           <div className="flex flex-col space-y-2">
-            <Label
-              className="text-slate-700 text-base"
-              htmlFor="categoryTitle"
-            >
+            <Label className="text-slate-700 text-base" htmlFor="categoryTitle">
               Título de la Categoría
             </Label>
             <Input

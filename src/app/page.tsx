@@ -44,17 +44,17 @@ export default function LoginPage() {
 
     // Validar email
     if (!values.email) {
-      errors.push("El email es obligatorio.");
+      errors.push("• El email es obligatorio.");
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(values.email)) {
-      errors.push("Ingresá un email válido.");
+      errors.push("• Ingresá un email válido.");
     }
 
     // Validar contraseña
     if (!values.password) {
-      errors.push("La contraseña es obligatoria.");
+      errors.push("• La contraseña es obligatoria.");
     } else if (values.password.length < 8 || values.password.length > 16) {
       errors.push(
-        "La contraseña debe tener al menos entre 8 y 16 caracteres."
+        "• La contraseña debe tener al menos entre 8 y 16 caracteres."
       );
     }
 
@@ -166,24 +166,16 @@ export default function LoginPage() {
         {/* ALERTA MOVIDA AL LUGAR CORRECTO */}
         <AnimatePresence>
           {alertMessage && (
-            <motion.div
-              initial={{ opacity: 0, y: -6 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -6 }}
-              transition={{ duration: 0.25 }}
-            >
-              <Alert className="flex bg-red-50 border border-red-300 text-red-800 rounded-xl px-3 py-3 shadow-sm">
-                <div className="flex gap-2">
-                  <div className="flex items-center">
-                    <X className="w-6 h-6" />
-                  </div>
-                  <AlertDescription className="text-base whitespace-pre-line space-y-2">
-                    {alertMessage}
-                  </AlertDescription>
-                </div>
-              </Alert>
-            </motion.div>
-          )}
+                    <Alert className="mb-4 bg-red-100 border border-red-400 text-red-700 p-4 rounded-xl flex items-start gap-3">
+                      <X className="w-5 h-5 mt-1" />
+                      <div>
+                       
+                        <AlertDescription className="whitespace-pre-line mt-1">
+                          {alertMessage}
+                        </AlertDescription>
+                      </div>
+                    </Alert>
+                  )}
         </AnimatePresence>
 
         {/* CAMPOS */}

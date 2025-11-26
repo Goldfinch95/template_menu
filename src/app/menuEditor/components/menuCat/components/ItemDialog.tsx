@@ -164,8 +164,8 @@ const ItemDialog = ({
 
       if (isEditMode) {
         const payload: Partial<Items> = {
-          title: title,
-          description: description || undefined,
+          title: title.trim(),
+          description: description.trim() || undefined,
           price: Number(price),
           //images: images
         };
@@ -198,8 +198,8 @@ const ItemDialog = ({
       else {
         const payload: newItem = {
           categoryId: Number(categoryId),
-          title: title,
-          description: description,
+          title: title.trim(),
+          description: description.trim(),
           price: Number(price),
           //images: images,
         };
@@ -244,45 +244,65 @@ const ItemDialog = ({
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>{trigger}</DialogTrigger>
-      <DialogContent className="rounded-2xl max-w-md bg-white/90 backdrop-blur-xl border border-white/30">
-        <DialogClose className="absolute right-4 top-4 rounded-full p-2 hover:bg-white/70 transition-colors z-50">
-          <X className="h-5 w-5 text-orange-400" />
-        </DialogClose>
+      <DialogContent className="rounded-2xl max-w-md bg-white/90 backdrop-blur-xl border border-white/30 [&>button]:hidden">
         <DialogHeader>
-          <DialogTitle className="text-slate-800 text-lg font-semibold">
-            {isEditMode ? "Editar plato" : "Crear plato"}
-          </DialogTitle>
+          <div className="relative flex justify-center items-center py-2 w-full">
+            <DialogTitle className="text-slate-800 text-lg font-semibold">
+              {isEditMode ? "Editar plato" : "Crear plato"}
+            </DialogTitle>
+
+            <DialogClose className="absolute right-4 top-1/2 -translate-y-1/2 p-2 rounded-full hover:bg-white/70 transition-colors">
+              <X className="h-5 w-5 text-orange-400" />
+            </DialogClose>
+          </div>
         </DialogHeader>
         {alertMessage && (
-          <Alert className="mb-4 bg-red-100 border border-red-400 text-red-700 p-4 rounded-xl flex items-start gap-3">
+          <Alert className=" bg-red-100 border border-red-400 text-red-700 p-4 rounded-xl flex items-start gap-3">
             <X className="w-5 h-5 mt-1" />
             <div>
-              <AlertTitle className="font-semibold">Error:</AlertTitle>
               <AlertDescription className="whitespace-pre-line mt-1">
                 {alertMessage}
               </AlertDescription>
             </div>
           </Alert>
         )}
-        <div className="space-y-4 mt-3">
+        <div className="flex flex-col space-y-2">
+          <Label className="text-slate-700 text-base" htmlFor="categoryTitle">
+                        Titulo del plato
+                      </Label>
           <Input
-            placeholder="Título del plato"
+            placeholder="Plato, Bebida, Postre"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            className="text-black"
+            className="bg-white border-slate-300 shadow-sm text-base
+                focus-visible:border-orange-400
+                focus-visible:ring-2 focus-visible:ring-orange-200/70
+                rounded-xl transition-all duration-200"
           />
+          <Label className="text-slate-700 text-base" htmlFor="categoryTitle">
+                        Descripción
+                      </Label>
           <Input
             placeholder="Descripción"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            className="text-black"
+            className="bg-white border-slate-300 shadow-sm text-base
+                focus-visible:border-orange-400
+                focus-visible:ring-2 focus-visible:ring-orange-200/70
+                rounded-xl transition-all duration-200"
           />
+          <Label className="text-slate-700 text-base" htmlFor="categoryTitle">
+                        Precio
+                      </Label>
           <Input
-            placeholder="Precio (ej: 1200.00)"
+            placeholder="$1200.00"
             type="number"
             value={price}
             onChange={(e) => setPrice(e.target.value)}
-            className="text-black"
+            className="bg-white border-slate-300 shadow-sm text-base
+                focus-visible:border-orange-400
+                focus-visible:ring-2 focus-visible:ring-orange-200/70
+                rounded-xl transition-all duration-200"
           />
         </div>
         <div className="relative w-full h-full group">

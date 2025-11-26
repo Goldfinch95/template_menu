@@ -91,43 +91,43 @@ export default function RegisterPage() {
   };
 
   const handleSubmit = async () => {
-  if (!validateFields()) return;
+    if (!validateFields()) return;
 
-  setLoading(true);
-  setAlertMessage(null);
-  setError(null);
+    setLoading(true);
+    setAlertMessage(null);
+    setError(null);
 
-  try {
-    const res = await registerUser({
-      name: form.name,
-      lastName: form.lastName,
-      email: form.email,
-      cel: form.cel,
-      roleId: 2,
-      password: form.password,
-      subdomain: form.password,
-    });
+    try {
+      const res = await registerUser({
+        name: form.name,
+        lastName: form.lastName,
+        email: form.email,
+        cel: form.cel,
+        roleId: 2,
+        password: form.password,
+        subdomain: form.password,
+      });
 
-    const data = await res.json();
+      const data = await res.json();
 
-    // ✔ Detectar email en uso
-    if (res.status === 409 || data.statusCode === 409) {
-      setError("• Este email ya está en uso.");
-      return;
+      // ✔ Detectar email en uso
+      if (res.status === 409 || data.statusCode === 409) {
+        setError("• Este email ya está en uso.");
+        return;
+      }
+
+      if (!res.ok) {
+        setError("• Ocurrió un error al crear la cuenta.");
+        return;
+      }
+
+      router.push("/login");
+    } catch (err: any) {
+      setError(err.message || "Error al conectar con el servidor.");
+    } finally {
+      setLoading(false);
     }
-
-    if (!res.ok) {
-      setError("• Ocurrió un error al crear la cuenta.");
-      return;
-    }
-
-    router.push("/login");
-  } catch (err: any) {
-    setError(err.message || "Error al conectar con el servidor.");
-  } finally {
-    setLoading(false);
-  }
-};
+  };
 
   return (
     <main
@@ -170,24 +170,14 @@ export default function RegisterPage() {
         {/* ALERTA ADENTRO DEL CARD */}
         <AnimatePresence>
           {alertMessage && (
-            <motion.div
-              layout
-              initial={{ opacity: 0, y: -6 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -6 }}
-              transition={{ duration: 0.25 }}
-            >
-              <Alert className="flex bg-red-50 border border-red-300 text-red-800 rounded-xl px-3 py-3 shadow-sm">
-                <div className="flex gap-2">
-                  <div className="flex items-center">
-                    <X className="w-6 h-6" />
-                  </div>
-                  <AlertDescription className="text-base whitespace-pre-line space-y-2">
-                    {alertMessage}
-                  </AlertDescription>
-                </div>
-              </Alert>
-            </motion.div>
+            <Alert className="mb-4 bg-red-100 border border-red-400 text-red-700 p-4 rounded-xl flex items-start gap-3">
+              <X className="w-5 h-5 mt-1" />
+              <div>
+                <AlertDescription className="whitespace-pre-line mt-1">
+                  {alertMessage}
+                </AlertDescription>
+              </div>
+            </Alert>
           )}
         </AnimatePresence>
 
@@ -352,6 +342,5 @@ export default function RegisterPage() {
         )}
       </AnimatePresence>
     </main>
-
   );
 }

@@ -182,23 +182,23 @@ const InfoDialog = ({
     const errors: string[] = [];
 
     if (title.trim().length < 3) {
-      errors.push("El título debe tener más de 3 caracteres.");
+      errors.push("• El título debe tener más de 3 caracteres.");
     }
 
     if (!logoFile && !menuLogo) {
-      errors.push("El logo es obligatorio.");
+      errors.push("• El logo es obligatorio.");
     }
 
     if (!backgroundFile && !menuLogo) {
-      errors.push("El fondo es obligatorio.");
+      errors.push("• El fondo es obligatorio.");
     }
 
     if (!/^#[0-9A-Fa-f]{6}$/.test(primaryColor)) {
-      errors.push("El color primario debe ser un código HEX válido.");
+      errors.push("• El color primario debe ser un código HEX válido.");
     }
 
     if (!/^#[0-9A-Fa-f]{6}$/.test(secondaryColor)) {
-      errors.push("El color secundario debe ser un código HEX válido.");
+      errors.push("• El color secundario debe ser un código HEX válido.");
     }
 
     // Si hay errores → mostrarlos
@@ -294,19 +294,16 @@ const InfoDialog = ({
         <div className="space-y-5 py-4">
           {/*mostrar alertas */}
           {alertMessage && (
-            <Alert
-              ref={alertRef}
-              className="mb-4 bg-red-100 border border-red-400 text-red-700 p-4 rounded-md flex items-center gap-3"
-            >
-              {/* Icono */}
-              <X className="!w-6 !h-6 flex-shrink-0" />
-              <div className="">
-                <AlertDescription className="whitespace-pre-line text-base">
-                  {alertMessage}
-                </AlertDescription>
-              </div>
-            </Alert>
-          )}
+                    <Alert className="mb-4 bg-red-100 border border-red-400 text-red-700 p-4 rounded-xl flex items-start gap-3">
+                      <X className="w-5 h-5 mt-1" />
+                      <div>
+                       
+                        <AlertDescription className="whitespace-pre-line mt-1">
+                          {alertMessage}
+                        </AlertDescription>
+                      </div>
+                    </Alert>
+                  )}
           {/* Título */}
           <div className="flex flex-col space-y-2">
             <Label
@@ -377,6 +374,7 @@ const InfoDialog = ({
                   <Upload className="w-6 h-6 text-slate-500" />
                 )}
               </Label>
+              <p className="text-base text-slate-400 mt-2">PNG, JPG hasta 10MB</p>
             </div>
           </div>
 
@@ -416,8 +414,10 @@ const InfoDialog = ({
                   <ImageIcon className="w-5 h-5" />
                   Subir imagen
                 </div>
+                
               )}
             </Label>
+            <p className="flex justify-center text-base text-slate-400 mt-2">PNG, JPG hasta 10MB</p>
           </div>
           {/* color picker */}
           <div className="flex flex-col justify-center space-y-1">
