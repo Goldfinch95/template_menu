@@ -82,6 +82,20 @@ const ItemDialog = ({
     };
   }, [previewUrl]);
 
+  //reinciar formulario
+  const resetForm = () => {
+    setTitle("");
+    setDescription("");
+    setPrice("");
+    setSelectedImage(null);
+    if (previewUrl && previewUrl.startsWith("blob:")) {
+      URL.revokeObjectURL(previewUrl);
+    }
+    setPreviewUrl("");
+    setError(null);
+    setAlertMessage(null);
+  };
+
   //validacion
   const validateFields = () => {
     const errors: string[] = [];
@@ -231,6 +245,10 @@ const ItemDialog = ({
       }
       //notificar
       onItemSaved?.();
+      // Limpiar el formulario solo en modo creación
+      if (!isEditMode) {
+        resetForm();
+      }
       // Cierra el dialog automáticamente (Shadcn)
       document.querySelector<HTMLButtonElement>("[data-dialog-close]")?.click();
       setIsOpen(false);
@@ -268,8 +286,8 @@ const ItemDialog = ({
         )}
         <div className="flex flex-col space-y-2">
           <Label className="text-slate-700 text-base" htmlFor="categoryTitle">
-                        Titulo del plato
-                      </Label>
+            Titulo del plato
+          </Label>
           <Input
             placeholder="Plato, Bebida, Postre"
             value={title}
@@ -280,8 +298,8 @@ const ItemDialog = ({
                 rounded-xl transition-all duration-200"
           />
           <Label className="text-slate-700 text-base" htmlFor="categoryTitle">
-                        Descripción
-                      </Label>
+            Descripción
+          </Label>
           <Input
             placeholder="Descripción"
             value={description}
@@ -292,8 +310,8 @@ const ItemDialog = ({
                 rounded-xl transition-all duration-200"
           />
           <Label className="text-slate-700 text-base" htmlFor="categoryTitle">
-                        Precio
-                      </Label>
+            Precio
+          </Label>
           <Input
             placeholder="$1200.00"
             type="number"
