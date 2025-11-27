@@ -185,14 +185,6 @@ const InfoDialog = ({
       errors.push("• El título debe tener más de 3 caracteres.");
     }
 
-    if (!logoFile && !menuLogo) {
-      errors.push("• El logo es obligatorio.");
-    }
-
-    if (!backgroundFile && !menuLogo) {
-      errors.push("• El fondo es obligatorio.");
-    }
-
     if (!/^#[0-9A-Fa-f]{6}$/.test(primaryColor)) {
       errors.push("• El color primario debe ser un código HEX válido.");
     }
@@ -244,8 +236,8 @@ const InfoDialog = ({
       // editar un menu
       else {
         const payload: Partial<Menu> = {
-          title: title.trim(),
-          pos: pos.trim(),
+          title: title ? title.trim() : "",
+          pos: pos ? pos.trim() : "",
           color: {
             primary: primaryColor.trim(),
             secondary: secondaryColor.trim(),
@@ -263,7 +255,7 @@ const InfoDialog = ({
         //console.log("📤 Enviando actualización:", payload);
         //editar BD
         await updateMenu(menuId, payload);
-        //console.log("✅ Menú actualizado:", updated);
+        //console.log("✅ Menú actualizado:", payload);
         //notificar
         onUpdated?.(menuId);
       }
@@ -294,16 +286,15 @@ const InfoDialog = ({
         <div className="space-y-5 py-4">
           {/*mostrar alertas */}
           {alertMessage && (
-                    <Alert className="mb-4 bg-red-100 border border-red-400 text-red-700 p-4 rounded-xl flex items-start gap-3">
-                      <X className="w-5 h-5 mt-1" />
-                      <div>
-                       
-                        <AlertDescription className="whitespace-pre-line mt-1">
-                          {alertMessage}
-                        </AlertDescription>
-                      </div>
-                    </Alert>
-                  )}
+            <Alert className="mb-4 bg-red-100 border border-red-400 text-red-700 p-4 rounded-xl flex items-start gap-3">
+              <X className="w-5 h-5 mt-1" />
+              <div>
+                <AlertDescription className="whitespace-pre-line mt-1">
+                  {alertMessage}
+                </AlertDescription>
+              </div>
+            </Alert>
+          )}
           {/* Título */}
           <div className="flex flex-col space-y-2">
             <Label
@@ -374,7 +365,9 @@ const InfoDialog = ({
                   <Upload className="w-6 h-6 text-slate-500" />
                 )}
               </Label>
-              <p className="text-base text-slate-400 mt-2">PNG, JPG hasta 10MB</p>
+              <p className="text-base text-slate-400 mt-2">
+                PNG, JPG hasta 10MB
+              </p>
             </div>
           </div>
 
@@ -414,10 +407,11 @@ const InfoDialog = ({
                   <ImageIcon className="w-5 h-5" />
                   Subir imagen
                 </div>
-                
               )}
             </Label>
-            <p className="flex justify-center text-base text-slate-400 mt-2">PNG, JPG hasta 10MB</p>
+            <p className="flex justify-center text-base text-slate-400 mt-2">
+              PNG, JPG hasta 10MB
+            </p>
           </div>
           {/* color picker */}
           <div className="flex flex-col justify-center space-y-1">
