@@ -230,6 +230,7 @@ const InfoDialog = ({
           },
           categories: [],
         };
+        
         //crear BD
         const createdMenu = await createMenu(payload);
         //console.log("✅ Menú creado:", createdMenu);

@@ -27,6 +27,7 @@ import {
   Trash2,
   Utensils,
   Pencil,
+  GripVertical,
 } from "lucide-react";
 import { Spinner } from "@/common/components/ui/spinner";
 import CatDialog from "./components/CatDialog";
@@ -35,6 +36,307 @@ import { Categories } from "@/interfaces/menu";
 import { deleteCategory, updateCategory, deleteItem } from "@/common/utils/api";
 import { cn } from "@/common/utils/utils";
 import { AlertTriangle, X } from "lucide-react";
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
+
+function SortableCategory({
+  category,
+  expandedCategoryId,
+  setExpandedCategoryId,
+  categoryTitles,
+  handleTitleChange,
+  handleEditSave,
+  savingId,
+  handleDelete,
+  handleDeleteItem,
+  deletingItemId,
+  onCategoryChange,
+}: {
+  category: Categories;
+  expandedCategoryId: number | null;
+  setExpandedCategoryId: (id: number | null) => void;
+  categoryTitles: Record<number, string>;
+  handleTitleChange: (id: number, title: string) => void;
+  handleEditSave: (id: number) => Promise<void>;
+  savingId: number | null;
+  handleDelete: (id: number) => Promise<void>;
+  handleDeleteItem: (id: number) => Promise<void>;
+  deletingItemId: number | null;
+  onCategoryChange: () => Promise<void>;
+}) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: category.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  return (
+    <div ref={setNodeRef} style={style}>
+      <Collapsible
+        open={expandedCategoryId === category.id}
+        onOpenChange={() =>
+          setExpandedCategoryId(
+            expandedCategoryId === category.id ? null : category.id
+          )
+        }
+      >
+        <div className="flex items-center justify-between p-3 bg-white border border-slate-100 rounded-lg shadow-sm">
+          {/* Drag Handle */}
+          <div
+            {...attributes}
+            {...listeners}
+            className="cursor-grab active:cursor-grabbing touch-none mr-2 text-slate-400 hover:text-slate-600 transition-colors"
+          >
+            <GripVertical className="w-5 h-5" />
+          </div>
+
+          {/* INPUT EDITABLE */}
+          <input
+            type="text"
+            value={categoryTitles[category.id] ?? category.title}
+            onChange={(e) => handleTitleChange(category.id, e.target.value)}
+            className="flex-1 min-w-0 p-1 font-semibold text-slate-700 bg-transparent border-b border-transparent focus:border-orange-500 focus:outline-none transition-colors"
+          />
+
+          {/* BOTONES DE ACCIÓN */}
+          <div className="flex space-x-2">
+            {/* Botón Guardar/Editar */}
+            <Button
+              variant="ghost"
+              size="icon"
+              disabled={savingId === category.id}
+              onClick={() => handleEditSave(category.id)}
+              className="h-8 w-8 text-orange-500 hover:text-orange-600 relative"
+            >
+              {savingId === category.id ? (
+                <svg
+                  className="animate-spin h-4 w-4 text-orange-500"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  ></circle>
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                  ></path>
+                </svg>
+              ) : (
+                <Edit2 className="h-4 w-4" />
+              )}
+            </Button>
+
+            {/* Botón Eliminar */}
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 text-red-500 hover:bg-red-50"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </DialogTrigger>
+
+              <DialogContent className="max-w-sm rounded-2xl p-6 shadow-xl [&>button]:hidden">
+                <DialogClose className="absolute right-6 top-6 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground !flex items-center justify-center">
+                  <X className="h-5 w-5 text-red-600" />
+                </DialogClose>
+
+                <DialogHeader>
+                  <DialogTitle className="flex items-center gap-2 text-red-600">
+                    <AlertTriangle className="w-5 h-5" />
+                    Eliminar categoria
+                  </DialogTitle>
+                </DialogHeader>
+                <DialogDescription className="text-base text-slate-600 mt-2">
+                  ¿Estás seguro de que deseas eliminar esta categoría? Los
+                  platos dentro de ella también se eliminarán.
+                </DialogDescription>
+                <DialogFooter className="flex justify-end gap-2 mt-6">
+                  <DialogClose asChild>
+                    <Button variant="outline">Cancelar</Button>
+                  </DialogClose>
+
+                  <Button
+                    className="bg-red-600 hover:bg-red-700 text-white"
+                    onClick={() => handleDelete(category.id)}
+                  >
+                    Eliminar
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+
+            {/* Botón de Plegar/Desplegar */}
+            <CollapsibleTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className={cn(
+                  "h-8 w-8 p-0 rounded-lg transition-all duration-200",
+                  expandedCategoryId === category.id
+                    ? "bg-orange-50 text-orange-500 shadow-sm"
+                    : "text-slate-500 hover:bg-slate-100"
+                )}
+              >
+                {expandedCategoryId === category.id ? (
+                  <ChevronUp className="w-4 h-4" />
+                ) : (
+                  <ChevronDown className="w-4 h-4" />
+                )}
+              </Button>
+            </CollapsibleTrigger>
+          </div>
+        </div>
+
+        {/* CONTENIDO DESPLEGABLE */}
+        <CollapsibleContent>
+          <div className="mt-3 space-y-3">
+            {[...(category.items || [])].map((item) => {
+              const previewUrl = item.images?.[0]?.url || null;
+
+              return (
+                <div
+                  key={item.id ?? item.tempId}
+                  className="flex justify-between items-center bg-white border border-slate-200 rounded-xl p-3"
+                >
+                  <div className="flex items-center gap-3 overflow-hidden">
+                    {previewUrl ? (
+                      <div
+                        style={{
+                          backgroundImage: `url(${previewUrl})`,
+                        }}
+                        className="w-12 h-12 rounded-lg border border-slate-200 bg-center bg-cover"
+                      />
+                    ) : (
+                      <div className="w-12 h-12 rounded-lg bg-slate-100 flex items-center justify-center">
+                        <Utensils className="w-5 h-5 text-slate-400" />
+                      </div>
+                    )}
+
+                    <p className="font-medium text-slate-700 text-sm truncate max-w-[120px]">
+                      {item.title || "Nuevo plato"}
+                    </p>
+                    {item.price && (
+                      <p className="text-slate-500 text-xs">${item.price}</p>
+                    )}
+                  </div>
+                  <div className="flex gap-2">
+                    <ItemDialog
+                      categoryId={category.id}
+                      item={item}
+                      onItemSaved={onCategoryChange}
+                      trigger={
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="text-orange-500 hover:text-orange-600"
+                        >
+                          <Pencil className="w-4 h-4" />
+                        </Button>
+                      }
+                    />
+                    <Dialog>
+                      <DialogTrigger asChild>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="text-red-500 hover:text-red-600"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </DialogTrigger>
+
+                      <DialogContent className="max-w-sm rounded-2xl p-6 shadow-xl [&>button]:hidden">
+                        <DialogClose className="absolute right-6 top-6 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground !flex items-center justify-center">
+                          <X className="h-5 w-5 text-red-600" />
+                        </DialogClose>
+
+                        <DialogHeader>
+                          <DialogTitle className="flex items-center gap-2 text-red-500">
+                            <AlertTriangle className="w-5 h-5" />
+                            Eliminar plato
+                          </DialogTitle>
+                        </DialogHeader>
+
+                        <DialogDescription className="text-base text-slate-600 mt-2">
+                          ¿Estás seguro de que deseas eliminar este plato? Esta
+                          acción no se puede deshacer.
+                        </DialogDescription>
+
+                        <DialogFooter className="flex justify-end gap-2 mt-6">
+                          <DialogClose asChild>
+                            <Button variant="outline">Cancelar</Button>
+                          </DialogClose>
+
+                          <Button
+                            className="bg-red-500 hover:bg-red-600 text-white"
+                            onClick={() => handleDeleteItem(item.id)}
+                          >
+                            Eliminar
+                          </Button>
+                        </DialogFooter>
+                      </DialogContent>
+                    </Dialog>
+                  </div>
+                </div>
+              );
+            })}
+
+            <div className="pt-4 mt-4 border-t border-slate-300">
+              <ItemDialog
+                categoryId={category.id}
+                onItemSaved={onCategoryChange}
+                trigger={
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="w-full border-dashed border-slate-300 text-slate-500 hover:border-orange-400 hover:text-orange-500 rounded-xl py-5"
+                  >
+                    <Plus className="w-4 h-4 mr-2" /> Agregar plato
+                  </Button>
+                }
+              />
+            </div>
+          </div>
+        </CollapsibleContent>
+      </Collapsible>
+    </div>
+  );
+}
 
 interface CatEditorProps {
   menuId: number;
@@ -47,101 +349,108 @@ const MenuCatPage = ({
   menuCategories,
   onCategoryChange,
 }: CatEditorProps) => {
-  // 🔒 No renderizar si no hay menuId
   if (!menuId) {
     return null;
   }
 
-  // Estado de carga
   const [loading, setLoading] = useState(true);
-
-  // 🆕 Estado para controlar la categoría desplegada (usando su ID)
   const [expandedCategoryId, setExpandedCategoryId] = useState<number | null>(
     null
   );
-
-  // Estado para manejar los títulos editables de todas las categorías
   const [categoryTitles, setCategoryTitles] = useState<Record<number, string>>(
     {}
   );
-
-  // Estado para manejar la carga
+  const [categories, setCategories] = useState<Categories[]>([]);
   const [savingId, setSavingId] = useState<number | null>(null);
-
   const [deletingItemId, setDeletingItemId] = useState<number | null>(null);
 
-  // Efecto para simular carga inicial con delay
+  // Configuración de sensores para drag and drop
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+
   useEffect(() => {
     const loadCategories = async () => {
       setLoading(true);
-      await new Promise((resolve) => setTimeout(resolve, 2000)); // Delay de 2 segundos
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+      setCategories(menuCategories);
       setLoading(false);
     };
 
     loadCategories();
   }, [menuId, menuCategories]);
 
-  // Editar categoria local
+  const handleDragEnd = async (event: DragEndEvent) => {
+    const { active, over } = event;
+
+    if (over && active.id !== over.id) {
+      const oldIndex = categories.findIndex((cat) => cat.id === active.id);
+      const newIndex = categories.findIndex((cat) => cat.id === over.id);
+
+      const newCategories = arrayMove(categories, oldIndex, newIndex);
+      setCategories(newCategories);
+
+      // IMPORTANTE: Aquí deberías llamar a tu API para guardar el orden
+      console.log(
+        "Nuevo orden:",
+        newCategories.map((c) => c.id)
+      );
+      // Ejemplo: await updateCategoryOrder(newCategories.map((c, idx) => ({ id: c.id, order: idx })));
+    }
+  };
+
   const handleTitleChange = (categoryId: number, newTitle: string) => {
     setCategoryTitles((prev) => ({
       ...prev,
-      [categoryId]: newTitle, // Actualiza solo el título de la categoría específica
+      [categoryId]: newTitle,
     }));
   };
 
-  // GUARDAR edición de categoria
   const handleEditSave = async (categoryId: number) => {
     const newTitle = categoryTitles[categoryId];
-
-    // 1. Obtener el título original para la verificación (evitar llamadas innecesarias)
     const originalCategory = menuCategories.find((c) => c.id === categoryId);
 
-    // 2. Comprobar si hay un cambio real
     if (originalCategory && originalCategory.title === newTitle) {
       console.log("No hay cambios para guardar en la categoría:", categoryId);
-      return; // No hace nada si el título es el mismo
+      return;
     }
 
-    setSavingId(categoryId); // Activa el estado de carga para el botón
+    setSavingId(categoryId);
 
     try {
-      //  actualizar en la BD
       await updateCategory(categoryId, { title: newTitle });
-
-      //  Notificar
       await onCategoryChange();
-
       console.log(`✅ Categoría ${categoryId} actualizada: ${newTitle}`);
     } catch (error) {
       console.error("❌ Error al guardar la edición de categoría:", error);
       alert("Error al guardar la categoría. Revisa la consola.");
     } finally {
-      setSavingId(null); // Desactiva el estado de carga
+      setSavingId(null);
     }
   };
 
-  // Borrar Categoria
   const handleDelete = async (categoryId: number) => {
     try {
-      // 1. borrar en la BD
       await deleteCategory(categoryId);
-
-      // 2. Notificar
       await onCategoryChange();
     } catch (error) {
       console.error("Error al eliminar categoría:", error);
-      // Opcional: Muestra una notificación de error
-      // showToast("Error al eliminar la categoría.", "error");
     }
   };
 
-  // borrar categoria item
   const handleDeleteItem = async (itemId: number) => {
     setDeletingItemId(itemId);
 
     try {
       await deleteItem(itemId);
-      await onCategoryChange(); // Refresca los datos
+      await onCategoryChange();
       console.log(`✅ Ítem ${itemId} eliminado correctamente`);
     } catch (error) {
       console.error("❌ Error al eliminar ítem:", error);
@@ -151,7 +460,6 @@ const MenuCatPage = ({
     }
   };
 
-  // Renderizar spinner durante la carga
   if (loading) {
     return (
       <div className="w-full flex justify-center items-center py-10">
@@ -173,7 +481,6 @@ const MenuCatPage = ({
             <p className="text-sm font-medium text-slate-500 uppercase tracking-wider mb-0 ml-1">
               Menú
             </p>
-            {/*abir dialogo de crear categoria */}
             <div className="flex-shrink-0">
               <CatDialog
                 menuId={menuId}
@@ -189,261 +496,37 @@ const MenuCatPage = ({
               />
             </div>
           </div>
-          {/*mostrar categorias de la BD */}
+
+          {/* 🎯 AQUÍ ESTÁ EL CAMBIO PRINCIPAL */}
           <div className="space-y-3 mt-4">
-            {menuCategories && menuCategories.length > 0 ? (
-              menuCategories.map((category) => (
-                // 🆕 Envolvemos cada categoría en Collapsible
-                <Collapsible
-                  key={category.id}
-                  open={expandedCategoryId === category.id}
-                  onOpenChange={() =>
-                    setExpandedCategoryId(
-                      expandedCategoryId === category.id ? null : category.id
-                    )
-                  }
+            {categories && categories.length > 0 ? (
+              <DndContext
+                sensors={sensors}
+                collisionDetection={closestCenter}
+                onDragEnd={handleDragEnd}
+              >
+                <SortableContext
+                  items={categories.map((cat) => cat.id)}
+                  strategy={verticalListSortingStrategy}
                 >
-                  {/* Contenedor principal de la Categoría (Trigger) */}
-                  <div className="flex items-center justify-between p-3 bg-white border border-slate-100 rounded-lg shadow-sm">
-                    {/* INPUT EDITABLE */}
-                    <input
-                      type="text"
-                      value={categoryTitles[category.id] ?? category.title}
-                      onChange={(e) =>
-                        handleTitleChange(category.id, e.target.value)
-                      }
-                      className="flex-1 min-w-0 p-1 font-semibold text-slate-700 bg-transparent border-b border-transparent focus:border-orange-500 focus:outline-none transition-colors"
+                  {categories.map((category) => (
+                    <SortableCategory
+                      key={category.id}
+                      category={category}
+                      expandedCategoryId={expandedCategoryId}
+                      setExpandedCategoryId={setExpandedCategoryId}
+                      categoryTitles={categoryTitles}
+                      handleTitleChange={handleTitleChange}
+                      handleEditSave={handleEditSave}
+                      savingId={savingId}
+                      handleDelete={handleDelete}
+                      handleDeleteItem={handleDeleteItem}
+                      deletingItemId={deletingItemId}
+                      onCategoryChange={onCategoryChange}
                     />
-
-                    {/* BOTONES DE ACCIÓN */}
-                    <div className="flex space-x-2">
-                      {/* Botón Guardar/Editar */}
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        disabled={savingId === category.id}
-                        onClick={() => handleEditSave(category.id)}
-                        className="h-8 w-8 text-orange-500 hover:text-orange-600 relative"
-                      >
-                        {/* ... (Spinner o Edit2) ... */}
-                        {savingId === category.id ? (
-                          <svg
-                            className="animate-spin h-4 w-4 text-orange-500"
-                            xmlns="http://www.w3.org/2000/svg"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                          >
-                            <circle
-                              className="opacity-25"
-                              cx="12"
-                              cy="12"
-                              r="10"
-                              stroke="currentColor"
-                              strokeWidth="4"
-                            ></circle>
-                            <path
-                              className="opacity-75"
-                              fill="currentColor"
-                              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                            ></path>
-                          </svg>
-                        ) : (
-                          <Edit2 className="h-4 w-4" />
-                        )}
-                      </Button>
-
-                      {/* Botón Eliminar */}
-                      <Dialog>
-                        <DialogTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8 text-red-500 hover:bg-red-50"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </DialogTrigger>
-
-                        <DialogContent className="max-w-sm rounded-2xl p-6 shadow-xl [&>button]:hidden">
-                          {/* X personalizada */}
-                          <DialogClose className="absolute right-6 top-6 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground !flex items-center justify-center">
-                            <X className="h-5 w-5 text-red-600" />
-                          </DialogClose>
-
-                          <DialogHeader>
-                            <DialogTitle className="flex items-center gap-2 text-red-600">
-                              <AlertTriangle className="w-5 h-5" />
-                              Eliminar categoria
-                            </DialogTitle>
-                          </DialogHeader>
-                          <DialogDescription className="text-base text-slate-600 mt-2">
-                            ¿Estás seguro de que deseas eliminar esta categoría?
-                            Los platos dentro de ella también se eliminarán.
-                          </DialogDescription>
-                          <DialogFooter className="flex justify-end gap-2 mt-6">
-                            <DialogClose asChild>
-                              <Button variant="outline">Cancelar</Button>
-                            </DialogClose>
-
-                            <Button
-                              className="bg-red-600 hover:bg-red-700 text-white"
-                              onClick={() => handleDelete(category.id)}
-                            >
-                              Eliminar
-                            </Button>
-                          </DialogFooter>
-                        </DialogContent>
-                      </Dialog>
-
-                      {/* 🆕 Botón de Plegar/Desplegar */}
-                      <CollapsibleTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className={cn(
-                            "h-8 w-8 p-0 rounded-lg transition-all duration-200",
-                            expandedCategoryId === category.id
-                              ? "bg-orange-50 text-orange-500 shadow-sm"
-                              : "text-slate-500 hover:bg-slate-100"
-                          )}
-                        >
-                          {expandedCategoryId === category.id ? (
-                            <ChevronUp className="w-4 h-4" />
-                          ) : (
-                            <ChevronDown className="w-4 h-4" />
-                          )}
-                        </Button>
-                      </CollapsibleTrigger>
-                    </div>
-                  </div>
-
-                  {/* 🆕 CONTENIDO DESPLEGABLE (Aquí irían los items, si existieran) */}
-                  <CollapsibleContent>
-                    <div className="mt-3 space-y-3">
-                      {/* TODO: Implementar la función de ordenación si es necesaria. */}
-                      {
-                        // Utilizamos la data de ítems sin ordenar por ahora, o implementa una función de ordenación simple.
-                        [...(category.items || [])].map((item) => {
-                          // TODO: Implementar getImagePreviewUrl(item.images?.[0])
-                          const previewUrl = item.images?.[0]?.url || null;
-                          // Usamos 'url' como un supuesto para el placeholder
-
-                          return (
-                            <div
-                              key={item.id ?? item.tempId}
-                              className="flex justify-between items-center bg-white border border-slate-200 rounded-xl p-3"
-                            >
-                              <div className="flex items-center gap-3 overflow-hidden">
-                                {previewUrl ? (
-                                  <div
-                                    style={{
-                                      backgroundImage: `url(${previewUrl})`,
-                                    }}
-                                    className="w-12 h-12 rounded-lg border border-slate-200 bg-center bg-cover"
-                                  />
-                                ) : (
-                                  <div className="w-12 h-12 rounded-lg bg-slate-100 flex items-center justify-center">
-                                    {/* Utensils debe estar importado */}
-                                    <Utensils className="w-5 h-5 text-slate-400" />
-                                  </div>
-                                )}
-
-                                <p className="font-medium text-slate-700 text-sm truncate max-w-[120px]">
-                                  {item.title || "Nuevo plato"}
-                                </p>
-                                {item.price && (
-                                  <p className="text-slate-500 text-xs">
-                                    ${item.price}
-                                  </p>
-                                )}
-                              </div>
-                              <div className="flex gap-2">
-                                <ItemDialog
-                                  categoryId={category.id}
-                                  item={item}
-                                  onItemSaved={onCategoryChange} // para refrescar al guardar
-                                  trigger={
-                                    <Button
-                                      size="sm"
-                                      variant="ghost"
-                                      className="text-orange-500 hover:text-orange-600"
-                                    >
-                                      <Pencil className="w-4 h-4" />
-                                    </Button>
-                                  }
-                                />
-                                <Dialog>
-                                  <DialogTrigger asChild>
-                                    <Button
-                                      size="sm"
-                                      variant="ghost"
-                                      className="text-red-500 hover:text-red-600"
-                                    >
-                                      <Trash2 className="w-4 h-4" />
-                                    </Button>
-                                  </DialogTrigger>
-
-                                  <DialogContent className="max-w-sm rounded-2xl p-6 shadow-xl [&>button]:hidden">
-                                    {/* X personalizada en naranja */}
-                                    <DialogClose className="absolute right-6 top-6 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground !flex items-center justify-center">
-                                      <X className="h-5 w-5 text-red-600" />
-                                    </DialogClose>
-
-                                    <DialogHeader>
-                                      <DialogTitle className="flex items-center gap-2 text-red-500">
-                                        <AlertTriangle className="w-5 h-5" />
-                                        Eliminar plato
-                                      </DialogTitle>
-                                    </DialogHeader>
-
-                                    <DialogDescription className="text-base text-slate-600 mt-2">
-                                      ¿Estás seguro de que deseas eliminar este
-                                      plato? Esta acción no se puede deshacer.
-                                    </DialogDescription>
-
-                                    <DialogFooter className="flex justify-end gap-2 mt-6">
-                                      <DialogClose asChild>
-                                        <Button variant="outline">
-                                          Cancelar
-                                        </Button>
-                                      </DialogClose>
-
-                                      <Button
-                                        className="bg-red-500 hover:bg-red-600 text-white"
-                                        onClick={() =>
-                                          handleDeleteItem(item.id)
-                                        }
-                                      >
-                                        Eliminar
-                                      </Button>
-                                    </DialogFooter>
-                                  </DialogContent>
-                                </Dialog>
-                              </div>
-                            </div>
-                          );
-                        })
-                      }
-
-                      <div className="pt-4 mt-4 border-t border-slate-300">
-                        <ItemDialog
-                          categoryId={category.id}
-                          onItemSaved={onCategoryChange} // para refrescar al guardar
-                          trigger={
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              className="w-full border-dashed border-slate-300 text-slate-500 hover:border-orange-400 hover:text-orange-500 rounded-xl py-5"
-                            >
-                              <Plus className="w-4 h-4 mr-2" /> Agregar plato
-                            </Button>
-                          }
-                        />
-                      </div>
-                    </div>
-                  </CollapsibleContent>
-                </Collapsible>
-              ))
+                  ))}
+                </SortableContext>
+              </DndContext>
             ) : (
               <p className="text-sm text-slate-400 italic mt-6">
                 No hay categorías creadas aún.

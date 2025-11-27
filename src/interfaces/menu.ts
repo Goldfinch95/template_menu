@@ -76,6 +76,7 @@ export interface Categories {
   menuId: number;
   title: string;
   updatedAt: string;
+  position: number;
 }
 
 // items de las categorias

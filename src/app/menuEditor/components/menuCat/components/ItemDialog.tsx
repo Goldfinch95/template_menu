@@ -105,16 +105,6 @@ const ItemDialog = ({
       errors.push("• El título debe tener al menos 3 caracteres.");
     }
 
-    // Validación precio
-    if (!price || isNaN(Number(price)) || Number(price) <= 0) {
-      errors.push("• El precio debe ser un número mayor a 0.");
-    }
-
-    // Validación imagen (si querés que sea obligatoria)
-    if (!isEditMode && !previewUrl) {
-      errors.push("• Debes subir una imagen del plato.");
-    }
-
     // Si HAY errores → mostrar alerta
     if (errors.length > 0) {
       setAlertMessage(errors.join("\n"));
@@ -159,16 +149,6 @@ const ItemDialog = ({
 
     const isValid = validateFields();
     if (!isValid) return;
-
-    if (!title.trim()) {
-      setError("El título es obligatorio");
-      return;
-    }
-    if (!price || isNaN(Number(price)) || Number(price) <= 0) {
-      setError("El precio es obligatorio y debe ser mayor a 0");
-      return;
-    }
-
     setLoading(true);
     console.log(categoryId);
 
@@ -356,9 +336,7 @@ const ItemDialog = ({
           </Label>
           <p className="text-base text-slate-400 mt-2">PNG, JPG hasta 10MB</p>
           <DialogFooter className="mt-5">
-            <Button variant="outline" className="text-black">
-              Cancelar
-            </Button>
+            
             <Button
               onClick={handleSave}
               disabled={loading}
