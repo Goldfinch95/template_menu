@@ -42,20 +42,29 @@ export default function LoginPage() {
   ) => {
     const errors: string[] = [];
 
-    // Validar email
-    if (!values.email) {
-      errors.push("• El email es obligatorio.");
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(values.email)) {
-      errors.push("• Ingresá un email válido.");
-    }
+    const { email, password } = values;
 
-    // Validar contraseña
-    if (!values.password) {
-      errors.push("• La contraseña es obligatoria.");
-    } else if (values.password.length < 8 || values.password.length > 16) {
-      errors.push(
-        "• La contraseña debe tener al menos entre 8 y 16 caracteres."
-      );
+    // Validación: ambos vacíos
+    if (!email && !password) {
+      errors.push("• El email y la contraseña son obligatorios.");
+    } else {
+      // Validación email
+      if (!email) {
+        errors.push("• El email es obligatorio.");
+      } else if (
+        !/^(?!.*\.\.)[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[A-Za-z]{2,}$/.test(
+          email
+        )
+      ) {
+        errors.push("• Ingresá un email válido.");
+      }
+
+      // Validación contraseña
+      if (!password) {
+        errors.push("• La contraseña es obligatoria.");
+      } else if (password.length < 8 || password.length > 16) {
+        errors.push("• La contraseña debe tener entre 8 y 16 caracteres.");
+      }
     }
 
     // Mostrar errores
@@ -64,7 +73,7 @@ export default function LoginPage() {
       return false;
     }
 
-    // Sin errores → limpiar alerta
+    // Sin errores
     setAlertMessage(null);
     return true;
   };
@@ -128,7 +137,9 @@ export default function LoginPage() {
 
         {/* TITULO */}
         <div className="text-center -mt-1">
-          <h1 className={`${manrope.className} text-3xl font-extrabold text-slate-900`}>
+          <h1
+            className={`${manrope.className} text-3xl font-extrabold text-slate-900`}
+          >
             Bienvenido
           </h1>
           <p className="text-slate-600 text-base mt-1">
@@ -150,8 +161,8 @@ export default function LoginPage() {
           "
         >
           <img
-            src='https://www.svgrepo.com/show/475656/google-color.svg'
-            className='w-5 h-5'
+            src="https://www.svgrepo.com/show/475656/google-color.svg"
+            className="w-5 h-5"
           />
           Continuar con Google
         </Button>
@@ -166,23 +177,24 @@ export default function LoginPage() {
         {/* ALERTA MOVIDA AL LUGAR CORRECTO */}
         <AnimatePresence>
           {alertMessage && (
-                    <Alert className="mb-4 bg-red-100 border border-red-400 text-red-700 p-4 rounded-xl flex items-start gap-3">
-                      <X className="w-5 h-5 mt-1" />
-                      <div>
-                       
-                        <AlertDescription className="whitespace-pre-line mt-1">
-                          {alertMessage}
-                        </AlertDescription>
-                      </div>
-                    </Alert>
-                  )}
+            <Alert className="mb-4 bg-red-100 border border-red-400 text-red-700 p-4 rounded-xl flex items-start gap-3">
+              <X className="w-5 h-5 mt-1" />
+              <div>
+                <AlertDescription className="whitespace-pre-line mt-1">
+                  {alertMessage}
+                </AlertDescription>
+              </div>
+            </Alert>
+          )}
         </AnimatePresence>
 
         {/* CAMPOS */}
         <div className="space-y-5">
           {/* EMAIL */}
           <div className="space-y-2">
-            <Label className="text-slate-700 font-semibold text-base">Email</Label>
+            <Label className="text-slate-700 font-semibold text-base">
+              Email
+            </Label>
             <Input
               name="email"
               type="email"
@@ -201,7 +213,9 @@ export default function LoginPage() {
 
           {/* CONTRASEÑA */}
           <div className="space-y-2">
-            <Label className="text-slate-700 font-semibold text-base">Contraseña</Label>
+            <Label className="text-slate-700 font-semibold text-base">
+              Contraseña
+            </Label>
             <div className="relative">
               <Input
                 name="password"
@@ -227,7 +241,11 @@ export default function LoginPage() {
                   text-slate-500 hover:text-slate-700
                 "
               >
-                {showPassword ? <Eye className="w-5 h-5" /> : <EyeOff className="w-5 h-5" />}
+                {showPassword ? (
+                  <Eye className="w-5 h-5" />
+                ) : (
+                  <EyeOff className="w-5 h-5" />
+                )}
               </button>
             </div>
           </div>
@@ -267,7 +285,10 @@ export default function LoginPage() {
           >
             <X className="w-7 h-7 text-red-700" />
             <p className="flex-1 text-sm">{error}</p>
-            <button onClick={() => setError(null)} className="text-red-700 font-bold px-2">
+            <button
+              onClick={() => setError(null)}
+              className="text-red-700 font-bold px-2"
+            >
               Cerrar
             </button>
           </motion.div>
