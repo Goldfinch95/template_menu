@@ -74,8 +74,8 @@ export default function RegisterPage() {
     // Contraseña
     if (!form.password.trim()) {
       errors.push("• La contraseña es obligatoria.");
-    } else if (form.password.length < 8) {
-      errors.push("• La contraseña debe tener al menos 8 caracteres.");
+    } else if (form.password.length < 8 || form.password.length > 16) {
+      errors.push("• La contraseña debe tener entre 8 y 16 caracteres.");
     }
 
     // Mostrar errores acumulados
