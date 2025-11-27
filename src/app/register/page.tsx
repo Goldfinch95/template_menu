@@ -56,14 +56,16 @@ export default function RegisterPage() {
     // Email
     if (!form.email.trim()) {
       errors.push("• El email es obligatorio.");
-    } else if (!/^(?!.*\.\.)[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[A-Za-z]{2,}$/.test(form.email)) {
+    } else if (
+      !/^(?!.*\.\.)[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[A-Za-z]{2,}$/.test(
+        form.email
+      )
+    ) {
       errors.push("• Ingresá un email válido.");
     }
 
-    // Celular → solo números + entre 10 y 13 dígitos
-    if (!form.cel.trim()) {
-      errors.push("• El número de celular es obligatorio.");
-    } else if (!/^[0-9]{10,13}$/.test(form.cel)) {
+    // Celular → opcional, pero si se ingresa debe ser válido (10-13 dígitos)
+    if (form.cel.trim() && !/^[0-9]{10,13}$/.test(form.cel)) {
       errors.push(
         "• Ingresá un número de celular válido (solo números, entre 10 y 13 dígitos)."
       );
@@ -74,7 +76,7 @@ export default function RegisterPage() {
       errors.push("• La contraseña es obligatoria.");
     } else if (form.password.length < 8) {
       errors.push("• La contraseña debe tener al menos 8 caracteres.");
-    } 
+    }
 
     // Mostrar errores acumulados
     if (errors.length > 0) {
@@ -87,35 +89,35 @@ export default function RegisterPage() {
   };
 
   const handleSubmit = async () => {
-  if (!validateFields()) return;
+    if (!validateFields()) return;
 
-  setLoading(true);
-  setAlertMessage(null);
-  setError(null);
+    setLoading(true);
+    setAlertMessage(null);
+    setError(null);
 
-  try {
-    // registerUser ya devuelve los datos parseados, no necesitas .json()
-     await registerUser({
-      name: form.name,
-      lastName: form.lastName,
-      email: form.email,
-      cel: form.cel,
-      roleId: 2,
-      password: form.password,
-    });
+    try {
+      // registerUser ya devuelve los datos parseados, no necesitas .json()
+      await registerUser({
+        name: form.name.trim(),
+        lastName: form.lastName.trim(),
+        email: form.email.trim(),
+        cel: form.cel.trim(),
+        roleId: 2,
+        password: form.password.trim(),
+      });
 
-    // Si llegamos aquí sin error, fue exitoso
-    router.push("/");
-  } catch (err: any) {
-    setError(
-      err instanceof Error
-        ? "Este email ya está en uso."
-        : "Error al registrar usuario. Intentá de nuevo."
-    );
-  } finally {
-    setLoading(false);
-  }
-};
+      // Si llegamos aquí sin error, fue exitoso
+      router.push("/");
+    } catch (err: any) {
+      setError(
+        err instanceof Error
+          ? "Este email ya está en uso."
+          : "Error al registrar usuario. Intentá de nuevo."
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <main
