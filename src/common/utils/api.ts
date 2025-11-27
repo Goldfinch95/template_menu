@@ -10,7 +10,8 @@ import {
   newMenu,
   newItem,
   newImage,
-  UpdateCategoryPosition
+  UpdateCategoryPosition,
+  UpdateItemPosition
 } from "@/interfaces/menu";
 import { promises } from "dns";
 
@@ -460,7 +461,7 @@ export const createItem = async (data: newItem): Promise<Items> => {
 //Editar un item
 export const updateItem = async (
   itemId: number,
-  data: Partial<Items>
+  data: Partial<Items> | UpdateItemPosition
 ): Promise<Items> => {
   try {
     const response = await fetch(`${ITEM_BASE_URL}/${itemId}`, {

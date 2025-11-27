@@ -91,7 +91,7 @@ export default function RegisterPage() {
   };
 
   const handleSubmit = async () => {
-    if (!validateFields()) return;
+    /*if (!validateFields()) return;*/
 
     setLoading(true);
     setAlertMessage(null);

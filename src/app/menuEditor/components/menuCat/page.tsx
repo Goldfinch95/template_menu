@@ -33,7 +33,12 @@ import { Spinner } from "@/common/components/ui/spinner";
 import CatDialog from "./components/CatDialog";
 import ItemDialog from "./components/ItemDialog";
 import { Categories, UpdateCategoryPosition } from "@/interfaces/menu";
-import { deleteCategory, updateCategory, deleteItem } from "@/common/utils/api";
+import {
+  deleteCategory,
+  updateCategory,
+  deleteItem,
+  updateItem,
+} from "@/common/utils/api";
 import { cn } from "@/common/utils/utils";
 import { AlertTriangle, X } from "lucide-react";
 import {
@@ -54,6 +59,132 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 
+function SortableItem({
+  item,
+  categoryId,
+  onItemSaved,
+  handleDeleteItem,
+  deletingItemId,
+}: {
+  item: any;
+  categoryId: number;
+  onItemSaved: () => Promise<void>;
+  handleDeleteItem: (id: number) => Promise<void>;
+  deletingItemId: number | null;
+}) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: item.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  const previewUrl = item.images?.[0]?.url || null;
+
+  return (
+    <div ref={setNodeRef} style={style}>
+      <div className="flex justify-between items-center bg-white border border-slate-200 rounded-xl p-3">
+        {/* Drag Handle */}
+        <div
+          {...attributes}
+          {...listeners}
+          className="cursor-grab active:cursor-grabbing touch-none mr-2 text-slate-400 hover:text-slate-600 transition-colors"
+        >
+          <GripVertical className="w-4 h-4" />
+        </div>
+
+        <div className="flex items-center gap-3 overflow-hidden flex-1">
+          {previewUrl ? (
+            <div
+              style={{ backgroundImage: `url(${previewUrl})` }}
+              className="w-12 h-12 rounded-lg border border-slate-200 bg-center bg-cover"
+            />
+          ) : (
+            <div className="w-12 h-12 rounded-lg bg-slate-100 flex items-center justify-center">
+              <Utensils className="w-5 h-5 text-slate-400" />
+            </div>
+          )}
+
+          <p className="font-medium text-slate-700 text-sm truncate max-w-[120px]">
+            {item.title || "Nuevo plato"}
+          </p>
+          {item.price && (
+            <p className="text-slate-500 text-xs">${item.price}</p>
+          )}
+        </div>
+
+        <div className="flex gap-2">
+          <ItemDialog
+            categoryId={categoryId}
+            item={item}
+            onItemSaved={onItemSaved}
+            trigger={
+              <Button
+                size="sm"
+                variant="ghost"
+                className="text-orange-500 hover:text-orange-600"
+              >
+                <Pencil className="w-4 h-4" />
+              </Button>
+            }
+          />
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button
+                size="sm"
+                variant="ghost"
+                className="text-red-500 hover:text-red-600"
+              >
+                <Trash2 className="w-4 h-4" />
+              </Button>
+            </DialogTrigger>
+
+            <DialogContent className="max-w-sm rounded-2xl p-6 shadow-xl [&>button]:hidden">
+              <DialogClose className="absolute right-6 top-6 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground !flex items-center justify-center">
+                <X className="h-5 w-5 text-red-600" />
+              </DialogClose>
+
+              <DialogHeader>
+                <DialogTitle className="flex items-center gap-2 text-red-500">
+                  <AlertTriangle className="w-5 h-5" />
+                  Eliminar plato
+                </DialogTitle>
+              </DialogHeader>
+
+              <DialogDescription className="text-base text-slate-600 mt-2">
+                ¿Estás seguro de que deseas eliminar este plato? Esta acción no
+                se puede deshacer.
+              </DialogDescription>
+
+              <DialogFooter className="flex justify-end gap-2 mt-6">
+                <DialogClose asChild>
+                  <Button variant="outline">Cancelar</Button>
+                </DialogClose>
+
+                <Button
+                  className="bg-red-500 hover:bg-red-600 text-white"
+                  onClick={() => handleDeleteItem(item.id)}
+                  disabled={deletingItemId === item.id}
+                >
+                  {deletingItemId === item.id ? "Eliminando..." : "Eliminar"}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function SortableCategory({
   category,
   expandedCategoryId,
@@ -66,6 +197,8 @@ function SortableCategory({
   handleDeleteItem,
   deletingItemId,
   onCategoryChange,
+  sensors,
+  handleItemDragEnd,
 }: {
   category: Categories;
   expandedCategoryId: number | null;
@@ -78,6 +211,12 @@ function SortableCategory({
   handleDeleteItem: (id: number) => Promise<void>;
   deletingItemId: number | null;
   onCategoryChange: () => Promise<void>;
+  sensors: any;
+  handleItemDragEnd: (
+    event: DragEndEvent,
+    categoryId: number,
+    items: any[]
+  ) => Promise<void>;
 }) {
   const {
     attributes,
@@ -225,96 +364,31 @@ function SortableCategory({
         {/* CONTENIDO DESPLEGABLE */}
         <CollapsibleContent>
           <div className="mt-3 space-y-3">
-            {[...(category.items || [])].map((item) => {
-              const previewUrl = item.images?.[0]?.url || null;
-
-              return (
-                <div
-                  key={item.id ?? item.tempId}
-                  className="flex justify-between items-center bg-white border border-slate-200 rounded-xl p-3"
+            {category.items && category.items.length > 0 ? (
+              <DndContext
+                sensors={sensors}
+                collisionDetection={closestCenter}
+                onDragEnd={(event) =>
+                  handleItemDragEnd(event, category.id, category.items)
+                }
+              >
+                <SortableContext
+                  items={category.items.map((item) => item.id)}
+                  strategy={verticalListSortingStrategy}
                 >
-                  <div className="flex items-center gap-3 overflow-hidden">
-                    {previewUrl ? (
-                      <div
-                        style={{
-                          backgroundImage: `url(${previewUrl})`,
-                        }}
-                        className="w-12 h-12 rounded-lg border border-slate-200 bg-center bg-cover"
-                      />
-                    ) : (
-                      <div className="w-12 h-12 rounded-lg bg-slate-100 flex items-center justify-center">
-                        <Utensils className="w-5 h-5 text-slate-400" />
-                      </div>
-                    )}
-
-                    <p className="font-medium text-slate-700 text-sm truncate max-w-[120px]">
-                      {item.title || "Nuevo plato"}
-                    </p>
-                    {item.price && (
-                      <p className="text-slate-500 text-xs">${item.price}</p>
-                    )}
-                  </div>
-                  <div className="flex gap-2">
-                    <ItemDialog
-                      categoryId={category.id}
+                  {category.items.map((item) => (
+                    <SortableItem
+                      key={item.id}
                       item={item}
+                      categoryId={category.id}
                       onItemSaved={onCategoryChange}
-                      trigger={
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          className="text-orange-500 hover:text-orange-600"
-                        >
-                          <Pencil className="w-4 h-4" />
-                        </Button>
-                      }
+                      handleDeleteItem={handleDeleteItem}
+                      deletingItemId={deletingItemId}
                     />
-                    <Dialog>
-                      <DialogTrigger asChild>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          className="text-red-500 hover:text-red-600"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      </DialogTrigger>
-
-                      <DialogContent className="max-w-sm rounded-2xl p-6 shadow-xl [&>button]:hidden">
-                        <DialogClose className="absolute right-6 top-6 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground !flex items-center justify-center">
-                          <X className="h-5 w-5 text-red-600" />
-                        </DialogClose>
-
-                        <DialogHeader>
-                          <DialogTitle className="flex items-center gap-2 text-red-500">
-                            <AlertTriangle className="w-5 h-5" />
-                            Eliminar plato
-                          </DialogTitle>
-                        </DialogHeader>
-
-                        <DialogDescription className="text-base text-slate-600 mt-2">
-                          ¿Estás seguro de que deseas eliminar este plato? Esta
-                          acción no se puede deshacer.
-                        </DialogDescription>
-
-                        <DialogFooter className="flex justify-end gap-2 mt-6">
-                          <DialogClose asChild>
-                            <Button variant="outline">Cancelar</Button>
-                          </DialogClose>
-
-                          <Button
-                            className="bg-red-500 hover:bg-red-600 text-white"
-                            onClick={() => handleDeleteItem(item.id)}
-                          >
-                            Eliminar
-                          </Button>
-                        </DialogFooter>
-                      </DialogContent>
-                    </Dialog>
-                  </div>
-                </div>
-              );
-            })}
+                  ))}
+                </SortableContext>
+              </DndContext>
+            ) : null}
 
             <div className="pt-4 mt-4 border-t border-slate-300">
               <ItemDialog
@@ -364,7 +438,7 @@ const MenuCatPage = ({
   const [savingId, setSavingId] = useState<number | null>(null);
   const [deletingItemId, setDeletingItemId] = useState<number | null>(null);
 
-  // Configuración de sensores para drag and drop
+  // Configuración de sensores para drag and drop (compartido para categorías e items)
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
@@ -387,6 +461,7 @@ const MenuCatPage = ({
     loadCategories();
   }, [menuId, menuCategories]);
 
+  // Handler para drag and drop de CATEGORÍAS
   const handleDragEnd = async (event: DragEndEvent) => {
     const { active, over } = event;
 
@@ -397,53 +472,105 @@ const MenuCatPage = ({
       const newCategories = arrayMove(categories, oldIndex, newIndex);
       setCategories(newCategories);
 
-      // Calcular newPosition
       const movedCategory = categories[oldIndex];
       let newPosition: number;
 
       // CASO 1: Mover al principio (antes del primer item actual)
-    if (newIndex === 0) {
-      newPosition = categories[0].position - 1;
-    }
-    // CASO 2: Mover al final (después del último item actual)
-    else if (newIndex === categories.length - 1) {
-      newPosition = categories[categories.length - 1].position + 1;
-    }
-    // CASO 3: Mover entre dos items
-    else {
-      // Determinar quién está antes y después en el array ORIGINAL
-      const targetCategory = categories[newIndex];
-      
-      // Si nos movemos hacia abajo (oldIndex < newIndex)
-      if (oldIndex < newIndex) {
-        const prevPosition = targetCategory.position;
-        const nextPosition = categories[newIndex + 1]?.position ?? (targetCategory.position + 1);
-        newPosition = (prevPosition + nextPosition) / 2;
+      if (newIndex === 0) {
+        newPosition = categories[0].position - 1;
       }
-      // Si nos movemos hacia arriba (oldIndex > newIndex)
+      // CASO 2: Mover al final (después del último item actual)
+      else if (newIndex === categories.length - 1) {
+        newPosition = categories[categories.length - 1].position + 1;
+      }
+      // CASO 3: Mover entre dos items
       else {
-        const prevPosition = categories[newIndex - 1]?.position ?? (targetCategory.position - 1);
-        const nextPosition = targetCategory.position;
-        newPosition = (prevPosition + nextPosition) / 2;
-      }
-    }
+        const targetCategory = categories[newIndex];
 
-    console.log(`📦 Moviendo categoría ${movedCategory.id} desde posición ${oldIndex} a ${newIndex} con newPosition: ${newPosition}`);
+        // Si nos movemos hacia abajo (oldIndex < newIndex)
+        if (oldIndex < newIndex) {
+          const prevPosition = targetCategory.position;
+          const nextPosition =
+            categories[newIndex + 1]?.position ?? targetCategory.position + 1;
+          newPosition = (prevPosition + nextPosition) / 2;
+        }
+        // Si nos movemos hacia arriba (oldIndex > newIndex)
+        else {
+          const prevPosition =
+            categories[newIndex - 1]?.position ?? targetCategory.position - 1;
+          const nextPosition = targetCategory.position;
+          newPosition = (prevPosition + nextPosition) / 2;
+        }
+      }
+
+      console.log(
+        `📦 Moviendo categoría ${movedCategory.id} desde posición ${oldIndex} a ${newIndex} con newPosition: ${newPosition}`
+      );
 
       try {
-        // Enviar a la BD con el campo newPosition
         const updateData: UpdateCategoryPosition = { newPosition };
         await updateCategory(movedCategory.id, updateData);
-
-        // Refrescar datos
         await onCategoryChange();
-
-        console.log(`✅ Orden actualizado correctamente`);
+        console.log(`✅ Orden de categoría actualizado correctamente`);
       } catch (error) {
-        console.error("❌ Error al actualizar el orden:", error);
-        // Revertir el cambio local si falla
+        console.error("❌ Error al actualizar el orden de categoría:", error);
         setCategories(categories);
         alert("Error al actualizar el orden. Revisa la consola.");
+      }
+    }
+  };
+
+  // Handler para drag and drop de ITEMS
+  const handleItemDragEnd = async (
+    event: DragEndEvent,
+    categoryId: number,
+    items: any[]
+  ) => {
+    const { active, over } = event;
+
+    if (over && active.id !== over.id) {
+      const oldIndex = items.findIndex((item) => item.id === active.id);
+      const newIndex = items.findIndex((item) => item.id === over.id);
+
+      const movedItem = items[oldIndex];
+      let newPosition: number;
+
+      // CASO 1: Mover al principio
+      if (newIndex === 0) {
+        newPosition = items[0].position - 1;
+      }
+      // CASO 2: Mover al final
+      else if (newIndex === items.length - 1) {
+        newPosition = items[items.length - 1].position + 1;
+      }
+      // CASO 3: Mover entre dos items
+      else {
+        const targetItem = items[newIndex];
+
+        if (oldIndex < newIndex) {
+          const prevPosition = targetItem.position;
+          const nextPosition =
+            items[newIndex + 1]?.position ?? targetItem.position + 1;
+          newPosition = (prevPosition + nextPosition) / 2;
+        } else {
+          const prevPosition =
+            items[newIndex - 1]?.position ?? targetItem.position - 1;
+          const nextPosition = targetItem.position;
+          newPosition = (prevPosition + nextPosition) / 2;
+        }
+      }
+
+      console.log(
+        `🍽️ Moviendo item ${movedItem.id} desde posición ${oldIndex} a ${newIndex} con newPosition: ${newPosition}`
+      );
+
+      try {
+        await updateItem(movedItem.id, { newPosition });
+        await onCategoryChange();
+        console.log(`✅ Orden de item actualizado correctamente`);
+      } catch (error) {
+        console.error("❌ Error al actualizar el orden de item:", error);
+        alert("Error al actualizar el orden del plato. Revisa la consola.");
       }
     }
   };
@@ -539,7 +666,6 @@ const MenuCatPage = ({
             </div>
           </div>
 
-          {/* 🎯 AQUÍ ESTÁ EL CAMBIO PRINCIPAL */}
           <div className="space-y-3 mt-4">
             {categories && categories.length > 0 ? (
               <DndContext
@@ -565,6 +691,8 @@ const MenuCatPage = ({
                       handleDeleteItem={handleDeleteItem}
                       deletingItemId={deletingItemId}
                       onCategoryChange={onCategoryChange}
+                      sensors={sensors}
+                      handleItemDragEnd={handleItemDragEnd}
                     />
                   ))}
                 </SortableContext>

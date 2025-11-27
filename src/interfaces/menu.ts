@@ -91,6 +91,7 @@ export interface Items {
   price: number;
   title: string;
   updatedAt: string;
+  position: number;
 }
 
 // imagenes de los items
@@ -154,5 +155,9 @@ export interface EditedCategory {
 }
 
 export interface UpdateCategoryPosition {
+  newPosition: number;
+}
+
+export interface UpdateItemPosition {
   newPosition: number;
 }
