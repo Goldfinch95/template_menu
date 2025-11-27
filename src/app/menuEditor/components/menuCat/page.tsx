@@ -215,9 +215,18 @@ function SortableCategory({
   handleItemDragEnd: (
     event: DragEndEvent,
     categoryId: number,
-    items: any[]
+    items: any[],
+    setLocalItems: (items: any[]) => void
   ) => Promise<void>;
 }) {
+  // Estado local para los items de esta categoría
+  const [localItems, setLocalItems] = useState(category.items || []);
+
+  // Sincronizar cuando cambien los items de la categoría
+  useEffect(() => {
+    setLocalItems(category.items || []);
+  }, [category.items]);
+
   const {
     attributes,
     listeners,
@@ -364,19 +373,24 @@ function SortableCategory({
         {/* CONTENIDO DESPLEGABLE */}
         <CollapsibleContent>
           <div className="mt-3 space-y-3">
-            {category.items && category.items.length > 0 ? (
+            {localItems && localItems.length > 0 ? (
               <DndContext
                 sensors={sensors}
                 collisionDetection={closestCenter}
                 onDragEnd={(event) =>
-                  handleItemDragEnd(event, category.id, category.items)
+                  handleItemDragEnd(
+                    event,
+                    category.id,
+                    localItems,
+                    setLocalItems
+                  )
                 }
               >
                 <SortableContext
-                  items={category.items.map((item) => item.id)}
+                  items={localItems.map((item) => item.id)}
                   strategy={verticalListSortingStrategy}
                 >
-                  {category.items.map((item) => (
+                  {localItems.map((item) => (
                     <SortableItem
                       key={item.id}
                       item={item}
@@ -524,7 +538,8 @@ const MenuCatPage = ({
   const handleItemDragEnd = async (
     event: DragEndEvent,
     categoryId: number,
-    items: any[]
+    items: any[],
+    setLocalItems: (items: any[]) => void
   ) => {
     const { active, over } = event;
 
@@ -532,31 +547,38 @@ const MenuCatPage = ({
       const oldIndex = items.findIndex((item) => item.id === active.id);
       const newIndex = items.findIndex((item) => item.id === over.id);
 
+      // 1. Actualizar el estado local PRIMERO con arrayMove
+      const newItems = arrayMove(items, oldIndex, newIndex);
+      setLocalItems(newItems);
+
       const movedItem = items[oldIndex];
       let newPosition: number;
 
-      // CASO 1: Mover al principio
+      // CASO 1: Mover al principio (antes del primer item actual)
       if (newIndex === 0) {
-        newPosition = items[0].position - 1;
+        newPosition = Math.round(items[0].position - 1); // Redondear aquí
       }
-      // CASO 2: Mover al final
+      // CASO 2: Mover al final (después del último item actual)
       else if (newIndex === items.length - 1) {
-        newPosition = items[items.length - 1].position + 1;
+        newPosition = Math.round(items[items.length - 1].position + 1); // Redondear aquí
       }
       // CASO 3: Mover entre dos items
       else {
         const targetItem = items[newIndex];
 
+        // Si nos movemos hacia abajo (oldIndex < newIndex)
         if (oldIndex < newIndex) {
           const prevPosition = targetItem.position;
           const nextPosition =
             items[newIndex + 1]?.position ?? targetItem.position + 1;
-          newPosition = (prevPosition + nextPosition) / 2;
-        } else {
+          newPosition = Math.round((prevPosition + nextPosition) / 2); // Redondear aquí
+        }
+        // Si nos movemos hacia arriba (oldIndex > newIndex)
+        else {
           const prevPosition =
             items[newIndex - 1]?.position ?? targetItem.position - 1;
           const nextPosition = targetItem.position;
-          newPosition = (prevPosition + nextPosition) / 2;
+          newPosition = Math.round((prevPosition + nextPosition) / 2); // Redondear aquí
         }
       }
 
@@ -570,6 +592,8 @@ const MenuCatPage = ({
         console.log(`✅ Orden de item actualizado correctamente`);
       } catch (error) {
         console.error("❌ Error al actualizar el orden de item:", error);
+        // Revertir el cambio local si falla
+        setLocalItems(items);
         alert("Error al actualizar el orden del plato. Revisa la consola.");
       }
     }
