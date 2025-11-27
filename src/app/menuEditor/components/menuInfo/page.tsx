@@ -17,7 +17,7 @@ interface InfoEditorProps {
   onMenuCreated: () => void;
 }
 
-const MenuInfoPage = ({ menuId,  onMenuCreated }: InfoEditorProps) => {
+const MenuInfoPage = ({ menuId, onMenuCreated }: InfoEditorProps) => {
   // estado del menuId seleccionado
   const [currentMenuId, setCurrentMenuId] = useState<number | undefined>(
     menuId
@@ -34,7 +34,6 @@ const MenuInfoPage = ({ menuId,  onMenuCreated }: InfoEditorProps) => {
 
   // 🔥 Función para cargar/recargar el menú desde la API
   const fetchMenuData = useCallback(async (id?: number) => {
-
     //console.log("📥 Intentando cargar menu con ID:", id);
 
     //si no hay menu
@@ -75,7 +74,7 @@ const MenuInfoPage = ({ menuId,  onMenuCreated }: InfoEditorProps) => {
     onMenuCreated(newMenuId);
 
     setCurrentMenuId(newMenuId);
-     fetchMenuData(newMenuId);
+    fetchMenuData(newMenuId);
   };
 
   // 🎯 Función que se pasa al hijo para que notifique cambios
@@ -166,9 +165,24 @@ const MenuInfoPage = ({ menuId,  onMenuCreated }: InfoEditorProps) => {
               <Image
                 src={menu.logo}
                 alt="Logo preview"
-                width={100}
-                height={100}
-                className="w-full h-full object-cover"
+                width={
+                  menu.logo ===
+                  "https://aplicacion-menu.s3.sa-east-1.amazonaws.com/defaults/menu/default_menu.png"
+                    ? 95
+                    : 100
+                } // Se ajusta solo cuando es la URL predeterminada
+                height={
+                  menu.logo ===
+                  "https://aplicacion-menu.s3.sa-east-1.amazonaws.com/defaults/menu/default_menu.png"
+                    ? 95
+                    : 100
+                } // Se ajusta solo cuando es la URL predeterminada
+                className={`object-cover ${
+                  menu.logo ===
+                  "https://aplicacion-menu.s3.sa-east-1.amazonaws.com/defaults/menu/default_menu.png"
+                    ? ""
+                    : "w-full h-full object-cover"
+                }`} // Si es la URL predeterminada, ajusta el tamaño; si no, ocupa todo el contenedor
               />
             ) : (
               <BookImage className="w-8 h-8 text-slate-400" />
