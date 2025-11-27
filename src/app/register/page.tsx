@@ -56,7 +56,7 @@ export default function RegisterPage() {
     // Email
     if (!form.email.trim()) {
       errors.push("• El email es obligatorio.");
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) {
+    } else if (!/^(?!.*\.\.)[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[A-Za-z]{2,}$/.test(form.email)) {
       errors.push("• Ingresá un email válido.");
     }
 
@@ -74,11 +74,7 @@ export default function RegisterPage() {
       errors.push("• La contraseña es obligatoria.");
     } else if (form.password.length < 8) {
       errors.push("• La contraseña debe tener al menos 8 caracteres.");
-    } else if (!/^[a-z0-9_-]+$/.test(form.password)) {
-      errors.push(
-        "• La contraseña solo puede contener minúsculas, números y guiones (sin espacios)."
-      );
-    }
+    } 
 
     // Mostrar errores acumulados
     if (errors.length > 0) {
@@ -91,43 +87,35 @@ export default function RegisterPage() {
   };
 
   const handleSubmit = async () => {
-    /*if (!validateFields()) return;*/
+  if (!validateFields()) return;
 
-    setLoading(true);
-    setAlertMessage(null);
-    setError(null);
+  setLoading(true);
+  setAlertMessage(null);
+  setError(null);
 
-    try {
-      const res = await registerUser({
-        name: form.name,
-        lastName: form.lastName,
-        email: form.email,
-        cel: form.cel,
-        roleId: 2,
-        password: form.password,
-        subdomain: form.password,
-      });
+  try {
+    // registerUser ya devuelve los datos parseados, no necesitas .json()
+     await registerUser({
+      name: form.name,
+      lastName: form.lastName,
+      email: form.email,
+      cel: form.cel,
+      roleId: 2,
+      password: form.password,
+    });
 
-      const data = await res.json();
-
-      // ✔ Detectar email en uso
-      if (res.status === 409 || data.statusCode === 409) {
-        setError("• Este email ya está en uso.");
-        return;
-      }
-
-      if (!res.ok) {
-        setError("• Ocurrió un error al crear la cuenta.");
-        return;
-      }
-
-      router.push("/login");
-    } catch (err: any) {
-      setError(err.message || "Error al conectar con el servidor.");
-    } finally {
-      setLoading(false);
-    }
-  };
+    // Si llegamos aquí sin error, fue exitoso
+    router.push("/");
+  } catch (err: any) {
+    setError(
+      err instanceof Error
+        ? "Este email ya está en uso."
+        : "Error al registrar usuario. Intentá de nuevo."
+    );
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <main

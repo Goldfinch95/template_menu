@@ -38,7 +38,7 @@ export const registerUser = async (data: RegisterData): Promise<User> => {
         cel: data.cel,
         roleId: data.roleId,
         password: data.password,
-        subdomain: data.password,
+        
       }),
     });
 

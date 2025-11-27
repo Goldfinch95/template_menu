@@ -45,7 +45,7 @@ export interface RegisterData {
   cel?: string;
   roleId?: number;
   password: string;
-  subdomain: string; //revisar con naza
+   //revisar con naza
 }
 
 
