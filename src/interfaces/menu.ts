@@ -152,3 +152,7 @@ export interface EditedCategory {
   title: string;
   items?: Items[];
 }
+
+export interface UpdateCategoryPosition {
+  newPosition: number;
+}

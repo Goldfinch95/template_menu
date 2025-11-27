@@ -32,7 +32,7 @@ import {
 import { Spinner } from "@/common/components/ui/spinner";
 import CatDialog from "./components/CatDialog";
 import ItemDialog from "./components/ItemDialog";
-import { Categories } from "@/interfaces/menu";
+import { Categories, UpdateCategoryPosition } from "@/interfaces/menu";
 import { deleteCategory, updateCategory, deleteItem } from "@/common/utils/api";
 import { cn } from "@/common/utils/utils";
 import { AlertTriangle, X } from "lucide-react";
@@ -397,12 +397,54 @@ const MenuCatPage = ({
       const newCategories = arrayMove(categories, oldIndex, newIndex);
       setCategories(newCategories);
 
-      // IMPORTANTE: Aquí deberías llamar a tu API para guardar el orden
-      console.log(
-        "Nuevo orden:",
-        newCategories.map((c) => c.id)
-      );
-      // Ejemplo: await updateCategoryOrder(newCategories.map((c, idx) => ({ id: c.id, order: idx })));
+      // Calcular newPosition
+      const movedCategory = categories[oldIndex];
+      let newPosition: number;
+
+      // CASO 1: Mover al principio (antes del primer item actual)
+    if (newIndex === 0) {
+      newPosition = categories[0].position - 1;
+    }
+    // CASO 2: Mover al final (después del último item actual)
+    else if (newIndex === categories.length - 1) {
+      newPosition = categories[categories.length - 1].position + 1;
+    }
+    // CASO 3: Mover entre dos items
+    else {
+      // Determinar quién está antes y después en el array ORIGINAL
+      const targetCategory = categories[newIndex];
+      
+      // Si nos movemos hacia abajo (oldIndex < newIndex)
+      if (oldIndex < newIndex) {
+        const prevPosition = targetCategory.position;
+        const nextPosition = categories[newIndex + 1]?.position ?? (targetCategory.position + 1);
+        newPosition = (prevPosition + nextPosition) / 2;
+      }
+      // Si nos movemos hacia arriba (oldIndex > newIndex)
+      else {
+        const prevPosition = categories[newIndex - 1]?.position ?? (targetCategory.position - 1);
+        const nextPosition = targetCategory.position;
+        newPosition = (prevPosition + nextPosition) / 2;
+      }
+    }
+
+    console.log(`📦 Moviendo categoría ${movedCategory.id} desde posición ${oldIndex} a ${newIndex} con newPosition: ${newPosition}`);
+
+      try {
+        // Enviar a la BD con el campo newPosition
+        const updateData: UpdateCategoryPosition = { newPosition };
+        await updateCategory(movedCategory.id, updateData);
+
+        // Refrescar datos
+        await onCategoryChange();
+
+        console.log(`✅ Orden actualizado correctamente`);
+      } catch (error) {
+        console.error("❌ Error al actualizar el orden:", error);
+        // Revertir el cambio local si falla
+        setCategories(categories);
+        alert("Error al actualizar el orden. Revisa la consola.");
+      }
     }
   };
 

@@ -10,6 +10,7 @@ import {
   newMenu,
   newItem,
   newImage,
+  UpdateCategoryPosition
 } from "@/interfaces/menu";
 import { promises } from "dns";
 
@@ -363,7 +364,7 @@ export const createCategory = async (
 // EDITAR una categoria
 export const updateCategory = async (
   categoryId: number,
-  data: Partial<Categories> // Usamos Partial<Categories> para datos de actualización
+  data: Partial<Categories> | UpdateCategoryPosition // Usamos Partial<Categories> para datos de actualización
 ): Promise<Categories> => {
   try {
     const response = await fetch(`${CATEGORIES_BASE_URL}/${categoryId}`, {
