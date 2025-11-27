@@ -26,6 +26,7 @@ import {
   AlertDescription,
   AlertTitle,
 } from "@/common/components/ui/alert";
+import { useRouter } from "next/navigation";
 
 interface InfoDialogProps {
   trigger?: React.ReactNode;
@@ -52,6 +53,10 @@ const InfoDialog = ({
   onCreated,
   onUpdated,
 }: InfoDialogProps) => {
+
+  //RUTA
+    const router = useRouter();
+    
   //estados para el titulo,direccion
   const [title, setTitle] = useState(menuTitle);
   const [pos, setPos] = useState(menuPos);
@@ -231,7 +236,8 @@ const InfoDialog = ({
 
         //notificar
         //console.log("🔄 Notificando al padre con el nuevo ID:", createdMenu.id);
-        onCreated?.(createdMenu.id); // Pasamos el nuevo `menuId` al padre
+        onCreated?.(createdMenu.id);
+        router.push(`/menuShowcase`); // Pasamos el nuevo `menuId` al padre
       }
       // editar un menu
       else {
