@@ -1,8 +1,9 @@
 import React from "react";
 import Image from "next/image";
-import { MenuItem } from "@/interfaces/menu";
+import { Items } from "@/interfaces/menu";
 
-const FoodMenuItem: React.FC<MenuItem> = ({
+
+const FoodMenuItem: React.FC<Items> = ({
   title,
   description,
   price,
