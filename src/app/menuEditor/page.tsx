@@ -36,22 +36,6 @@ import { Button } from "@/common/components/ui/button";
 const MenuEditorContent = () => {
   //Estado para el menu
   const [menu, setMenu] = useState<Menu>({} as Menu);
-  // estado para nuevo menú
-  const [newMenu, setNewMenu] = useState<newMenu>({} as newMenu);
-  // estado para nueva categoria
-  const [newCategory, setNewCategory] = useState<newCategory[]>([]);
-  // Estado para categorias editadas
-  const [editedCategories, setEditedCategories] = useState<EditedCategory[]>(
-    []
-  );
-  //Estado para categorías marcadas para eliminar
-  const [categoriesToDelete, setCategoriesToDelete] = useState<number[]>([]);
-
-
-
-  // Referencias para el scroll
-  const categoryRefs = useRef({});
-  const scrollContainerRef = useRef(null);
 
   //Estado para obtener id del menú
   const searchParams = useSearchParams();
@@ -78,83 +62,6 @@ const MenuEditorContent = () => {
     // Llamamos a la función de carga
     fetchMenuData(menuId);
   }, [searchParams, fetchMenuData]);
-
-  // 🆕 Función para combinar datos del menú para la vista previa
-  const getPreviewData = useMemo(() => {
-    const menuId = searchParams.get("id");
-
-    // Si estamos creando un nuevo menú
-    if (!menuId) {
-      return {
-        title: newMenu.title || "Nombre del Menú",
-        pos: newMenu.pos || "Ubicación / Puntos de Venta",
-        logo: newMenu.logo ? URL.createObjectURL(newMenu.logo) : null,
-        backgroundImage: newMenu.backgroundImage
-          ? URL.createObjectURL(newMenu.backgroundImage)
-          : null,
-        color: {
-          primary: newMenu.color?.primary || "#FF6B35",
-          secondary: newMenu.color?.secondary || "#FF8C42",
-        },
-        categories: newCategory || [],
-      };
-    }
-
-    // Si estamos editando un menú existente
-    // Combinar categorías: originales + editadas + nuevas - eliminadas
-    const allCategories = [];
-
-    // 1. Agregar categorías originales que NO han sido editadas ni eliminadas
-    if (menu.categories) {
-      menu.categories.forEach((originalCat) => {
-        const isEdited = editedCategories.some(
-          (edited) => edited.id === originalCat.id
-        );
-        const isDeleted = categoriesToDelete.includes(originalCat.id);
-
-        if (!isEdited && !isDeleted) {
-          allCategories.push(originalCat);
-        }
-      });
-    }
-
-    // 2. Agregar categorías editadas (reemplazan a las originales)
-    editedCategories.forEach((editedCat) => {
-      const isDeleted = categoriesToDelete.includes(editedCat.id);
-      if (!isDeleted) {
-        allCategories.push(editedCat);
-      }
-    });
-
-    // 3. Agregar nuevas categorías
-    if (newCategory && newCategory.length > 0) {
-      allCategories.push(...newCategory);
-    }
-
-    return {
-      title: newMenu.title || menu.title || "Nombre del Menú",
-      pos: newMenu.pos || menu.pos || "Ubicación / Puntos de Venta",
-      logo: newMenu.logo
-        ? URL.createObjectURL(newMenu.logo)
-        : menu.logo || null,
-      backgroundImage: newMenu.backgroundImage
-        ? URL.createObjectURL(newMenu.backgroundImage)
-        : menu.backgroundImage || null,
-      color: {
-        primary: newMenu.color?.primary || menu.color?.primary || "#FF6B35",
-        secondary:
-          newMenu.color?.secondary || menu.color?.secondary || "#FF8C42",
-      },
-      categories: allCategories,
-    };
-  }, [
-    menu,
-    newMenu,
-    newCategory,
-    editedCategories,
-    categoriesToDelete,
-    searchParams,
-  ]);
 
   // funcion que elimina el menú
   const handleDeleteMenu = async () => {
