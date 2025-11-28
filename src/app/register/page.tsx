@@ -2,14 +2,15 @@
 
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Alert, AlertDescription } from "@/common/components/ui/alert";
 import { Button } from "@/common/components/ui/button";
+import { X, ArrowLeft } from "lucide-react";
+import { Alert, AlertDescription } from "@/common/components/ui/alert";
 import { Input } from "@/common/components/ui/input";
 import { Label } from "@/common/components/ui/label";
 import { AnimatePresence, motion } from "framer-motion";
 import { Manrope } from "next/font/google";
-import { UtensilsCrossed, X, Eye, EyeOff } from "lucide-react";
 import { registerUser } from "@/common/utils/api";
+import { UtensilsCrossed, Eye, EyeOff } from "lucide-react";
 
 const manrope = Manrope({ subsets: ["latin"] });
 
@@ -35,25 +36,21 @@ export default function RegisterPage() {
     if (error) setError(null);
   };
 
-  // ❗ VALIDACIÓN ACUMULATIVA — Mismo estilo que login
   const validateFields = () => {
     const errors: string[] = [];
 
-    // Nombre
     if (!form.name.trim()) {
       errors.push("• El nombre es obligatorio.");
     } else if (form.name.trim().length < 3) {
       errors.push("• El nombre debe tener al menos 3 caracteres.");
     }
 
-    // Apellido
     if (!form.lastName.trim()) {
       errors.push("• El apellido es obligatorio.");
     } else if (form.lastName.trim().length < 3) {
       errors.push("• El apellido debe tener al menos 3 caracteres.");
     }
 
-    // Email
     if (!form.email.trim()) {
       errors.push("• El email es obligatorio.");
     } else if (
@@ -64,21 +61,18 @@ export default function RegisterPage() {
       errors.push("• Ingresá un email válido.");
     }
 
-    // Celular → opcional, pero si se ingresa debe ser válido (10-13 dígitos)
     if (form.cel.trim() && !/^[0-9]{10,13}$/.test(form.cel)) {
       errors.push(
         "• Ingresá un número de celular válido (solo números, entre 10 y 13 dígitos)."
       );
     }
 
-    // Contraseña
     if (!form.password.trim()) {
       errors.push("• La contraseña es obligatoria.");
     } else if (form.password.length < 8 || form.password.length > 16) {
       errors.push("• La contraseña debe tener entre 8 y 16 caracteres.");
     }
 
-    // Mostrar errores acumulados
     if (errors.length > 0) {
       setAlertMessage(errors.join("\n"));
       return false;
@@ -96,7 +90,6 @@ export default function RegisterPage() {
     setError(null);
 
     try {
-      // registerUser ya devuelve los datos parseados, no necesitas .json()
       await registerUser({
         name: form.name.trim(),
         lastName: form.lastName.trim(),
@@ -106,7 +99,6 @@ export default function RegisterPage() {
         password: form.password.trim(),
       });
 
-      // Si llegamos aquí sin error, fue exitoso
       router.push("/?registered=1");
     } catch (err: unknown) {
       setError(
@@ -120,26 +112,22 @@ export default function RegisterPage() {
   };
 
   return (
-    <main
-      className="
-        min-h-screen w-full flex flex-col justify-center
-        bg-gradient-to-b from-white via-[#FFF3EC] to-[#FFE6D3]
-        px-6 py-8
-      "
-    >
+    <main className="min-h-screen w-full flex flex-col justify-center bg-gradient-to-b from-white via-[#FFF3EC] to-[#FFE6D3] px-6 py-8">
       <motion.div
         layout
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4 }}
-        className="
-          w-full max-w-md mx-auto 
-          bg-white/85 backdrop-blur-xl
-          rounded-3xl p-7 shadow-xl 
-          border border-white/40
-          space-y-6
-        "
+        className="w-full max-w-md mx-auto bg-white/85 backdrop-blur-xl rounded-3xl p-7 shadow-xl border border-white/40 space-y-6"
       >
+        {/* Botón de retroceso */}
+        <Button
+          onClick={() => router.push("/menuShowcase")}
+          className="absolute left-5 top-5 p-2 rounded-full bg-orange-500 text-white shadow-md hover:bg-orange-600 active:scale-95 transition-all"
+        >
+          <ArrowLeft className="w-5 h-5" />
+        </Button>
+
         <div className="flex justify-center">
           <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-orange-400 to-orange-500 shadow-md flex items-center justify-center">
             <UtensilsCrossed className="w-9 h-9 text-white" />
@@ -147,17 +135,13 @@ export default function RegisterPage() {
         </div>
 
         <div className="text-center -mt-1">
-          <h1
-            className={`${manrope.className} text-3xl font-extrabold text-slate-900`}
-          >
+          <h1 className={`${manrope.className} text-3xl font-extrabold text-slate-900`}>
             Crear cuenta
           </h1>
-          <p className="text-slate-600 text-base mt-1">
-            Completá tus datos para comenzar
-          </p>
+          <p className="text-slate-600 text-base mt-1">Completá tus datos para comenzar</p>
         </div>
 
-        {/* ALERTA ADENTRO DEL CARD */}
+        {/* ALERTA */}
         <AnimatePresence>
           {alertMessage && (
             <Alert className="mb-4 bg-red-100 border border-red-400 text-red-700 p-4 rounded-xl flex items-start gap-3">
@@ -171,22 +155,15 @@ export default function RegisterPage() {
           )}
         </AnimatePresence>
 
-        {/* CAMPOS */}
+        {/* Formulario */}
         <div className="space-y-5">
           {/* Nombre */}
           <div className="space-y-2">
-            <Label className="text-slate-700 font-semibold text-base">
-              Nombre
-            </Label>
+            <Label className="text-slate-700 font-semibold text-base">Nombre</Label>
             <Input
               name="name"
               placeholder="Tu nombre"
-              className="
-                bg-white border-slate-300 shadow-sm text-base
-                focus-visible:border-orange-400
-                focus-visible:ring-2 focus-visible:ring-orange-200/70
-                rounded-xl transition-all duration-200
-              "
+              className="bg-white border-slate-300 shadow-sm text-base focus-visible:border-orange-400 focus-visible:ring-2 focus-visible:ring-orange-200/70 rounded-xl transition-all duration-200"
               value={form.name}
               onChange={handleChange}
             />
@@ -194,18 +171,11 @@ export default function RegisterPage() {
 
           {/* Apellido */}
           <div className="space-y-2">
-            <Label className="text-slate-700 font-semibold text-base">
-              Apellido
-            </Label>
+            <Label className="text-slate-700 font-semibold text-base">Apellido</Label>
             <Input
               name="lastName"
               placeholder="Tu apellido"
-              className="
-                bg-white border-slate-300 shadow-sm text-base
-                focus-visible:border-orange-400
-                focus-visible:ring-2 focus-visible:ring-orange-200/70
-                rounded-xl transition-all duration-200
-              "
+              className="bg-white border-slate-300 shadow-sm text-base focus-visible:border-orange-400 focus-visible:ring-2 focus-visible:ring-orange-200/70 rounded-xl transition-all duration-200"
               value={form.lastName}
               onChange={handleChange}
             />
@@ -213,19 +183,12 @@ export default function RegisterPage() {
 
           {/* Email */}
           <div className="space-y-2">
-            <Label className="text-slate-700 font-semibold text-base">
-              Email
-            </Label>
+            <Label className="text-slate-700 font-semibold text-base">Email</Label>
             <Input
               name="email"
               type="email"
               placeholder="correo@example.com"
-              className="
-                bg-white border-slate-300 shadow-sm text-base
-                focus-visible:border-orange-400
-                focus-visible:ring-2 focus-visible:ring-orange-200/70
-                rounded-xl transition-all duration-200
-              "
+              className="bg-white border-slate-300 shadow-sm text-base focus-visible:border-orange-400 focus-visible:ring-2 focus-visible:ring-orange-200/70 rounded-xl transition-all duration-200"
               value={form.email}
               onChange={handleChange}
             />
@@ -233,18 +196,11 @@ export default function RegisterPage() {
 
           {/* Celular */}
           <div className="space-y-2">
-            <Label className="text-slate-700 font-semibold text-base">
-              Celular
-            </Label>
+            <Label className="text-slate-700 font-semibold text-base">Celular</Label>
             <Input
               name="cel"
               placeholder="Tu número"
-              className="
-                bg-white border-slate-300 shadow-sm text-base
-                focus-visible:border-orange-400
-                focus-visible:ring-2 focus-visible:ring-orange-200/70
-                rounded-xl transition-all duration-200
-              "
+              className="bg-white border-slate-300 shadow-sm text-base focus-visible:border-orange-400 focus-visible:ring-2 focus-visible:ring-orange-200/70 rounded-xl transition-all duration-200"
               value={form.cel}
               onChange={handleChange}
             />
@@ -252,21 +208,13 @@ export default function RegisterPage() {
 
           {/* Contraseña */}
           <div className="space-y-2">
-            <Label className="text-slate-700 font-semibold text-base">
-              Contraseña
-            </Label>
+            <Label className="text-slate-700 font-semibold text-base">Contraseña</Label>
             <div className="relative">
               <Input
                 name="password"
                 type={showPassword ? "text" : "password"}
                 placeholder="••••••••"
-                className="
-                  bg-white border-slate-300 shadow-sm text-base
-                  focus-visible:border-orange-400
-                  focus-visible:ring-2 focus-visible:ring-orange-200/70
-                  rounded-xl transition-all duration-200
-                  pr-12
-                "
+                className="bg-white border-slate-300 shadow-sm text-base focus-visible:border-orange-400 focus-visible:ring-2 focus-visible:ring-orange-200/70 rounded-xl transition-all duration-200 pr-12"
                 value={form.password}
                 onChange={handleChange}
                 disabled={loading}
@@ -274,37 +222,25 @@ export default function RegisterPage() {
               <button
                 type="button"
                 onClick={() => setShowPassword((prev) => !prev)}
-                className="
-                  absolute right-3 top-1/2 -translate-y-1/2
-                  text-slate-500 hover:text-slate-700
-                "
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-700"
               >
-                {showPassword ? (
-                  <Eye className="w-5 h-5" />
-                ) : (
-                  <EyeOff className="w-5 h-5" />
-                )}
+                {showPassword ? <Eye className="w-5 h-5" /> : <EyeOff className="w-5 h-5" />}
               </button>
             </div>
           </div>
         </div>
 
-        {/* BOTÓN */}
+        {/* Botón de envío */}
         <Button
           onClick={handleSubmit}
           disabled={loading}
-          className="
-            w-full py-5 rounded-xl text-lg
-            bg-gradient-to-r from-orange-400 to-orange-500
-            text-white font-semibold shadow-md hover:shadow-lg
-            active:scale-[0.97] transition-all
-          "
+          className="w-full py-5 rounded-xl text-lg bg-gradient-to-r from-orange-400 to-orange-500 text-white font-semibold shadow-md hover:shadow-lg active:scale-[0.97] transition-all"
         >
           {loading ? "Creando cuenta..." : "Registrarme"}
         </Button>
       </motion.div>
 
-      {/* ERROR GLOBAL — AHORA EMPUJA LA CARD */}
+      {/* Error global */}
       <AnimatePresence>
         {error && (
           <motion.div
@@ -313,19 +249,11 @@ export default function RegisterPage() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 30 }}
             transition={{ duration: 0.35 }}
-            className="
-              w-full max-w-md mx-auto mt-6
-              bg-red-100 border border-red-300 text-red-900
-              px-5 py-4 rounded-2xl shadow-lg
-              flex items-center gap-4
-            "
+            className="w-full max-w-md mx-auto mt-6 bg-red-100 border border-red-300 text-red-900 px-5 py-4 rounded-2xl shadow-lg flex items-center gap-4"
           >
             <X className="w-7 h-7 text-red-700" />
             <p className="flex-1 text-sm">{error}</p>
-            <button
-              onClick={() => setError(null)}
-              className="text-red-700 font-bold px-2"
-            >
+            <button onClick={() => setError(null)} className="text-red-700 font-bold px-2">
               Cerrar
             </button>
           </motion.div>
