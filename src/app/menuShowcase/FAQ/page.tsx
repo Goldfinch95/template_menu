@@ -2,8 +2,8 @@
 
 import React, { useState } from "react";
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "@/common/components/ui/accordion";
-import { ArrowLeft, ChevronDown, ChevronLeft } from "lucide-react";  // Importamos el ícono de retroceso
-import { useRouter } from "next/navigation";  // Importamos useRouter para la navegación
+import { ArrowLeft } from "lucide-react";  
+import { useRouter } from "next/navigation";  
 
 export default function FaqPage() {
   const [open, setOpen] = useState<string | undefined>(undefined);
