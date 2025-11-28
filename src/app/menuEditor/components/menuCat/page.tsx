@@ -25,7 +25,7 @@ import {
   Plus,
   Edit2,
   Trash2,
-  Utensils,
+  UtensilsCrossed,
   Pencil,
   GripVertical,
 } from "lucide-react";
@@ -110,25 +110,32 @@ function SortableItem({
           <GripVertical className="w-4 h-4" />
         </div>
 
-        <div className="flex items-center gap-3 overflow-hidden flex-1">
-          {previewUrl ? (
-            <div
-              style={{ backgroundImage: `url(${previewUrl})` }}
-              className="w-12 h-12 rounded-lg border border-slate-200 bg-center bg-cover"
-            />
-          ) : (
-            <div className="w-12 h-12 rounded-lg bg-slate-100 flex items-center justify-center">
-              <Utensils className="w-5 h-5 text-slate-400" />
-            </div>
-          )}
+        <div className="flex items-center gap-2 overflow-hidden flex-1">
+  {previewUrl ? (
+    <div
+      style={{ backgroundImage: `url(${previewUrl})` }}
+      className="w-12 h-12 flex-shrink-0 rounded-lg border border-slate-200 bg-center bg-cover"
+    />
+  ) : (
+    <div className="w-12 h-12 flex-shrink-0 rounded-lg bg-slate-100 flex items-center justify-center">
+      <UtensilsCrossed className="w-6 h-6 text-slate-400" />
+    </div>
+  )}
 
-          <p className="font-medium text-slate-700 text-sm truncate max-w-[120px]">
-            {item.title || "Nuevo plato"}
-          </p>
-          {item.price && (
-            <p className="text-slate-500 text-xs">${item.price}</p>
-          )}
-        </div>
+  <div className="flex-1 min-w-0 overflow-hidden"> {/* Aseguramos que el texto no desborde */}
+    <p className="font-medium text-slate-700 text-sm truncate">
+      {item.title || "Nuevo plato"}
+    </p>
+  </div>
+
+  {item.price && item.price > 0 && (
+    <div className="w-16 flex justify-center items-center">
+      <p className="text-slate-500 text-xs">
+        ${Number.isInteger(Number(item.price)) ? Number(item.price) : Number(item.price).toFixed(2)}
+      </p>
+    </div>
+  )}
+</div>
 
         <div className="flex gap-2">
           <ItemDialog
@@ -229,7 +236,9 @@ function SortableCategory({
   ) => Promise<void>;
 }) {
   // Estado local para los items de esta categoría
-  const [localItems, setLocalItems] = useState<MenuItem[]>(category.items || []);
+  const [localItems, setLocalItems] = useState<MenuItem[]>(
+    category.items || []
+  );
 
   // Sincronizar cuando cambien los items de la categoría
   useEffect(() => {
@@ -500,7 +509,9 @@ const MenuCatPage = ({
       }
       // CASO 2: Mover al final (después del último item actual)
       else if (newIndex === categories.length - 1) {
-        newPosition = Math.round(categories[categories.length - 1].position + 1);
+        newPosition = Math.round(
+          categories[categories.length - 1].position + 1
+        );
       }
       // CASO 3: Mover entre dos items
       else {
