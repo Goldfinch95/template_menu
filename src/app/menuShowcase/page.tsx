@@ -12,6 +12,12 @@ import Image from "next/image";
 import { Manrope } from "next/font/google";
 import { getMenus, logoutUser } from "@/common/utils/api";
 import { AnimatePresence, motion } from "framer-motion";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+} from "@/common/components/ui/dropdown-menu";
 
 // fuente para titulos
 const manrope = Manrope({ subsets: ["latin"] });
@@ -33,10 +39,26 @@ export default function Home() {
   const [showLoginSuccess, setShowLoginSuccess] = useState(false);
   const router = useRouter();
 
+  //estado de roleId
+  const [roleId, setRoleId] = useState<number | null>(null);
+
   //dirigirte a crear un nuevo menú
   const handleCreateNewMenu = () => {
     router.push("/menuEditor");
   };
+
+  //cargar el usuario y obtener el role ID
+  useEffect(() => {
+    const userData = localStorage.getItem("user");
+    if (userData) {
+      try {
+        const parsed = JSON.parse(userData);
+        setRoleId(parsed.roleId);
+      } catch (error) {
+        console.error("Error parsing localStorage user:", error);
+      }
+    }
+  }, []);
 
   //cargar menus
   useEffect(() => {
@@ -148,10 +170,37 @@ export default function Home() {
         <header className="px-5 pt-4 pb-4">
           <div className="max-w-4xl mx-auto">
             <div className="flex items-center justify-between">
-              {/* perfil para mostrar */}
-              <div className="w-10 h-10 bg-gradient-to-br from-orange-400 to-orange-500 rounded-xl flex items-center justify-center shadow-md">
-                <UtensilsCrossed className="w-5 h-5 text-white" />
-              </div>
+              {/* perfil para mostrar, dropdown para admin 1 */}
+              {roleId === 1 ? (
+                // --- DROPDOWN PARA ROLE ADMIN ---
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <button
+                      className="w-10 h-10 bg-gradient-to-br from-orange-400 to-orange-500 rounded-xl
+                   flex items-center justify-center shadow-md active:scale-95 transition"
+                    >
+                      <UtensilsCrossed className="w-5 h-5 text-white" />
+                    </button>
+                  </DropdownMenuTrigger>
+
+                  <DropdownMenuContent align="start" className="w-40">
+                    <DropdownMenuItem
+                      onClick={() => router.push("/register")}
+                      className="cursor-pointer"
+                    >
+                      Registrar usuario
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              ) : (
+                // --- SOLO ICONO VISUAL, NO INTERACTIVO ---
+                <div
+                  className="w-10 h-10 bg-gradient-to-br from-orange-400 to-orange-500 rounded-xl
+                   flex items-center justify-center shadow-md"
+                >
+                  <UtensilsCrossed className="w-5 h-5 text-white" />
+                </div>
+              )}
               <div className="flex-1 text-center mx-4">
                 {/* titulo principal */}
                 <h1
@@ -307,10 +356,19 @@ export default function Home() {
                                 <Image
                                   src={menu.logo}
                                   alt={menu.title}
-                                  width={80}
-                                  height={80}
-                                  className="w-full h-full object-cover"
-                                  sizes="(max-width: 640px) 64px, 80px"
+                                  width={
+                                    menu.logo ===
+                                    "https://undevcode-menus.s3.sa-east-1.amazonaws.com/defaults/menu/default_menu.png"
+                                      ? 50
+                                      : 80
+                                  }
+                                  height={
+                                    menu.logo ===
+                                    "https://undevcode-menus.s3.sa-east-1.amazonaws.com/defaults/menu/default_menu.png"
+                                      ? 50
+                                      : 80
+                                  }
+                                  className="object-contain"
                                   priority
                                 />
                               </div>
