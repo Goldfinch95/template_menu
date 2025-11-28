@@ -12,10 +12,7 @@ import {
   DialogFooter,
   DialogTitle,
 } from "@/common/components/ui/dialog";
-import {
-  Alert,
-  AlertDescription,
-} from "@/common/components/ui/alert";
+import { Alert, AlertDescription } from "@/common/components/ui/alert";
 import { Input } from "@/common/components/ui/input";
 import { Label } from "@/common/components/ui/label";
 import { Button } from "@/common/components/ui/button";
@@ -189,8 +186,12 @@ const ItemDialog = ({
 
       document.querySelector<HTMLButtonElement>("[data-dialog-close]")?.click();
       setIsOpen(false);
-    } catch (err: any) {
-      setAlertMessage(err.message || "Error al guardar el ítem");
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setAlertMessage(err.message || "Error al guardar el ítem");
+      } else {
+        setAlertMessage("Error desconocido");
+      }
     } finally {
       setLoading(false);
     }
