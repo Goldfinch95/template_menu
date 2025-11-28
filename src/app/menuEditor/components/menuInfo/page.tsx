@@ -48,7 +48,6 @@ const MenuInfoPage = ({ menuId, onMenuCreated }: InfoEditorProps) => {
     try {
       const [menuData] = await Promise.all([
         getMenu(id),
-        new Promise((resolve) => setTimeout(resolve, 2000)), // Delay de 2 segundos
       ]);
       //console.log("📥 Menú cargado:", menuData);
       setMenu(menuData);

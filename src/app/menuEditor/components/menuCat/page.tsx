@@ -467,7 +467,7 @@ const MenuCatPage = ({
   useEffect(() => {
     const loadCategories = async () => {
       setLoading(true);
-      await new Promise((resolve) => setTimeout(resolve, 2000));
+      
       setCategories(menuCategories);
       setLoading(false);
     };
