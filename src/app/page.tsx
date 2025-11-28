@@ -12,6 +12,7 @@ import { Manrope } from "next/font/google";
 import { UtensilsCrossed, X, Eye, EyeOff } from "lucide-react";
 import { loginUser } from "@/common/utils/api";
 import { useSearchParams } from "next/navigation";
+import Image from "next/image";
 
 const manrope = Manrope({ subsets: ["latin"] });
 
@@ -135,13 +136,13 @@ export default function LoginPage() {
     >
       {/* cartel de registro exitoso animado */}
       <AnimatePresence>
-              {showSuccess && (
-                <motion.div
-                  initial={{ opacity: 0, y: -20, scale: 0.95 }}
-                  animate={{ opacity: 1, y: 0, scale: 1 }}
-                  exit={{ opacity: 0, y: -20, scale: 0.95 }}
-                  transition={{ duration: 0.35, ease: "easeOut" }}
-                  className="
+        {showSuccess && (
+          <motion.div
+            initial={{ opacity: 0, y: -20, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -20, scale: 0.95 }}
+            transition={{ duration: 0.35, ease: "easeOut" }}
+            className="
               fixed top-4 left-1/2 -translate-x-1/2 
               px-4 py-3 rounded-2xl
               bg-white/80 backdrop-blur-xl
@@ -150,33 +151,33 @@ export default function LoginPage() {
               flex items-center gap-3 z-[999]
               w-[90%] max-w-sm
             "
-                >
-                  <div className="w-8 h-8 rounded-full bg-green-500 flex items-center justify-center shadow-md">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="h-5 w-5 text-white"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth="2"
-                        d="M5 13l4 4L19 7"
-                      />
-                    </svg>
-                  </div>
-      
-                  <div className="flex flex-col">
-                    <p className="text-sm font-semibold text-slate-900">
-                      Cuenta creada con éxito. Ya podés iniciar sesión.
-                    </p>
-                    <p className="text-xs text-slate-600">Bienvenido nuevamente</p>
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
+          >
+            <div className="w-8 h-8 rounded-full bg-green-500 flex items-center justify-center shadow-md">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-5 w-5 text-white"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M5 13l4 4L19 7"
+                />
+              </svg>
+            </div>
+
+            <div className="flex flex-col">
+              <p className="text-sm font-semibold text-slate-900">
+                Cuenta creada con éxito. Ya podés iniciar sesión.
+              </p>
+              <p className="text-xs text-slate-600">Bienvenido nuevamente</p>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
       {/* CARD PRINCIPAL */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
@@ -222,7 +223,10 @@ export default function LoginPage() {
             active:scale-[0.97] transition-all
           "
         >
-          <img
+          <Image
+            height={50}
+            width={50}
+            alt="Google Logo"
             src="https://www.svgrepo.com/show/475656/google-color.svg"
             className="w-5 h-5"
           />
