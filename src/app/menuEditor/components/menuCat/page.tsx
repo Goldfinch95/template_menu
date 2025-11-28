@@ -59,6 +59,15 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 
+// Tipo para los items del menú
+interface MenuItem {
+  id: number;
+  title: string;
+  price?: number;
+  position: number;
+  images?: Array<{ url: string }>;
+}
+
 function SortableItem({
   item,
   categoryId,
@@ -66,7 +75,7 @@ function SortableItem({
   handleDeleteItem,
   deletingItemId,
 }: {
-  item: any;
+  item: MenuItem;
   categoryId: number;
   onItemSaved: () => Promise<void>;
   handleDeleteItem: (id: number) => Promise<void>;
@@ -211,16 +220,16 @@ function SortableCategory({
   handleDeleteItem: (id: number) => Promise<void>;
   deletingItemId: number | null;
   onCategoryChange: () => Promise<void>;
-  sensors: any;
+  sensors: ReturnType<typeof useSensors>;
   handleItemDragEnd: (
     event: DragEndEvent,
     categoryId: number,
-    items: any[],
-    setLocalItems: (items: any[]) => void
+    items: MenuItem[],
+    setLocalItems: (items: MenuItem[]) => void
   ) => Promise<void>;
 }) {
   // Estado local para los items de esta categoría
-  const [localItems, setLocalItems] = useState(category.items || []);
+  const [localItems, setLocalItems] = useState<MenuItem[]>(category.items || []);
 
   // Sincronizar cuando cambien los items de la categoría
   useEffect(() => {
@@ -437,10 +446,7 @@ const MenuCatPage = ({
   menuCategories,
   onCategoryChange,
 }: CatEditorProps) => {
-  if (!menuId) {
-    return null;
-  }
-
+  // ⚠️ MOVER TODOS LOS HOOKS ANTES DEL RETURN CONDICIONAL
   const [loading, setLoading] = useState(true);
   const [expandedCategoryId, setExpandedCategoryId] = useState<number | null>(
     null
@@ -475,128 +481,128 @@ const MenuCatPage = ({
   }, [menuId, menuCategories]);
 
   // Handler para drag and drop de CATEGORÍAS
-const handleDragEnd = async (event: DragEndEvent) => {
-  const { active, over } = event;
+  const handleDragEnd = async (event: DragEndEvent) => {
+    const { active, over } = event;
 
-  if (over && active.id !== over.id) {
-    const oldIndex = categories.findIndex((cat) => cat.id === active.id);
-    const newIndex = categories.findIndex((cat) => cat.id === over.id);
+    if (over && active.id !== over.id) {
+      const oldIndex = categories.findIndex((cat) => cat.id === active.id);
+      const newIndex = categories.findIndex((cat) => cat.id === over.id);
 
-    const newCategories = arrayMove(categories, oldIndex, newIndex);
-    setCategories(newCategories);
+      const newCategories = arrayMove(categories, oldIndex, newIndex);
+      setCategories(newCategories);
 
-    const movedCategory = categories[oldIndex];
-    let newPosition: number;
+      const movedCategory = categories[oldIndex];
+      let newPosition: number;
 
-    // CASO 1: Mover al principio (antes del primer item actual)
-    if (newIndex === 0) {
-      newPosition = Math.round(categories[0].position - 1);
-    }
-    // CASO 2: Mover al final (después del último item actual)
-    else if (newIndex === categories.length - 1) {
-      newPosition = Math.round(categories[categories.length - 1].position + 1);
-    }
-    // CASO 3: Mover entre dos items
-    else {
-      const targetCategory = categories[newIndex];
-
-      // Si nos movemos hacia abajo (oldIndex < newIndex)
-      if (oldIndex < newIndex) {
-        const prevPosition = targetCategory.position;
-        const nextPosition =
-          categories[newIndex + 1]?.position ?? targetCategory.position + 1;
-        newPosition = Math.round((prevPosition + nextPosition) / 2);
+      // CASO 1: Mover al principio (antes del primer item actual)
+      if (newIndex === 0) {
+        newPosition = Math.round(categories[0].position - 1);
       }
-      // Si nos movemos hacia arriba (oldIndex > newIndex)
+      // CASO 2: Mover al final (después del último item actual)
+      else if (newIndex === categories.length - 1) {
+        newPosition = Math.round(categories[categories.length - 1].position + 1);
+      }
+      // CASO 3: Mover entre dos items
       else {
-        const prevPosition =
-          categories[newIndex - 1]?.position ?? targetCategory.position - 1;
-        const nextPosition = targetCategory.position;
-        newPosition = Math.round((prevPosition + nextPosition) / 2);
+        const targetCategory = categories[newIndex];
+
+        // Si nos movemos hacia abajo (oldIndex < newIndex)
+        if (oldIndex < newIndex) {
+          const prevPosition = targetCategory.position;
+          const nextPosition =
+            categories[newIndex + 1]?.position ?? targetCategory.position + 1;
+          newPosition = Math.round((prevPosition + nextPosition) / 2);
+        }
+        // Si nos movemos hacia arriba (oldIndex > newIndex)
+        else {
+          const prevPosition =
+            categories[newIndex - 1]?.position ?? targetCategory.position - 1;
+          const nextPosition = targetCategory.position;
+          newPosition = Math.round((prevPosition + nextPosition) / 2);
+        }
+      }
+
+      console.log(
+        `📦 Moviendo categoría ${movedCategory.id} desde posición ${oldIndex} a ${newIndex} con newPosition: ${newPosition}`
+      );
+
+      try {
+        const updateData: UpdateCategoryPosition = { newPosition };
+        await updateCategory(movedCategory.id, updateData);
+        await onCategoryChange();
+        console.log(`✅ Orden de categoría actualizado correctamente`);
+      } catch (error) {
+        console.error("❌ Error al actualizar el orden de categoría:", error);
+        setCategories(categories);
+        alert("Error al actualizar el orden. Revisa la consola.");
       }
     }
+  };
 
-    console.log(
-      `📦 Moviendo categoría ${movedCategory.id} desde posición ${oldIndex} a ${newIndex} con newPosition: ${newPosition}`
-    );
+  // Handler para drag and drop de ITEMS
+  const handleItemDragEnd = async (
+    event: DragEndEvent,
+    categoryId: number,
+    items: MenuItem[],
+    setLocalItems: (items: MenuItem[]) => void
+  ) => {
+    const { active, over } = event;
 
-    try {
-      const updateData: UpdateCategoryPosition = { newPosition };
-      await updateCategory(movedCategory.id, updateData);
-      await onCategoryChange();
-      console.log(`✅ Orden de categoría actualizado correctamente`);
-    } catch (error) {
-      console.error("❌ Error al actualizar el orden de categoría:", error);
-      setCategories(categories);
-      alert("Error al actualizar el orden. Revisa la consola.");
-    }
-  }
-};
+    if (over && active.id !== over.id) {
+      const oldIndex = items.findIndex((item) => item.id === active.id);
+      const newIndex = items.findIndex((item) => item.id === over.id);
 
-// Handler para drag and drop de ITEMS
-const handleItemDragEnd = async (
-  event: DragEndEvent,
-  categoryId: number,
-  items: any[],
-  setLocalItems: (items: any[]) => void
-) => {
-  const { active, over } = event;
+      // 1. Actualizar el estado local PRIMERO con arrayMove
+      const newItems = arrayMove(items, oldIndex, newIndex);
+      setLocalItems(newItems);
 
-  if (over && active.id !== over.id) {
-    const oldIndex = items.findIndex((item) => item.id === active.id);
-    const newIndex = items.findIndex((item) => item.id === over.id);
+      const movedItem = items[oldIndex];
+      let newPosition: number;
 
-    // 1. Actualizar el estado local PRIMERO con arrayMove
-    const newItems = arrayMove(items, oldIndex, newIndex);
-    setLocalItems(newItems);
-
-    const movedItem = items[oldIndex];
-    let newPosition: number;
-
-    // CASO 1: Mover al principio (antes del primer item actual)
-    if (newIndex === 0) {
-      newPosition = Math.round(items[0].position - 1);
-    }
-    // CASO 2: Mover al final (después del último item actual)
-    else if (newIndex === items.length - 1) {
-      newPosition = Math.round(items[items.length - 1].position + 1);
-    }
-    // CASO 3: Mover entre dos items
-    else {
-      const targetItem = items[newIndex];
-
-      // Si nos movemos hacia abajo (oldIndex < newIndex)
-      if (oldIndex < newIndex) {
-        const prevPosition = targetItem.position;
-        const nextPosition =
-          items[newIndex + 1]?.position ?? targetItem.position + 1;
-        newPosition = Math.round((prevPosition + nextPosition) / 2);
+      // CASO 1: Mover al principio (antes del primer item actual)
+      if (newIndex === 0) {
+        newPosition = Math.round(items[0].position - 1);
       }
-      // Si nos movemos hacia arriba (oldIndex > newIndex)
+      // CASO 2: Mover al final (después del último item actual)
+      else if (newIndex === items.length - 1) {
+        newPosition = Math.round(items[items.length - 1].position + 1);
+      }
+      // CASO 3: Mover entre dos items
       else {
-        const prevPosition =
-          items[newIndex - 1]?.position ?? targetItem.position - 1;
-        const nextPosition = targetItem.position;
-        newPosition = Math.round((prevPosition + nextPosition) / 2);
+        const targetItem = items[newIndex];
+
+        // Si nos movemos hacia abajo (oldIndex < newIndex)
+        if (oldIndex < newIndex) {
+          const prevPosition = targetItem.position;
+          const nextPosition =
+            items[newIndex + 1]?.position ?? targetItem.position + 1;
+          newPosition = Math.round((prevPosition + nextPosition) / 2);
+        }
+        // Si nos movemos hacia arriba (oldIndex > newIndex)
+        else {
+          const prevPosition =
+            items[newIndex - 1]?.position ?? targetItem.position - 1;
+          const nextPosition = targetItem.position;
+          newPosition = Math.round((prevPosition + nextPosition) / 2);
+        }
+      }
+
+      console.log(
+        `🍽️ Moviendo item ${movedItem.id} desde posición ${oldIndex} a ${newIndex} con newPosition: ${newPosition}`
+      );
+
+      try {
+        await updateItem(movedItem.id, { newPosition });
+        await onCategoryChange();
+        console.log(`✅ Orden de item actualizado correctamente`);
+      } catch (error) {
+        console.error("❌ Error al actualizar el orden de item:", error);
+        // Revertir el cambio local si falla
+        setLocalItems(items);
+        alert("Error al actualizar el orden del plato. Revisa la consola.");
       }
     }
-
-    console.log(
-      `🍽️ Moviendo item ${movedItem.id} desde posición ${oldIndex} a ${newIndex} con newPosition: ${newPosition}`
-    );
-
-    try {
-      await updateItem(movedItem.id, { newPosition });
-      await onCategoryChange();
-      console.log(`✅ Orden de item actualizado correctamente`);
-    } catch (error) {
-      console.error("❌ Error al actualizar el orden de item:", error);
-      // Revertir el cambio local si falla
-      setLocalItems(items);
-      alert("Error al actualizar el orden del plato. Revisa la consola.");
-    }
-  }
-};
+  };
 
   const handleTitleChange = (categoryId: number, newTitle: string) => {
     setCategoryTitles((prev) => ({
@@ -651,6 +657,11 @@ const handleItemDragEnd = async (
       setDeletingItemId(null);
     }
   };
+
+  // ✅ AHORA EL RETURN CONDICIONAL ESTÁ DESPUÉS DE TODOS LOS HOOKS
+  if (!menuId) {
+    return null;
+  }
 
   if (loading) {
     return (
