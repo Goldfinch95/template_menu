@@ -29,6 +29,8 @@ export default function Home() {
   const [menus, setMenus] = useState<Menu[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
+  //estado de logeo exitoso
+  const [showLoginSuccess, setShowLoginSuccess] = useState(false);
   const router = useRouter();
 
   //dirigirte a crear un nuevo menú
@@ -56,6 +58,21 @@ export default function Home() {
     fetchMenus();
   }, []);
 
+  //detectar si venimos del login
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("loginSuccess") === "1") {
+      setShowLoginSuccess(true);
+
+      // ocultarlo después de 3s
+      const timer = setTimeout(() => {
+        setShowLoginSuccess(false);
+      }, 3000);
+
+      return () => clearTimeout(timer);
+    }
+  }, []);
+
   // dirigirte a un menú especifico al seleccionarlo.
   const handleMenuClick = (menuId: number, menuTitle: string) => {
     router.push(
@@ -68,8 +85,6 @@ export default function Home() {
     logoutUser(); // Limpia localStorage
     router.push("/"); // Redirige al login
   };
-
-  
 
   return (
     /*{ contenedor principal}*/
@@ -84,6 +99,50 @@ export default function Home() {
       shadow-[0_8px_24px_rgba(0,0,0,0.08)]
     "
     >
+      {/* cartel de login exitoso */}
+      <AnimatePresence>
+        {showLoginSuccess && (
+          <motion.div
+            initial={{ opacity: 0, y: -20, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -20, scale: 0.95 }}
+            transition={{ duration: 0.35, ease: "easeOut" }}
+            className="
+        fixed top-4 left-1/2 -translate-x-1/2 
+        px-4 py-3 rounded-2xl
+        bg-white/80 backdrop-blur-xl
+        shadow-[0_4px_16px_rgba(0,0,0,0.12)]
+        border border-white/40
+        flex items-center gap-3 z-[999]
+        w-[90%] max-w-sm
+      "
+          >
+            <div className="w-8 h-8 rounded-full bg-green-500 flex items-center justify-center shadow-md">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-5 w-5 text-white"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M5 13l4 4L19 7"
+                />
+              </svg>
+            </div>
+
+            <div className="flex flex-col">
+              <p className="text-sm font-semibold text-slate-900">
+                ¡Ingreso exitoso!
+              </p>
+              <p className="text-xs text-slate-600">Bienvenido nuevamente</p>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
       <div className="min-h-[calc(100vh-3rem)] flex flex-col">
         {/* Header */}
         <header className="px-5 pt-4 pb-4">
@@ -117,6 +176,7 @@ export default function Home() {
         </header>
 
         {/* Contenido */}
+
         <section className="max-w-md mx-auto w-full px-4 py-3">
           {/* boton para crear nuevo menú animado */}
           <motion.div

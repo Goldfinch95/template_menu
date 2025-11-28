@@ -112,7 +112,7 @@ export default function LoginPage() {
       //enviar datos a la BD
       await loginUser(cleanedForm);
       //dirigirse al exhibidor de menus
-      router.push("/menuShowcase");
+      router.push("/menuShowcase?loginSuccess=1");
     } catch (err) {
       setError(
         err instanceof Error
@@ -135,48 +135,48 @@ export default function LoginPage() {
     >
       {/* cartel de registro exitoso animado */}
       <AnimatePresence>
-        {showSuccess && (
-          <motion.div
-            initial={{ y: -20, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            exit={{ y: -20, opacity: 0 }}
-            transition={{ type: "spring", stiffness: 260, damping: 22 }}
-            className="
-        absolute top-20 left-1/2 -translate-x-1/2
-        w-[90%] max-w-md
-        bg-white/95 backdrop-blur-xl
-        border border-green-300
-        text-green-800 font-medium
-        px-4 py-4 rounded-2xl shadow-xl
-        z-50
-      "
-          >
-            <div className="flex items-center gap-3">
-              <motion.div
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                className="
-            w-9 h-9 rounded-full bg-green-500 text-white 
-            flex items-center justify-center shadow-md
-          "
-              >
-                ✓
-              </motion.div>
-
-              <p className="flex-1 text-sm">
-                Cuenta creada con éxito. Ya podés iniciar sesión.
-              </p>
-
-              <button
-                onClick={() => setShowSuccess(false)}
-                className="text-green-700 font-semibold"
-              >
-                Cerrar
-              </button>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+              {showSuccess && (
+                <motion.div
+                  initial={{ opacity: 0, y: -20, scale: 0.95 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: -20, scale: 0.95 }}
+                  transition={{ duration: 0.35, ease: "easeOut" }}
+                  className="
+              fixed top-4 left-1/2 -translate-x-1/2 
+              px-4 py-3 rounded-2xl
+              bg-white/80 backdrop-blur-xl
+              shadow-[0_4px_16px_rgba(0,0,0,0.12)]
+              border border-white/40
+              flex items-center gap-3 z-[999]
+              w-[90%] max-w-sm
+            "
+                >
+                  <div className="w-8 h-8 rounded-full bg-green-500 flex items-center justify-center shadow-md">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-5 w-5 text-white"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        d="M5 13l4 4L19 7"
+                      />
+                    </svg>
+                  </div>
+      
+                  <div className="flex flex-col">
+                    <p className="text-sm font-semibold text-slate-900">
+                      Cuenta creada con éxito. Ya podés iniciar sesión.
+                    </p>
+                    <p className="text-xs text-slate-600">Bienvenido nuevamente</p>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
       {/* CARD PRINCIPAL */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}

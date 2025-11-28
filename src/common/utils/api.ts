@@ -46,7 +46,7 @@ export const registerUser = async (data: RegisterData): Promise<User> => {
       const errorText = await response.text();
       // Manejar errores específicos del backend
       if (response.status === 409) {
-        throw new Error("El email o subdominio ya está en uso");
+        throw new Error("El email ya está en uso");
       }
       throw new Error(
         `Error al registrar usuario: ${response.status} - ${errorText}`
@@ -54,7 +54,7 @@ export const registerUser = async (data: RegisterData): Promise<User> => {
     }
 
     const newUser: User = await response.json();
-    console.log("✅ Usuario registrado correctamente");
+    //console.log("✅ Usuario registrado correctamente");
     return newUser;
   } catch (error) {
     console.error("❌ Error al registrar usuario:", error);
@@ -102,7 +102,7 @@ export const loginUser = async (data: LoginData): Promise<LoginResponse> => {
       localStorage.setItem("subdomain", loginResponse.user.subdomain);
     }
 
-    console.log("✅ Login exitoso");
+    //console.log("✅ Login exitoso");
     return loginResponse;
   } catch (error) {
     console.error("❌ Error al iniciar sesión:", error);
