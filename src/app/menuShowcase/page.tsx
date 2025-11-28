@@ -35,14 +35,12 @@ export default function Home() {
   const [menus, setMenus] = useState<Menu[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  //estado de logeo exitoso
-  const [showLoginSuccess, setShowLoginSuccess] = useState(false);
   const router = useRouter();
 
   //estado de roleId
   const [roleId, setRoleId] = useState<number | null>(null);
 
-  
+  //estado de cartel de mensaje
   const [alertMessage, setAlertMessage] = useState<string | null>(null);
 
   //dirigirte a crear un nuevo menú
@@ -95,10 +93,10 @@ useEffect(() => {
 
   if (params.get("menuCreated") === "true") {
     setAlertMessage("Menú creado exitosamente!");
-    setShowLoginSuccess(true);
+    
 
     const timer = setTimeout(() => {
-      setShowLoginSuccess(false);
+      
       setAlertMessage(null); // Limpia el mensaje después de 3 segundos
     }, 3000);
     
@@ -107,10 +105,10 @@ useEffect(() => {
 
   if (params.get("loginSuccess") === "1") {
     setAlertMessage("Bienvenido nuevamente!");
-    setShowLoginSuccess(true);
+    
 
     const timer = setTimeout(() => {
-      setShowLoginSuccess(false);
+      
       setAlertMessage(null);
     }, 3000);
 
@@ -121,11 +119,11 @@ useEffect(() => {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     if (params.get("loginSuccess") === "1") {
-      setShowLoginSuccess(true);
+      
 
       // ocultarlo después de 3s
       const timer = setTimeout(() => {
-        setShowLoginSuccess(false);
+       
       }, 3000);
 
       return () => clearTimeout(timer);
