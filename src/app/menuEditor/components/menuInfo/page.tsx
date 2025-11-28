@@ -14,7 +14,7 @@ import { Menu } from "@/interfaces/menu";
 
 interface InfoEditorProps {
   menuId: number;
-  onMenuCreated: () => void;
+  onMenuCreated: (newMenuId: number) => void;
 }
 
 const MenuInfoPage = ({ menuId, onMenuCreated }: InfoEditorProps) => {
@@ -52,8 +52,8 @@ const MenuInfoPage = ({ menuId, onMenuCreated }: InfoEditorProps) => {
       //console.log("📥 Menú cargado:", menuData);
       setMenu(menuData);
       setIsEmpty(false);
-    } catch (error) {
-      console.error("❌ Error al obtener el menú", error);
+    } catch {
+      console.error("❌ Error al obtener el menú");
     } finally {
       setLoading(false);
     }
