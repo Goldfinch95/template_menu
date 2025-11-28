@@ -285,7 +285,7 @@ function SortableCategory({
             type="text"
             value={categoryTitles[category.id] ?? category.title}
             onChange={(e) => handleTitleChange(category.id, e.target.value)}
-            className="flex-1 min-w-0 p-1 font-semibold text-slate-700 bg-transparent border-b border-transparent focus:border-orange-500 focus:outline-none transition-colors"
+            className="flex-1 min-w-0 p-1 font-semibold text-slate-700 bg-transparent border-b border-transparent focus:border-orange-500 focus:outline-none transition-colors truncate"
           />
 
           {/* BOTONES DE ACCIÓN */}
