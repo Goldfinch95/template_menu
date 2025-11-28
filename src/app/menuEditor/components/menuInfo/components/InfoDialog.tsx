@@ -182,15 +182,15 @@ const InfoDialog = ({
     const errors: string[] = [];
 
     if (title.trim().length < 3) {
-      errors.push("• El título debe tener más de 3 caracteres.");
+      errors.push("El título debe tener más de 3 caracteres.");
     }
 
     if (!/^#[0-9A-Fa-f]{6}$/.test(primaryColor)) {
-      errors.push("• El color primario debe ser un código HEX válido.");
+      errors.push("El color primario debe ser un código HEX válido.");
     }
 
     if (!/^#[0-9A-Fa-f]{6}$/.test(secondaryColor)) {
-      errors.push("• El color secundario debe ser un código HEX válido.");
+      errors.push("El color secundario debe ser un código HEX válido.");
     }
 
     // Si hay errores → mostrarlos
@@ -294,10 +294,9 @@ const InfoDialog = ({
         <div className="space-y-5 py-4">
           {/*mostrar alertas */}
           {alertMessage && (
-            <Alert className="mb-4 bg-red-100 border border-red-400 text-red-700 p-4 rounded-xl flex items-start gap-3">
-              <X className="w-5 h-5 mt-1" />
+            <Alert className="mb-4 bg-red-100 border border-red-400 p-4 rounded-xl flex items-start gap-3">
               <div>
-                <AlertDescription className="whitespace-pre-line mt-1">
+                <AlertDescription className="whitespace-pre-line mt-1 text-gray-600 text-sm font-semibold">
                   {alertMessage}
                 </AlertDescription>
               </div>
@@ -390,7 +389,7 @@ const InfoDialog = ({
                 )}
               </Label>
               <p className="text-base text-slate-400 mt-2">
-                PNG, JPG hasta 10MB
+                PNG, JPG hasta 4MB
               </p>
             </div>
           </div>
@@ -434,7 +433,7 @@ const InfoDialog = ({
               )}
             </Label>
             <p className="flex justify-center text-base text-slate-400 mt-2">
-              PNG, JPG hasta 10MB
+              PNG, JPG hasta 4MB
             </p>
           </div>
           {/* color picker */}

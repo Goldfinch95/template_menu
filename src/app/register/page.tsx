@@ -40,37 +40,37 @@ export default function RegisterPage() {
     const errors: string[] = [];
 
     if (!form.name.trim()) {
-      errors.push("• El nombre es obligatorio.");
+      errors.push("El nombre es obligatorio.");
     } else if (form.name.trim().length < 3) {
-      errors.push("• El nombre debe tener al menos 3 caracteres.");
+      errors.push("El nombre debe tener al menos 3 caracteres.");
     }
 
     if (!form.lastName.trim()) {
-      errors.push("• El apellido es obligatorio.");
+      errors.push("El apellido es obligatorio.");
     } else if (form.lastName.trim().length < 3) {
-      errors.push("• El apellido debe tener al menos 3 caracteres.");
+      errors.push("El apellido debe tener al menos 3 caracteres.");
     }
 
     if (!form.email.trim()) {
-      errors.push("• El email es obligatorio.");
+      errors.push("El email es obligatorio.");
     } else if (
       !/^(?!.*\.\.)[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[A-Za-z]{2,}$/.test(
         form.email
       )
     ) {
-      errors.push("• Ingresá un email válido.");
+      errors.push("Ingresá un email válido.");
     }
 
     if (form.cel.trim() && !/^[0-9]{10,13}$/.test(form.cel)) {
       errors.push(
-        "• Ingresá un número de celular válido (solo números, entre 10 y 13 dígitos)."
+        "Ingresá un número de celular válido (solo números, entre 10 y 13 dígitos)."
       );
     }
 
     if (!form.password.trim()) {
-      errors.push("• La contraseña es obligatoria.");
+      errors.push("La contraseña es obligatoria.");
     } else if (form.password.length < 8 || form.password.length > 16) {
-      errors.push("• La contraseña debe tener entre 8 y 16 caracteres.");
+      errors.push("La contraseña debe tener entre 8 y 16 caracteres.");
     }
 
     if (errors.length > 0) {
@@ -144,10 +144,9 @@ export default function RegisterPage() {
         {/* ALERTA */}
         <AnimatePresence>
           {alertMessage && (
-            <Alert className="mb-4 bg-red-100 border border-red-400 text-red-700 p-4 rounded-xl flex items-start gap-3">
-              <X className="w-5 h-5 mt-1" />
+            <Alert className="mb-4 bg-red-100 border border-red-400 p-4 rounded-xl flex items-start gap-3">
               <div>
-                <AlertDescription className="whitespace-pre-line mt-1">
+                <AlertDescription className="whitespace-pre-line mt-1 text-gray-600 text-sm font-semibold">
                   {alertMessage}
                 </AlertDescription>
               </div>

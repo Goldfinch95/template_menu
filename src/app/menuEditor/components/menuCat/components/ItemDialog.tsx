@@ -87,7 +87,7 @@ const ItemDialog = ({
     const errors: string[] = [];
 
     if (title.trim().length < 3) {
-      errors.push("• El título debe tener al menos 3 caracteres.");
+      errors.push("El título debe tener al menos 3 caracteres.");
     }
 
     if (errors.length > 0) {
@@ -213,10 +213,9 @@ const ItemDialog = ({
           </div>
         </DialogHeader>
         {alertMessage && (
-          <Alert className="bg-red-100 border border-red-400 text-red-700 p-4 rounded-xl flex items-start gap-3">
-            <X className="w-5 h-5 mt-1" />
+          <Alert className="bg-red-100 border border-red-400  p-4 rounded-xl flex items-start gap-3">
             <div>
-              <AlertDescription className="whitespace-pre-line mt-1">
+              <AlertDescription className="whitespace-pre-line mt-1 text-gray-600 text-sm font-semibold">
                 {alertMessage}
               </AlertDescription>
             </div>
@@ -293,7 +292,7 @@ const ItemDialog = ({
               </div>
             )}
           </Label>
-          <p className="text-base text-slate-400 mt-2">PNG, JPG hasta 10MB</p>
+          <p className="text-base text-slate-400 mt-2">PNG, JPG hasta 4MB</p>
           <DialogFooter className="mt-5">
             <Button
               onClick={handleSave}
