@@ -15,8 +15,6 @@ import { deleteMenu, getMenu } from "@/common/utils/api";
 import NavbarEditor from "@/app/menuEditor/components/NavbarEditor";
 import MenuInfo from "./components/menuInfo/page";
 import MenuCatPage from "./components/menuCat/page";
-import CategoryEditor from "./components/CategoryEditor";
-import FloatingActions from "./components/FloatingActions";
 
 import { Trash2, X, AlertTriangle } from "lucide-react";
 
@@ -33,10 +31,7 @@ import {
   DialogClose,
 } from "@/common/components/ui/dialog";
 import { Button } from "@/common/components/ui/button";
-interface InfoEditorProps {
-  menuId: number;
-  onMenuCreated: (newMenuId: number) => void; // 🔥 Ahora recibe el ID
-}
+
 
 const MenuEditorContent = () => {
   //Estado para el menu
@@ -51,10 +46,8 @@ const MenuEditorContent = () => {
   );
   //Estado para categorías marcadas para eliminar
   const [categoriesToDelete, setCategoriesToDelete] = useState<number[]>([]);
-  // Estado para el boton vista previa
-  const [showPreview, setShowPreview] = useState(false);
-  // Estado para categoria activa en el scroll
-  const [activeCategory, setActiveCategory] = useState(0);
+
+
 
   // Referencias para el scroll
   const categoryRefs = useRef({});
@@ -163,154 +156,6 @@ const MenuEditorContent = () => {
     searchParams,
   ]);
 
-  // Función para scroll suave a una categoría
-  const scrollToCategory = (index) => {
-    setActiveCategory(index);
-    const categoryElement = categoryRefs.current[index];
-    if (categoryElement) {
-      // Scroll a la categoría seleccionada
-      categoryElement.scrollIntoView({
-        behavior: "smooth",
-        block: "start",
-      });
-
-      // Scroll horizontal para alinear el botón al inicio
-      const scrollContainer = scrollContainerRef.current;
-      const activeButton = scrollContainer?.children[index];
-      if (scrollContainer && activeButton) {
-        const buttonLeft = activeButton.offsetLeft;
-
-        scrollContainer.scrollTo({
-          left: buttonLeft,
-          behavior: "smooth",
-        });
-      }
-    }
-  };
-
-  // recibir datos de los componentes hijos //
-
-  //recibir imagenes
-  const reciveRestaurantImages = useCallback(
-    (images: { logo: File | null; backgroundImage: File | null }) => {
-      // ver en consola
-      /*console.log("📥 Imágenes recibidas al padre:", {
-        logo: images.logo?.name,
-        background: images.backgroundImage?.name,
-      });*/
-
-      // agregar imagenes al nuevo menú
-      setNewMenu((prevMenu) => ({
-        ...prevMenu,
-        logo: images.logo as File, // Asegurar tipo File
-        backgroundImage: images.backgroundImage as File,
-      }));
-    },
-    []
-  );
-
-  // recibir info del restaurante
-  const reciveRestaurantInformation = useCallback(
-    (info: { title: string; pos: string }) => {
-      // ver en consola
-      //console.log("Información recibida del restaurante:", info);
-      //agregar info del restaurante al nuevo menú
-      setNewMenu((prevMenu) => ({
-        ...prevMenu,
-        title: info.title,
-        pos: info.pos,
-      }));
-    },
-    []
-  );
-  const reciveRestaurantColors = (colors: {
-    primary: string;
-    secondary: string;
-  }) => {
-    setNewMenu((prevMenu) => ({
-      ...prevMenu,
-      color: {
-        primary: colors.primary,
-        secondary: colors.secondary,
-      },
-    }));
-  };
-
-  //funcion para recibir las categorías del componente hijo
-  const receiveRestaurantCategories = (categories: newCategory[]) => {
-    console.log("📦 [PADRE] Nuevas categorías recibidas:", categories);
-    categories.forEach((cat, i) => {
-      console.log(`  🧭 Categoria[${i}]:`, cat.title || "(sin título)");
-      cat.items?.forEach((item, j) => {
-        console.log(`    🍽️ Item[${j}]:`, item.title || "(sin nombre)");
-        if (item.images?.[0]) {
-          console.log(
-            `      🖼️ Imagen del item[${j}]:`,
-            item.images[0],
-            "Tipo:",
-            item.images[0] instanceof File ? "File" : typeof item.images[0]
-          );
-        }
-      });
-    });
-
-    setNewCategory(categories);
-  };
-
-  //  Función para recibir categorías editadas desde el hijo
-  const receiveEditedCategory = useCallback(
-    (editedCategory: EditedCategory) => {
-      console.log(
-        "✏️ [PADRE] Categoría editada recibida:",
-        editedCategory.title
-      );
-      editedCategory.items?.forEach((item, i) => {
-        console.log(`  🍽️ Item[${i}]:`, item.title || "(sin nombre)");
-        if (item.images?.[0]) {
-          console.log(
-            `      🖼️ Imagen del item[${i}]:`,
-            item.images[0],
-            "Tipo:",
-            item.images[0] instanceof File ? "File" : typeof item.images[0]
-          );
-        }
-      });
-
-      setEditedCategories((prev) => {
-        const existingIndex = prev.findIndex(
-          (cat) => cat.id === editedCategory.id
-        );
-        if (existingIndex !== -1) {
-          const updated = [...prev];
-          updated[existingIndex] = editedCategory;
-          return updated;
-        } else {
-          return [...prev, editedCategory];
-        }
-      });
-    },
-    []
-  );
-
-  // Función para limpiar las categorías después de guardar
-  const clearCategoriesAfterSave = useCallback(() => {
-    console.log("🧹 Limpiando categorías después de guardar");
-    setCategoriesToDelete([]);
-    setEditedCategories([]);
-  }, []);
-
-  //  Función para recibir las categorías marcadas para eliminar
-  const receiveCategoryForDelete = useCallback((categoryId: number) => {
-    setCategoriesToDelete((prev) => {
-      return [...prev, categoryId];
-    });
-  }, []);
-
-  //  Función para limpiar las categorías marcadas después de guardar
-  const clearCategoriesToDelete = useCallback(() => {
-    setCategoriesToDelete([]);
-  }, []);
-
   // funcion que elimina el menú
   const handleDeleteMenu = async () => {
     const menuId = searchParams.get("id");
@@ -326,15 +171,6 @@ const MenuEditorContent = () => {
       alert("Error al eliminar el menú");
     }
   };
-
-  // función para manejar el clic en Vista Previa
-  const handlePreviewClick = () => {
-    setActiveCategory(0);
-    setShowPreview(true);
-  };
-
-  //  Obtener datos combinados para la vista previa
-  const previewData = getPreviewData;
 
   return (
     <main
