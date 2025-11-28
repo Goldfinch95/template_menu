@@ -9,18 +9,16 @@ import {
   newCategory,
   newMenu,
   newItem,
-  newImage,
   UpdateCategoryPosition,
   UpdateItemPosition
 } from "@/interfaces/menu";
-import { promises } from "dns";
 
 const USERS_BASE_URL = "http://localhost:3000/api/users";
 const BASE_URL = "http://localhost:3000/api/menus";
 const CATEGORIES_BASE_URL = "http://localhost:3000/api/categories";
 const ITEM_BASE_URL = "http://localhost:3000/api/items";
 const IMAGES_BASE_URL = "http://localhost:3000/api/images";
-const TENANT_HEADER = { "x-tenant-subdomain": "amax" };
+
 
 //registrarse
 export const registerUser = async (data: RegisterData): Promise<User> => {
@@ -125,17 +123,6 @@ const getTenantHeaders = (): Record<string, string> => {
   const subdomain = getSubdomain();
   return {
     "x-tenant-subdomain": subdomain,
-  };
-};
-
-// Función auxiliar para obtener headers con autenticación (si lo necesitas en el futuro)
-const getAuthHeaders = (): Record<string, string> => {
-  const token = getAuthToken();
-  const subdomain = getSubdomain();
-  
-  return {
-    "x-tenant-subdomain": subdomain,
-    ...(token ? { Authorization: `Bearer ${token}` } : {}),
   };
 };
 
