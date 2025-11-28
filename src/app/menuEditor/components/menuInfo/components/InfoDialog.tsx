@@ -246,13 +246,19 @@ const InfoDialog = ({
           },
         };
 
-        // Logo
-        if (logoFile) payload.logo = logoFile;
-        else payload.logo = menuLogo ?? "";
+        // Logo - solo incluir si hay cambios
+        if (logoFile) {
+          payload.logo = logoFile as unknown as string;
+        } else if (menuLogo) {
+          payload.logo = menuLogo;
+        }
 
-        // Background
-        if (backgroundFile) payload.backgroundImage = backgroundFile;
-        else payload.backgroundImage = menuBackground ?? "";
+        // Background - solo incluir si hay cambios
+        if (backgroundFile) {
+          payload.backgroundImage = backgroundFile as unknown as string;
+        } else if (menuBackground) {
+          payload.backgroundImage = menuBackground;
+        }
 
         //console.log("📤 Enviando actualización:", payload);
         //editar BD
@@ -261,8 +267,8 @@ const InfoDialog = ({
         //notificar
         onUpdated?.(menuId);
       }
-    } catch (error) {
-      console.error("❌ Error al guardar:", error);
+    } catch {
+      console.error("❌ Error al guardar");
     }
   };
 
