@@ -93,42 +93,30 @@ useEffect(() => {
 
   if (params.get("menuCreated") === "true") {
     setAlertMessage("Menú creado exitosamente!");
-    
-
     const timer = setTimeout(() => {
-      
       setAlertMessage(null); // Limpia el mensaje después de 3 segundos
     }, 3000);
-    
+    return () => clearTimeout(timer);
+  }
+
+  if (params.get("menuDeleted") === "true") {
+    setAlertMessage("El menú ha sido eliminado exitosamente!");
+    const timer = setTimeout(() => {
+      setAlertMessage(null); // Limpia el mensaje después de 3 segundos
+    }, 3000);
     return () => clearTimeout(timer);
   }
 
   if (params.get("loginSuccess") === "1") {
     setAlertMessage("Bienvenido nuevamente!");
-    
-
     const timer = setTimeout(() => {
-      
-      setAlertMessage(null);
+      setAlertMessage(null); // Limpia el mensaje después de 3 segundos
     }, 3000);
-
     return () => clearTimeout(timer);
   }
 }, []);
-  //detectar si venimos del login
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    if (params.get("loginSuccess") === "1") {
-      
 
-      // ocultarlo después de 3s
-      const timer = setTimeout(() => {
-       
-      }, 3000);
 
-      return () => clearTimeout(timer);
-    }
-  }, []);
 
   // dirigirte a un menú especifico al seleccionarlo.
   const handleMenuClick = (menuId: number, menuTitle: string) => {
