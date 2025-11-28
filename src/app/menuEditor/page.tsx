@@ -66,7 +66,7 @@ const MenuEditorContent = () => {
     try {
       await deleteMenu(menuId);
       router.push("/menuShowcase?menuDeleted=true");
-    } catch (error) {
+    } catch {
       alert("Error al eliminar el menú");
     }
   };
