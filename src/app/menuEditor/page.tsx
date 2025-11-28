@@ -4,12 +4,10 @@ import React, {
   useCallback,
   useState,
   useEffect,
-  useRef,
-  useMemo,
 } from "react";
 
 import { useSearchParams, useRouter } from "next/navigation";
-import { Menu, newMenu, newCategory, EditedCategory } from "@/interfaces/menu";
+import { Menu } from "@/interfaces/menu";
 import { deleteMenu, getMenu } from "@/common/utils/api";
 //subcomponetes
 import NavbarEditor from "@/app/menuEditor/components/NavbarEditor";
