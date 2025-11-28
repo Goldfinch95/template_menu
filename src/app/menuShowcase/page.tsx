@@ -18,7 +18,8 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
 } from "@/common/components/ui/dropdown-menu";
-
+import FaqPage from "./FAQ/page";
+import Link from "next/link";
 // fuente para titulos
 const manrope = Manrope({ subsets: ["latin"] });
 
@@ -106,6 +107,11 @@ export default function Home() {
   const handleLogout = () => {
     logoutUser(); // Limpia localStorage
     router.push("/"); // Redirige al login
+  };
+
+  //redirigirse a preguntas frecuentes
+  const handleRedirectToFAQ = () => {
+    router.push("/FaqPage"); // Redirige a la página de preguntas frecuentes
   };
 
   return (
@@ -408,7 +414,14 @@ export default function Home() {
         {/* pie de pagina */}
         <footer className="pt-12 pb-6 text-center max-w-4xl mx-auto w-full">
           <div className="text-center text-slate-600">
-            <p className="text-sm text-slate-500 mb-4">¿Necesitas ayuda?</p>
+            <p className="text-sm text-slate-500 mb-4">
+              <Link
+                href="/menuShowcase/FAQ"
+                className="text-slate-600 hover:text-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-300 focus:ring-offset-2 transition-all duration-200 hover:underline"
+              >
+                ¿Necesitas ayuda?
+              </Link>
+            </p>
             {/* contactar */}
             <Button
               variant="ghost"
