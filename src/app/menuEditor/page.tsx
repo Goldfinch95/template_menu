@@ -72,8 +72,7 @@ const MenuEditorContent = () => {
   };
 
   return (
-    <>
-    <Suspense fallback={<div>Cargando...</div>}></Suspense>
+    <Suspense fallback={<div>Cargando...</div>}>
     <main className="min-h-screen w-full bg-gradient-to-b from-white via-[#FFF3EC] to-[#FFE6D3] flex flex-col">
       {/* Navbar */}
       <NavbarEditor />
@@ -147,7 +146,7 @@ const MenuEditorContent = () => {
         </div>
       </motion.section>
     </main>
-    </>
+    </Suspense>
   );
 };
 
