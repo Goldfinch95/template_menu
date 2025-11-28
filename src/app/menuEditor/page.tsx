@@ -4,7 +4,7 @@ import React, { useCallback, useState, useEffect } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { Menu } from "@/interfaces/menu";
 import { deleteMenu, getMenu } from "@/common/utils/api";
-//subcomponentes
+// subcomponentes
 import NavbarEditor from "@/app/menuEditor/components/NavbarEditor";
 import MenuInfo from "./components/menuInfo/page";
 import MenuCatPage from "./components/menuCat/page";
