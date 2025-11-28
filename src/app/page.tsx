@@ -171,9 +171,9 @@ export default function LoginPage() {
 
             <div className="flex flex-col">
               <p className="text-sm font-semibold text-slate-900">
-                Cuenta creada con éxito. Ya podés iniciar sesión.
+                Cuenta creada con éxito.
               </p>
-              <p className="text-xs text-slate-600">Bienvenido nuevamente</p>
+              <p className="text-xs text-slate-600">Ya podés iniciar sesión.</p>
             </div>
           </motion.div>
         )}

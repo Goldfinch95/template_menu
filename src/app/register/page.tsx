@@ -108,7 +108,7 @@ export default function RegisterPage() {
 
       // Si llegamos aquí sin error, fue exitoso
       router.push("/?registered=1");
-    } catch (err: any) {
+    } catch (err: unknown) {
       setError(
         err instanceof Error
           ? "Este email ya está en uso."
