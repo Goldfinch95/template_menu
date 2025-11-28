@@ -24,7 +24,6 @@ import { Menu, newMenu } from "@/interfaces/menu";
 import {
   Alert,
   AlertDescription,
-  AlertTitle,
 } from "@/common/components/ui/alert";
 import { useRouter } from "next/navigation";
 
