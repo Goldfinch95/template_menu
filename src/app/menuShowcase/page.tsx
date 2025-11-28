@@ -18,7 +18,6 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
 } from "@/common/components/ui/dropdown-menu";
-import FaqPage from "./FAQ/page";
 import Link from "next/link";
 // fuente para titulos
 const manrope = Manrope({ subsets: ["latin"] });
@@ -68,10 +67,10 @@ export default function Home() {
         setIsLoading(true);
         const data = await getMenus();
         // Espera al menos 1s antes de mostrar los datos
-        setTimeout(() => {
+        //setTimeout(() => {
           setMenus(data);
           setIsLoading(false);
-        }, 1000);
+        //}, 1000);
       } catch (err) {
         console.log(err);
         setIsLoading(false);
@@ -107,11 +106,6 @@ export default function Home() {
   const handleLogout = () => {
     logoutUser(); // Limpia localStorage
     router.push("/"); // Redirige al login
-  };
-
-  //redirigirse a preguntas frecuentes
-  const handleRedirectToFAQ = () => {
-    router.push("/FaqPage"); // Redirige a la página de preguntas frecuentes
   };
 
   return (
@@ -316,7 +310,7 @@ export default function Home() {
               // SI hay menús, desplegarlos animado
               // --- LISTA DE MENÚS ---
               <div className="grid grid-cols-2 gap-4 sm:gap-6 md:gap-7">
-                {menus.map((menu, i) => (
+                {menus.map((menu) => (
                   <motion.div
                     key={menu.id}
                     initial={{ opacity: 0, y: 15, scale: 0.98 }}
