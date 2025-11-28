@@ -32,7 +32,7 @@ import {
 import { Spinner } from "@/common/components/ui/spinner";
 import CatDialog from "./components/CatDialog";
 import ItemDialog from "./components/ItemDialog";
-import { Categories, UpdateCategoryPosition } from "@/interfaces/menu";
+import { Categories, Items, UpdateCategoryPosition } from "@/interfaces/menu";
 import {
   deleteCategory,
   updateCategory,
@@ -59,15 +59,6 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 
-// Tipo para los items del menú
-interface MenuItem {
-  id: number;
-  title: string;
-  price?: number;
-  position: number;
-  images?: Array<{ url: string }>;
-}
-
 function SortableItem({
   item,
   categoryId,
@@ -75,7 +66,7 @@ function SortableItem({
   handleDeleteItem,
   deletingItemId,
 }: {
-  item: MenuItem;
+  item: Items;
   categoryId: number;
   onItemSaved: () => Promise<void>;
   handleDeleteItem: (id: number) => Promise<void>;
@@ -231,12 +222,12 @@ function SortableCategory({
   handleItemDragEnd: (
     event: DragEndEvent,
     categoryId: number,
-    items: MenuItem[],
-    setLocalItems: (items: MenuItem[]) => void
+    items: Items[],
+    setLocalItems: (items: Items[]) => void
   ) => Promise<void>;
 }) {
   // Estado local para los items de esta categoría
-  const [localItems, setLocalItems] = useState<MenuItem[]>(
+  const [localItems, setLocalItems] = useState<Items[]>(
     category.items || []
   );
 
@@ -542,8 +533,8 @@ const MenuCatPage = ({
         await updateCategory(movedCategory.id, updateData);
         await onCategoryChange();
         console.log(`✅ Orden de categoría actualizado correctamente`);
-      } catch (error) {
-        console.error("❌ Error al actualizar el orden de categoría:", error);
+      } catch {
+        console.error("❌ Error al actualizar el orden de categoría");
         setCategories(categories);
         alert("Error al actualizar el orden. Revisa la consola.");
       }
@@ -554,8 +545,8 @@ const MenuCatPage = ({
   const handleItemDragEnd = async (
     event: DragEndEvent,
     categoryId: number,
-    items: MenuItem[],
-    setLocalItems: (items: MenuItem[]) => void
+    items: Items[],
+    setLocalItems: (items: Items[]) => void
   ) => {
     const { active, over } = event;
 
@@ -606,8 +597,8 @@ const MenuCatPage = ({
         await updateItem(movedItem.id, { newPosition });
         await onCategoryChange();
         console.log(`✅ Orden de item actualizado correctamente`);
-      } catch (error) {
-        console.error("❌ Error al actualizar el orden de item:", error);
+      } catch {
+        console.error("❌ Error al actualizar el orden de item");
         // Revertir el cambio local si falla
         setLocalItems(items);
         alert("Error al actualizar el orden del plato. Revisa la consola.");
@@ -637,8 +628,8 @@ const MenuCatPage = ({
       await updateCategory(categoryId, { title: newTitle });
       await onCategoryChange();
       console.log(`✅ Categoría ${categoryId} actualizada: ${newTitle}`);
-    } catch (error) {
-      console.error("❌ Error al guardar la edición de categoría:", error);
+    } catch {
+      console.error("❌ Error al guardar la edición de categoría");
       alert("Error al guardar la categoría. Revisa la consola.");
     } finally {
       setSavingId(null);
@@ -649,8 +640,8 @@ const MenuCatPage = ({
     try {
       await deleteCategory(categoryId);
       await onCategoryChange();
-    } catch (error) {
-      console.error("Error al eliminar categoría:", error);
+    } catch {
+      console.error("Error al eliminar categoría");
     }
   };
 
@@ -661,8 +652,8 @@ const MenuCatPage = ({
       await deleteItem(itemId);
       await onCategoryChange();
       console.log(`✅ Ítem ${itemId} eliminado correctamente`);
-    } catch (error) {
-      console.error("❌ Error al eliminar ítem:", error);
+    } catch {
+      console.error("❌ Error al eliminar ítem");
       alert("Error al eliminar el plato. Revisa la consola.");
     } finally {
       setDeletingItemId(null);
