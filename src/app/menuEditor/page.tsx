@@ -39,10 +39,10 @@ const MenuEditorContent = () => {
     try {
       const menuData = await getMenu(menuId);
       setMenu(menuData);
-      console.log(menuData);
+      //console.log(menuData);
       // console.log("✅ Menú y categorías cargadas:", menuData.categories.length);
-    } catch (error) {
-      console.error("❌ Error al cargar el menú:", error);
+    } catch (err: unknown) {
+      console.error("❌ Error al cargar el menú:", err);
     }
   }, []); // Dependencias vacías, ya que menuId viene del useEffect.
 
