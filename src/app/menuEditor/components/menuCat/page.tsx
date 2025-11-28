@@ -467,7 +467,6 @@ const MenuCatPage = ({
   useEffect(() => {
     const loadCategories = async () => {
       setLoading(true);
-      
       setCategories(menuCategories);
       setLoading(false);
     };
@@ -476,7 +475,7 @@ const MenuCatPage = ({
   }, [menuId, menuCategories]);
 
   // Handler para drag and drop de CATEGORÍAS
- const handleDragEnd = async (event: DragEndEvent) => {
+const handleDragEnd = async (event: DragEndEvent) => {
   const { active, over } = event;
 
   if (over && active.id !== over.id) {
@@ -491,11 +490,11 @@ const MenuCatPage = ({
 
     // CASO 1: Mover al principio (antes del primer item actual)
     if (newIndex === 0) {
-      newPosition = Math.round(categories[0].position - 1); // Redondear aquí
+      newPosition = Math.round(categories[0].position - 1);
     }
     // CASO 2: Mover al final (después del último item actual)
     else if (newIndex === categories.length - 1) {
-      newPosition = Math.round(categories[categories.length - 1].position + 1); // Redondear aquí
+      newPosition = Math.round(categories[categories.length - 1].position + 1);
     }
     // CASO 3: Mover entre dos items
     else {
@@ -506,14 +505,14 @@ const MenuCatPage = ({
         const prevPosition = targetCategory.position;
         const nextPosition =
           categories[newIndex + 1]?.position ?? targetCategory.position + 1;
-        newPosition = Math.round((prevPosition + nextPosition) / 2); // Redondear aquí
+        newPosition = Math.round((prevPosition + nextPosition) / 2);
       }
       // Si nos movemos hacia arriba (oldIndex > newIndex)
       else {
         const prevPosition =
           categories[newIndex - 1]?.position ?? targetCategory.position - 1;
         const nextPosition = targetCategory.position;
-        newPosition = Math.round((prevPosition + nextPosition) / 2); // Redondear aquí
+        newPosition = Math.round((prevPosition + nextPosition) / 2);
       }
     }
 
@@ -534,8 +533,8 @@ const MenuCatPage = ({
   }
 };
 
-  // Handler para drag and drop de ITEMS
- const handleItemDragEnd = async (
+// Handler para drag and drop de ITEMS
+const handleItemDragEnd = async (
   event: DragEndEvent,
   categoryId: number,
   items: any[],
@@ -556,11 +555,11 @@ const MenuCatPage = ({
 
     // CASO 1: Mover al principio (antes del primer item actual)
     if (newIndex === 0) {
-      newPosition = Math.round(items[0].position - 1); // Redondear aquí
+      newPosition = Math.round(items[0].position - 1);
     }
     // CASO 2: Mover al final (después del último item actual)
     else if (newIndex === items.length - 1) {
-      newPosition = Math.round(items[items.length - 1].position + 1); // Redondear aquí
+      newPosition = Math.round(items[items.length - 1].position + 1);
     }
     // CASO 3: Mover entre dos items
     else {
@@ -571,20 +570,31 @@ const MenuCatPage = ({
         const prevPosition = targetItem.position;
         const nextPosition =
           items[newIndex + 1]?.position ?? targetItem.position + 1;
-        newPosition = Math.round((prevPosition + nextPosition) / 2); // Redondear aquí
+        newPosition = Math.round((prevPosition + nextPosition) / 2);
       }
       // Si nos movemos hacia arriba (oldIndex > newIndex)
       else {
         const prevPosition =
           items[newIndex - 1]?.position ?? targetItem.position - 1;
         const nextPosition = targetItem.position;
-        newPosition = Math.round((prevPosition + nextPosition) / 2); // Redondear aquí
+        newPosition = Math.round((prevPosition + nextPosition) / 2);
       }
     }
 
     console.log(
       `🍽️ Moviendo item ${movedItem.id} desde posición ${oldIndex} a ${newIndex} con newPosition: ${newPosition}`
     );
+
+    try {
+      await updateItem(movedItem.id, { newPosition });
+      await onCategoryChange();
+      console.log(`✅ Orden de item actualizado correctamente`);
+    } catch (error) {
+      console.error("❌ Error al actualizar el orden de item:", error);
+      // Revertir el cambio local si falla
+      setLocalItems(items);
+      alert("Error al actualizar el orden del plato. Revisa la consola.");
+    }
   }
 };
 
