@@ -166,19 +166,19 @@ const MenuInfoPage = ({ menuId, onMenuCreated }: InfoEditorProps) => {
                 alt="Logo preview"
                 width={
                   menu.logo ===
-                  "https://aplicacion-menu.s3.sa-east-1.amazonaws.com/defaults/menu/default_menu.png"
-                    ? 95
+                  "https://undevcode-menus.s3.sa-east-1.amazonaws.com/defaults/menu/default_menu.png"
+                    ? 90
                     : 100
                 } // Se ajusta solo cuando es la URL predeterminada
                 height={
                   menu.logo ===
-                  "https://aplicacion-menu.s3.sa-east-1.amazonaws.com/defaults/menu/default_menu.png"
-                    ? 95
+                  "https://undevcode-menus.s3.sa-east-1.amazonaws.com/defaults/menu/default_menu.png"
+                    ? 90
                     : 100
                 } // Se ajusta solo cuando es la URL predeterminada
                 className={`object-cover ${
                   menu.logo ===
-                  "https://aplicacion-menu.s3.sa-east-1.amazonaws.com/defaults/menu/default_menu.png"
+                  "https://undevcode-menus.s3.sa-east-1.amazonaws.com/defaults/menu/default_menu.png"
                     ? ""
                     : "w-full h-full object-cover"
                 }`} // Si es la URL predeterminada, ajusta el tamaño; si no, ocupa todo el contenedor

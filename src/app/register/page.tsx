@@ -107,7 +107,7 @@ export default function RegisterPage() {
       });
 
       // Si llegamos aquí sin error, fue exitoso
-      router.push("/");
+      router.push("/?registered=1");
     } catch (err: any) {
       setError(
         err instanceof Error

@@ -11,6 +11,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { Manrope } from "next/font/google";
 import { UtensilsCrossed, X, Eye, EyeOff } from "lucide-react";
 import { loginUser } from "@/common/utils/api";
+import { useSearchParams } from "next/navigation";
 
 const manrope = Manrope({ subsets: ["latin"] });
 
@@ -25,8 +26,25 @@ export default function LoginPage() {
   //alertas
   const [alertMessage, setAlertMessage] = useState<string | null>(null);
 
+  //mensaje exitoso
+  const [showSuccess, setShowSuccess] = useState(false);
+
   //RUTA
   const router = useRouter();
+
+  const searchParams = useSearchParams();
+
+  React.useEffect(() => {
+    if (searchParams.get("registered") === "1") {
+      setShowSuccess(true);
+
+      const timer = setTimeout(() => {
+        setShowSuccess(false);
+      }, 4000);
+
+      return () => clearTimeout(timer);
+    }
+  }, [searchParams]);
 
   //CREACION DE FORMULARIO
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -109,12 +127,56 @@ export default function LoginPage() {
   //-----LOGIN-------//
   return (
     <main
-      className="
+      className=" relative
         min-h-screen w-full flex flex-col justify-center
         bg-gradient-to-b from-white via-[#FFF3EC] to-[#FFE6D3]
         px-6 py-8
       "
     >
+      {/* cartel de registro exitoso animado */}
+      <AnimatePresence>
+        {showSuccess && (
+          <motion.div
+            initial={{ y: -20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: -20, opacity: 0 }}
+            transition={{ type: "spring", stiffness: 260, damping: 22 }}
+            className="
+        absolute top-20 left-1/2 -translate-x-1/2
+        w-[90%] max-w-md
+        bg-white/95 backdrop-blur-xl
+        border border-green-300
+        text-green-800 font-medium
+        px-4 py-4 rounded-2xl shadow-xl
+        z-50
+      "
+          >
+            <div className="flex items-center gap-3">
+              <motion.div
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                className="
+            w-9 h-9 rounded-full bg-green-500 text-white 
+            flex items-center justify-center shadow-md
+          "
+              >
+                ✓
+              </motion.div>
+
+              <p className="flex-1 text-sm">
+                Cuenta creada con éxito. Ya podés iniciar sesión.
+              </p>
+
+              <button
+                onClick={() => setShowSuccess(false)}
+                className="text-green-700 font-semibold"
+              >
+                Cerrar
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
       {/* CARD PRINCIPAL */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
