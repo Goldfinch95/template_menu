@@ -238,7 +238,7 @@ const InfoDialog = ({
         //notificar
         //console.log("🔄 Notificando al padre con el nuevo ID:", createdMenu.id);
         onCreated?.(createdMenu.id);
-        router.push(`/menuShowcase`); // Pasamos el nuevo `menuId` al padre
+        router.push(`/menuShowcase?menuCreated=true`); // Pasamos el nuevo `menuId` al padre
       }
       // editar un menu
       else {

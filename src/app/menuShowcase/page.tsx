@@ -42,10 +42,19 @@ export default function Home() {
   //estado de roleId
   const [roleId, setRoleId] = useState<number | null>(null);
 
+  
+  const [alertMessage, setAlertMessage] = useState<string | null>(null);
+
   //dirigirte a crear un nuevo menú
   const handleCreateNewMenu = () => {
     router.push("/menuEditor");
   };
+
+  useEffect(() => {
+  if (alertMessage) {
+    console.log(alertMessage); // Esto se ejecutará cuando `alertMessage` cambie
+  }
+}, [alertMessage]);
 
   //cargar el usuario y obtener el role ID
   useEffect(() => {
@@ -80,6 +89,34 @@ export default function Home() {
     fetchMenus();
   }, []);
 
+  // Código en menuShowcase para mostrar mensaje de "Menú creado exitosamente"
+useEffect(() => {
+  const params = new URLSearchParams(window.location.search);
+
+  if (params.get("menuCreated") === "true") {
+    setAlertMessage("Menú creado exitosamente!");
+    setShowLoginSuccess(true);
+
+    const timer = setTimeout(() => {
+      setShowLoginSuccess(false);
+      setAlertMessage(null); // Limpia el mensaje después de 3 segundos
+    }, 3000);
+    
+    return () => clearTimeout(timer);
+  }
+
+  if (params.get("loginSuccess") === "1") {
+    setAlertMessage("Bienvenido nuevamente!");
+    setShowLoginSuccess(true);
+
+    const timer = setTimeout(() => {
+      setShowLoginSuccess(false);
+      setAlertMessage(null);
+    }, 3000);
+
+    return () => clearTimeout(timer);
+  }
+}, []);
   //detectar si venimos del login
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -122,49 +159,38 @@ export default function Home() {
     "
     >
       {/* cartel de login exitoso */}
-      <AnimatePresence>
-        {showLoginSuccess && (
-          <motion.div
-            initial={{ opacity: 0, y: -20, scale: 0.95 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -20, scale: 0.95 }}
-            transition={{ duration: 0.35, ease: "easeOut" }}
-            className="
-        fixed top-4 left-1/2 -translate-x-1/2 
-        px-4 py-3 rounded-2xl
-        bg-white/80 backdrop-blur-xl
-        shadow-[0_4px_16px_rgba(0,0,0,0.12)]
-        border border-white/40
-        flex items-center gap-3 z-[999]
-        w-[90%] max-w-sm
-      "
-          >
-            <div className="w-8 h-8 rounded-full bg-green-500 flex items-center justify-center shadow-md">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-5 w-5 text-white"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M5 13l4 4L19 7"
-                />
-              </svg>
-            </div>
+     <AnimatePresence>
+  {alertMessage && (
+    <motion.div
+      initial={{ opacity: 0, y: -20, scale: 0.95 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      exit={{ opacity: 0, y: -20, scale: 0.95 }}
+      transition={{ duration: 0.35, ease: "easeOut" }}
+      className="fixed top-4 left-1/2 -translate-x-1/2 px-4 py-3 rounded-2xl bg-white/80 backdrop-blur-xl shadow-[0_4px_16px_rgba(0,0,0,0.12)] border border-white/40 flex items-center gap-3 z-[999] w-[90%] max-w-sm"
+    >
+      <div className="w-8 h-8 rounded-full bg-green-500 flex items-center justify-center shadow-md">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          className="h-5 w-5 text-white"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth="2"
+            d="M5 13l4 4L19 7"
+          />
+        </svg>
+      </div>
 
-            <div className="flex flex-col">
-              <p className="text-sm font-semibold text-slate-900">
-                ¡Ingreso exitoso!
-              </p>
-              <p className="text-xs text-slate-600">Bienvenido nuevamente</p>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      <div className="flex flex-col">
+        <p className="text-sm font-semibold text-slate-900">{alertMessage}</p>
+      </div>
+    </motion.div>
+  )}
+</AnimatePresence>
       <div className="min-h-[calc(100vh-3rem)] flex flex-col">
         {/* Header */}
         <header className="px-5 pt-4 pb-4">
