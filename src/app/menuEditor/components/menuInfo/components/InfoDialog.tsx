@@ -21,10 +21,7 @@ import { cn } from "@/common/utils/utils";
 import { DialogClose } from "@radix-ui/react-dialog";
 import { createMenu, updateMenu } from "@/common/utils/api";
 import { Menu, newMenu } from "@/interfaces/menu";
-import {
-  Alert,
-  AlertDescription,
-} from "@/common/components/ui/alert";
+import { Alert, AlertDescription } from "@/common/components/ui/alert";
 import { useRouter } from "next/navigation";
 
 interface InfoDialogProps {
@@ -52,10 +49,9 @@ const InfoDialog = ({
   onCreated,
   onUpdated,
 }: InfoDialogProps) => {
-
   //RUTA
-    const router = useRouter();
-    
+  const router = useRouter();
+
   //estados para el titulo,direccion
   const [title, setTitle] = useState(menuTitle);
   const [pos, setPos] = useState(menuPos);
@@ -229,7 +225,7 @@ const InfoDialog = ({
           },
           categories: [],
         };
-        
+
         //crear BD
         const createdMenu = await createMenu(payload);
         //console.log("✅ Menú creado:", createdMenu);
@@ -363,9 +359,25 @@ const InfoDialog = ({
                   <Image
                     src={logoPreview}
                     alt="Logo preview"
-                    width={100}
-                    height={100}
-                    className="object-cover w-full h-full"
+                    width={
+                      logoPreview ===
+                      "https://undevcode-menus.s3.sa-east-1.amazonaws.com/defaults/menu/default_menu.png"
+                        ? 70
+                        : 100 // Si no es la URL predeterminada, será 100
+                    }
+                    height={
+                      logoPreview ===
+                      "https://undevcode-menus.s3.sa-east-1.amazonaws.com/defaults/menu/default_menu.png"
+                        ? 70
+                        : 100 // Si no es la URL predeterminada, será 100
+                    }
+                    className={
+                      logoPreview ===
+                      "https://undevcode-menus.s3.sa-east-1.amazonaws.com/defaults/menu/default_menu.png"
+                        ? "object-contain" // Si es la URL predeterminada, usaremos object-contain
+                        : "object-cover" // Si no es la URL predeterminada, usaremos object-cover
+                    }
+                    priority
                   />
                 ) : (
                   <Upload className="w-6 h-6 text-slate-500" />
