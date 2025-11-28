@@ -1,15 +1,10 @@
 "use client";
 
-import React, {
-  useCallback,
-  useState,
-  useEffect,
-} from "react";
-
+import React, { useCallback, useState, useEffect } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { Menu } from "@/interfaces/menu";
 import { deleteMenu, getMenu } from "@/common/utils/api";
-//subcomponetes
+//subcomponentes
 import NavbarEditor from "@/app/menuEditor/components/NavbarEditor";
 import MenuInfo from "./components/menuInfo/page";
 import MenuCatPage from "./components/menuCat/page";
@@ -30,23 +25,22 @@ import {
 } from "@/common/components/ui/dialog";
 import { Button } from "@/common/components/ui/button";
 
-
 const MenuEditorContent = () => {
-  //Estado para el menu
+  // Estado para el menú
   const [menu, setMenu] = useState<Menu>({} as Menu);
 
-  //Estado para obtener id del menú
+  // Estado para obtener id del menú
   const searchParams = useSearchParams();
-  // estado para el router
+  // Estado para el router
   const router = useRouter();
 
-  //cargar menú existente si hay id en los parámetros
+  // Cargar menú existente si hay id en los parámetros
   const fetchMenuData = useCallback(async (menuId: string) => {
     try {
       const menuData = await getMenu(menuId);
       setMenu(menuData);
       console.log(menuData);
-      //console.log("✅ Menú y categorías cargadas:", menuData.categories.length);
+      // console.log("✅ Menú y categorías cargadas:", menuData.categories.length);
     } catch (error) {
       console.error("❌ Error al cargar el menú:", error);
     }
@@ -61,7 +55,7 @@ const MenuEditorContent = () => {
     fetchMenuData(menuId);
   }, [searchParams, fetchMenuData]);
 
-  // funcion que elimina el menú
+  // Función que elimina el menú
   const handleDeleteMenu = async () => {
     const menuId = searchParams.get("id");
     if (!menuId) {
@@ -78,11 +72,7 @@ const MenuEditorContent = () => {
   };
 
   return (
-    <main
-      className="min-h-screen w-full
-        bg-gradient-to-b from-white via-[#FFF3EC] to-[#FFE6D3]
-        flex flex-col"
-    >
+    <main className="min-h-screen w-full bg-gradient-to-b from-white via-[#FFF3EC] to-[#FFE6D3] flex flex-col">
       {/* Navbar */}
       <NavbarEditor />
       {/* Contenido principal */}
@@ -90,26 +80,17 @@ const MenuEditorContent = () => {
         initial={{ opacity: 0, y: 15 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, ease: "easeOut" }}
-        className="
-          flex-1 w-full
-          max-w-3xl mx-auto
-          px-5 sm:px-6 lg:px-8
-          pt-6 pb-24
-          space-y-8
-        "
+        className="flex-1 w-full max-w-3xl mx-auto px-5 sm:px-6 lg:px-8 pt-6 pb-24 space-y-8"
       >
         <div className="space-y-8">
-          {/*Sección de imagenes del menú*/}
+          {/* Sección de imágenes del menú */}
           <MenuInfo
             menuId={menu.id}
             onMenuCreated={(newMenuId) => {
-              console.log(
-                "🔔 Abuelo notificado - Nuevo menú creado con ID:",
-                newMenuId
-              );
-              //actualiza
+              console.log("🔔 Abuelo notificado - Nuevo menú creado con ID:", newMenuId);
+              // Actualiza
               router.push(`/menuEditor?id=${newMenuId}`);
-              //recarga
+              // Recarga
               fetchMenuData(String(newMenuId));
             }}
           />
@@ -118,7 +99,7 @@ const MenuEditorContent = () => {
             menuCategories={menu.categories}
             onCategoryChange={() => fetchMenuData(String(menu.id))}
           />
-          {/* Eliminar menu */}
+          {/* Eliminar menú */}
           {menu?.id && (
             <div className="px-4 w-full">
               <Dialog>
@@ -142,8 +123,7 @@ const MenuEditorContent = () => {
                   </DialogHeader>
 
                   <DialogDescription className="text-base text-slate-600">
-                    ¿Estás seguro de que deseas eliminar este menú? Esta acción
-                    no se puede deshacer.
+                    ¿Estás seguro de que deseas eliminar este menú? Esta acción no se puede deshacer.
                   </DialogDescription>
 
                   <DialogFooter className="flex justify-end gap-2 mt-4">
