@@ -18,7 +18,7 @@ const FoodMenuItem: React.FC<Items> = ({
   const imageAlt = firstImage?.alt || title;
 
   // Convertir price de string a number para mostrar
-  const priceNumber = parseFloat(price);
+  const priceNumber = typeof price === 'string' ? parseFloat(price) : price;
 
   //funcion para detectar color claro o oscuro para el borde
   
