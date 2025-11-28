@@ -13,7 +13,6 @@ import {
 import {
   Alert,
   AlertDescription,
-  AlertTitle,
 } from "@/common/components/ui/alert";
 import { Input } from "@/common/components/ui/input";
 import { Label } from "@/common/components/ui/label";
@@ -37,8 +36,7 @@ const CatDialog = ({ trigger, menuId, onCategoryCreated }: CatDialogProps) => {
   // Estado para controlar la apertura/cierre del Dialog
   const [isOpen, setIsOpen] = useState(false);
 
-  //Agrega ref para el alerta
-  const alertRef = useRef<HTMLDivElement>(null);
+  
 
   // VALIDACIÓN DE DATOS (acumulativa)
   const validateFields = () => {
