@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useCallback, useState, useEffect } from "react";
+import React, { useCallback, useState, useEffect, Suspense  } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { Menu } from "@/interfaces/menu";
 import { deleteMenu, getMenu } from "@/common/utils/api";
@@ -72,6 +72,8 @@ const MenuEditorContent = () => {
   };
 
   return (
+    <>
+    <Suspense fallback={<div>Cargando...</div>}></Suspense>
     <main className="min-h-screen w-full bg-gradient-to-b from-white via-[#FFF3EC] to-[#FFE6D3] flex flex-col">
       {/* Navbar */}
       <NavbarEditor />
@@ -145,6 +147,7 @@ const MenuEditorContent = () => {
         </div>
       </motion.section>
     </main>
+    </>
   );
 };
 
