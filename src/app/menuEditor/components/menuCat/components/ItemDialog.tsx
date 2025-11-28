@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Utensils, Pencil, Trash2, Plus, X, Upload } from "lucide-react";
+import { X } from "lucide-react";
 import { Items, newItem } from "@/interfaces/menu";
 import {
   Dialog,
@@ -15,17 +15,17 @@ import {
 import {
   Alert,
   AlertDescription,
-  AlertTitle,
 } from "@/common/components/ui/alert";
 import { Input } from "@/common/components/ui/input";
 import { Label } from "@/common/components/ui/label";
 import { Button } from "@/common/components/ui/button";
 import { createItem, updateItem, upsertItemImages } from "@/common/utils/api";
+import Image from "next/image"; // Importa Image desde next/image
 
 interface ItemDialogProps {
   trigger: React.ReactNode;
   categoryId: number;
-  item?: Items; // Tu interfaz Items si la tenés
+  item?: Items;
   onItemSaved?: () => void;
 }
 
@@ -42,29 +42,22 @@ const ItemDialog = ({
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string>("");
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
   const [alertMessage, setAlertMessage] = useState<string | null>(null);
 
-  // Detectar si estamos en modo EDITAR
   const isEditMode = !!item;
 
-  // Estado para controlar la apertura/cierre del Dialog
   const [isOpen, setIsOpen] = useState(false);
 
-  // Cargar datos del item cuando estamos editando
   useEffect(() => {
     if (item) {
       setTitle(item.title || "");
       setDescription(item.description || "");
       setPrice(item.price?.toString() || "");
 
-      // Mostrar imagen existente si hay
       if (item.images && item.images.length > 0) {
         setPreviewUrl(item.images[0].url);
       }
     } else {
-      // Limpiar el formulario si no hay item (modo crear)
       setTitle("");
       setDescription("");
       setPrice("");
@@ -73,7 +66,6 @@ const ItemDialog = ({
     }
   }, [item]);
 
-  // Limpiar preview URL cuando se desmonta
   useEffect(() => {
     return () => {
       if (previewUrl && previewUrl.startsWith("blob:")) {
@@ -82,7 +74,6 @@ const ItemDialog = ({
     };
   }, [previewUrl]);
 
-  //reinciar formulario
   const resetForm = () => {
     setTitle("");
     setDescription("");
@@ -92,125 +83,92 @@ const ItemDialog = ({
       URL.revokeObjectURL(previewUrl);
     }
     setPreviewUrl("");
-    setError(null);
     setAlertMessage(null);
   };
 
-  //validacion
   const validateFields = () => {
     const errors: string[] = [];
 
-    // Validación título
     if (title.trim().length < 3) {
       errors.push("• El título debe tener al menos 3 caracteres.");
     }
 
-    // Si HAY errores → mostrar alerta
     if (errors.length > 0) {
       setAlertMessage(errors.join("\n"));
       return false;
     }
 
-    // Si está todo OK → limpiar alerta
     setAlertMessage(null);
     return true;
   };
-  //cambio de imagen visual
+
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      // Validar tamaño (10MB)
       if (file.size > 10 * 1024 * 1024) {
-        setError("La imagen no puede superar los 10MB");
+        setAlertMessage("La imagen no puede superar los 10MB");
         return;
       }
 
-      // Validar tipo
       if (!file.type.startsWith("image/")) {
-        setError("Solo se permiten imágenes");
+        setAlertMessage("Solo se permiten imágenes");
         return;
       }
 
       setSelectedImage(file);
 
-      // Crear preview
       if (previewUrl && previewUrl.startsWith("blob:")) {
         URL.revokeObjectURL(previewUrl);
       }
       const newPreviewUrl = URL.createObjectURL(file);
       setPreviewUrl(newPreviewUrl);
-      setError(null);
+      setAlertMessage(null);
     }
   };
 
-  //guardar item en la BD
   const handleSave = async () => {
-    setError(null);
+    setAlertMessage(null);
 
     const isValid = validateFields();
     if (!isValid) return;
     setLoading(true);
-    console.log(categoryId);
 
     try {
       let savedItemId = item?.id;
-      //si estamos editando item
 
       if (isEditMode) {
         const payload: Partial<Items> = {
           title: title.trim(),
           description: description.trim() || undefined,
           price: Number(price),
-          //images: images
         };
-        console.log("🔄 Actualizando item:", item.id, payload);
         await updateItem(item.id, payload);
         savedItemId = item.id;
-        // Si hay una nueva imagen seleccionada, subirla
-        const existingImageId = item.images?.[0]?.id;
 
         if (selectedImage) {
-          console.log("📸 Subiendo nueva imagen para item existente");
-
-          // Si ya existía una imagen, la actualizamos; si no, la creamos
           const existingImageId = item.images?.[0]?.id;
-
           const images = [
             {
-              ...(existingImageId && { id: existingImageId }), // Si existe, incluir el ID
+              ...(existingImageId && { id: existingImageId }),
               fileField: "file_0",
               alt: title,
               sortOrder: 0,
               active: true,
             },
           ];
-
           await upsertItemImages(savedItemId, images, [selectedImage]);
         }
-      }
-      //si estamos creando item
-      else {
+      } else {
         const payload: newItem = {
           categoryId: Number(categoryId),
           title: title.trim(),
           description: description.trim(),
           price: Number(price),
-          //images: images,
         };
-        console.log("✅ payload:", payload);
         const newItem = await createItem(payload);
         savedItemId = newItem.id;
-        // Si hay una imagen seleccionada subirla al ítem recién creado
 
-        // Si hay una imagen seleccionada, subirla al ítem recién creado
         if (selectedImage) {
-          console.log("📸 Subiendo imagen del nuevo ítem:", {
-            itemId: savedItemId,
-            fileName: selectedImage.name,
-            fileSize: selectedImage.size,
-            fileType: selectedImage.type,
-          });
-
           const images = [
             {
               fileField: "file_0",
@@ -219,21 +177,20 @@ const ItemDialog = ({
               active: true,
             },
           ];
-
           await upsertItemImages(savedItemId, images, [selectedImage]);
         }
       }
-      //notificar
+
       onItemSaved?.();
-      // Limpiar el formulario solo en modo creación
+
       if (!isEditMode) {
         resetForm();
       }
-      // Cierra el dialog automáticamente (Shadcn)
+
       document.querySelector<HTMLButtonElement>("[data-dialog-close]")?.click();
       setIsOpen(false);
     } catch (err: any) {
-      setError(err.message || "Error al guardar el ítem");
+      setAlertMessage(err.message || "Error al guardar el ítem");
     } finally {
       setLoading(false);
     }
@@ -255,7 +212,7 @@ const ItemDialog = ({
           </div>
         </DialogHeader>
         {alertMessage && (
-          <Alert className=" bg-red-100 border border-red-400 text-red-700 p-4 rounded-xl flex items-start gap-3">
+          <Alert className="bg-red-100 border border-red-400 text-red-700 p-4 rounded-xl flex items-start gap-3">
             <X className="w-5 h-5 mt-1" />
             <div>
               <AlertDescription className="whitespace-pre-line mt-1">
@@ -317,10 +274,11 @@ const ItemDialog = ({
           >
             {previewUrl ? (
               <div className="relative w-full h-full">
-                <img
+                <Image
                   src={previewUrl}
                   alt="Preview"
                   className="w-full h-full object-cover"
+                  layout="fill"
                 />
                 <div className="absolute inset-0 bg-black/40 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center">
                   <span className="text-white font-medium">Cambiar imagen</span>
@@ -336,7 +294,6 @@ const ItemDialog = ({
           </Label>
           <p className="text-base text-slate-400 mt-2">PNG, JPG hasta 10MB</p>
           <DialogFooter className="mt-5">
-            
             <Button
               onClick={handleSave}
               disabled={loading}
