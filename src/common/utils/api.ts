@@ -103,7 +103,7 @@ export const loginUser = async (data: LoginData): Promise<LoginResponse> => {
     //console.log("✅ Login exitoso");
     return loginResponse;
   } catch (error) {
-    console.error("❌ Error al iniciar sesión:", error);
+    //console.error("❌ Error al iniciar sesión:", error);
     throw error;
   }
 };

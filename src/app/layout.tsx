@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "@/styles/globals.css";
 import {Open_Sans} from "next/font/google"; 
+import { Toaster } from "@/common/components/ui/sonner";
 
 const openSans = Open_Sans({ subsets: ["latin"] });
 
@@ -20,6 +21,7 @@ export default function RootLayout({
         className={`${openSans.className} antialiased`}
       >
         {children}
+        <Toaster  position="top-center" />
       </body>
     </html>
   );

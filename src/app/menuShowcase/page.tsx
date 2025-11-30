@@ -48,11 +48,7 @@ export default function Home() {
     router.push("/menuEditor");
   };
 
-  useEffect(() => {
-  if (alertMessage) {
-    console.log(alertMessage); // Esto se ejecutará cuando `alertMessage` cambie
-  }
-}, [alertMessage]);
+  
 
   //cargar el usuario y obtener el role ID
   useEffect(() => {

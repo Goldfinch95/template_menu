@@ -1,364 +1,325 @@
 "use client";
 
-import React, { useState } from "react";
-import { useRouter } from "next/navigation";
-import { Alert, AlertDescription } from "@/common/components/ui/alert";
+import React, { useState, useEffect, useCallback } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { motion, AnimatePresence } from "framer-motion";
+import { Manrope } from "next/font/google";
+import { toast } from "sonner";
 
+import { loginUser } from "@/common/utils/api";
+
+import { Card, CardContent } from "@/common/components/ui/card";
 import { Button } from "@/common/components/ui/button";
 import { Input } from "@/common/components/ui/input";
 import { Label } from "@/common/components/ui/label";
-import { AnimatePresence, motion } from "framer-motion";
-import { Manrope } from "next/font/google";
-import { UtensilsCrossed, X, Eye, EyeOff } from "lucide-react";
-import { loginUser } from "@/common/utils/api";
-import { useSearchParams } from "next/navigation";
-import Image from "next/image";
+import { Alert, AlertDescription } from "@/common/components/ui/alert";
+
+import {
+  UtensilsCrossed,
+  Eye,
+  EyeOff,
+  Instagram,
+  Mail,
+  Lock,
+  Chrome,
+  Apple,
+  Loader2,
+} from "lucide-react";
 
 const manrope = Manrope({ subsets: ["latin"] });
 
+type FormState = {
+  email: string;
+  password: string;
+};
+
 export default function LoginPage() {
-  //ESTADOS
-  //formulario
-  const [form, setForm] = useState({ email: "", password: "" });
-  //carga
+  // ---------- Estados ----------
+  // Formulario
+  const [form, setForm] = useState<FormState>({ email: "", password: "" });
+  // Carga
   const [loading, setLoading] = useState(false);
-  //errores
-  const [error, setError] = useState<string | null>(null);
-  //alertas
+  // Mostrar/ocultar contraseña
+  const [showPassword, setShowPassword] = useState(false);
+  // Mensaje de alerta (errores de validación)
   const [alertMessage, setAlertMessage] = useState<string | null>(null);
+  // Error de login
+  const [error, setError] = useState<string | null>(null);
 
-  //mensaje exitoso
-  const [showSuccess, setShowSuccess] = useState(false);
-
-  //RUTA
+  // ---------- Hooks ----------
   const router = useRouter();
 
-  const searchParams = useSearchParams();
-
-  React.useEffect(() => {
-    if (searchParams.get("registered") === "1") {
-      setShowSuccess(true);
-
-      const timer = setTimeout(() => {
-        setShowSuccess(false);
-      }, 4000);
-
-      return () => clearTimeout(timer);
+  // ---------- Toast del error ----------
+  useEffect(() => {
+    if (error) {
+      toast.error(error, {
+        duration: 2000,
+        icon: null,
+        className: "error-toast-center",
+        style: {
+          background: "#ef4444",
+          color: "white",
+          fontWeight: 400,
+          borderRadius: "10px",
+          padding: "14px 16px",
+          fontSize: "16px",
+        },
+      });
+      setError(null);
     }
-  }, [searchParams]);
+  }, [error]);
 
-  //CREACION DE FORMULARIO
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
-    if (error) setError(null);
-  };
-
-  const [showPassword, setShowPassword] = useState(false);
-
-  // VALIDACION DE DATOS DE FORMULARIO
-  const validateFields = (
-    values: { email: string; password: string } = form
-  ) => {
-    const errors: string[] = [];
-
+  // ---------- Validación ----------
+  const validate = useCallback((values: FormState) => {
+    const errs: string[] = [];
     const { email, password } = values;
 
-    // Validación: ambos vacíos
     if (!email && !password) {
-      errors.push("El email y la contraseña son obligatorios.");
+      errs.push("El email y la contraseña son obligatorios.");
     } else {
-      // Validación email
-      if (!email) {
-        errors.push("El email es obligatorio.");
-      } else if (
+      if (!email) errs.push("El email es obligatorio.");
+      else if (
         !/^(?!.*\.\.)[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[A-Za-z]{2,}$/.test(
           email
         )
-      ) {
-        errors.push("Ingresá un email válido.");
-      }
+      )
+        errs.push("Ingresá un email válido.");
 
-      // Validación contraseña
-      if (!password) {
-        errors.push("La contraseña es obligatoria.");
-      } else if (password.length < 8 || password.length > 16) {
-        errors.push("La contraseña debe tener entre 8 y 16 caracteres.");
-      }
+      if (!password) errs.push("La contraseña es obligatoria.");
+      else if (password.length < 8 || password.length > 16)
+        errs.push("La contraseña debe tener entre 8 y 16 caracteres.");
     }
 
-    // Mostrar errores
-    if (errors.length > 0) {
-      setAlertMessage(errors.join("\n"));
+    if (errs.length) {
+      setAlertMessage(errs.join("\n"));
       return false;
     }
-
-    // Sin errores
     setAlertMessage(null);
     return true;
+  }, []);
+
+  // ---------- Handlers ----------
+  // Cambio en los inputs
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    //valores del input
+    const { name, value } = e.target;
+    //cambiar el estado del formulario
+    setForm((prev) => ({ ...prev, [name]: value }));
+    //limpiar el mensaje de alerta
+    if (alertMessage) setAlertMessage(null);
   };
 
-  // ENVIAR DATOS A LA BD
+  // Mostrar/ocultar contraseña
+  const handleTogglePassword = () => setShowPassword((s) => !s);
+
+  // Enviar formulario
   const handleSubmit = async () => {
-    //limpiar el formulario antes de enviar,controlar espacios inicio y final
-    const cleanedForm = {
+    // recortar espacios en blanco
+    const cleaned = {
       email: form.email.trim(),
       password: form.password.trim(),
     };
-    setForm(cleanedForm);
-    //control de formulario,si es invalido retorno.
-    if (!validateFields(cleanedForm)) return;
+    // actualizar el estado del formulario
+    setForm(cleaned);
+    // validar
+    if (!validate(cleaned)) return;
+    // iniciar sesión
     setLoading(true);
-
     try {
-      //enviar datos a la BD
-      await loginUser(cleanedForm);
-      //dirigirse al exhibidor de menus
+      // llamar al API
+      await loginUser(cleaned);
+      // redirigir a los menús (showcase)
       router.push("/menuShowcase?loginSuccess=1");
     } catch (err) {
-      setError(
-        err instanceof Error
-          ? err.message
-          : "Error al iniciar sesión. Intentá de nuevo."
-      );
+      // mostrar error
+      setError(err instanceof Error ? err.message : "Error al iniciar sesión.");
     } finally {
+      // finalizar carga
       setLoading(false);
     }
   };
 
-  //-----LOGIN-------//
-  return (
-    <main
-      className=" relative
-        min-h-screen w-full flex flex-col justify-center
-        bg-gradient-to-b from-white via-[#FFF3EC] to-[#FFE6D3]
-        px-6 py-8
-      "
+  // ---------- Social Icon ----------
+  const SocialIcon = ({
+    href,
+    children,
+    ariaLabel,
+    gradient,
+  }: {
+    href: string;
+    children: React.ReactNode;
+    ariaLabel: string;
+    gradient?: string;
+  }) => (
+    <a
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      aria-label={ariaLabel}
+      className="transform hover:scale-105 transition-transform"
     >
-      {/* cartel de registro exitoso animado */}
-      <AnimatePresence>
-        {showSuccess && (
-          <motion.div
-            initial={{ opacity: 0, y: -20, scale: 0.95 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -20, scale: 0.95 }}
-            transition={{ duration: 0.35, ease: "easeOut" }}
-            className="
-              fixed top-4 left-1/2 -translate-x-1/2 
-              px-4 py-3 rounded-2xl
-              bg-white/80 backdrop-blur-xl
-              shadow-[0_4px_16px_rgba(0,0,0,0.12)]
-              border border-white/40
-              flex items-center gap-3 z-[999]
-              w-[90%] max-w-sm
-            "
-          >
-            <div className="w-8 h-8 rounded-full bg-green-500 flex items-center justify-center shadow-md">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-5 w-5 text-white"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M5 13l4 4L19 7"
-                />
-              </svg>
-            </div>
-
-            <div className="flex flex-col">
-              <p className="text-sm font-semibold text-slate-900">
-                Cuenta creada con éxito.
-              </p>
-              <p className="text-xs text-slate-600">Ya podés iniciar sesión.</p>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-      {/* CARD PRINCIPAL */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4 }}
-        className="
-          w-full max-w-md mx-auto 
-          bg-white/85 backdrop-blur-xl
-          rounded-3xl p-7 shadow-xl 
-          border border-white/40
-          space-y-6
-        "
+      <div
+        className={`w-12 h-12 rounded-full flex items-center justify-center shadow-md hover:shadow-lg ${
+          gradient ?? "bg-white"
+        }`}
       >
-        {/* ICONO */}
-        <div className="flex justify-center">
-          <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-orange-400 to-orange-500 shadow-md flex items-center justify-center">
-            <UtensilsCrossed className="w-9 h-9 text-white" />
-          </div>
-        </div>
+        {children}
+      </div>
+    </a>
+  );
 
-        {/* TITULO */}
-        <div className="text-center -mt-1">
-          <h1
-            className={`${manrope.className} text-3xl font-extrabold text-slate-900`}
-          >
-            Bienvenido
-          </h1>
-          <p className="text-slate-600 text-base mt-1">
-            Iniciá sesión para continuar
-          </p>
-        </div>
+  // ---------- Animación de card ----------
+  const cardMotion = {
+    initial: { opacity: 0, y: 8 },
+    animate: { opacity: 1, y: 0 },
+    exit: { opacity: 0, y: 8 },
+    transition: { duration: 0.36, ease: "easeOut" },
+  };
 
-        {/* GOOGLE */}
-        <Button
-          variant="outline"
-          disabled={loading}
-          className="
-            w-full flex items-center justify-center gap-3 h-11 rounded-xl text-base
-            border-slate-300 text-gray-700 bg-white
-            hover:bg-orange-50
-            active:border-orange-400 focus:border-orange-400
-            backdrop-blur-sm shadow-sm hover:shadow-md
-            active:scale-[0.97] transition-all
-          "
-        >
-          <Image
-            height={50}
-            width={50}
-            alt="Google Logo"
-            src="https://www.svgrepo.com/show/475656/google-color.svg"
-            className="w-5 h-5"
-          />
-          Continuar con Google
-        </Button>
+  const bannerMotion = {
+    initial: { opacity: 0, y: -12 },
+    animate: { opacity: 1, y: 0 },
+    exit: { opacity: 0, y: -12 },
+    transition: { duration: 0.32 },
+  };
 
-        {/* DIVIDER */}
-        <div className="flex items-center pt-2">
-          <span className="flex-1 h-px bg-gray-300"></span>
-          <span className="px-3 text-sm text-gray-500">o</span>
-          <span className="flex-1 h-px bg-gray-300"></span>
-        </div>
-
-        {/* ALERTA MOVIDA AL LUGAR CORRECTO */}
-        <AnimatePresence>
-          {alertMessage && (
-            <Alert className="mb-4 bg-red-100 border border-red-400 p-4 rounded-xl flex items-start gap-3">
-              <div>
-                <AlertDescription className="whitespace-pre-line mt-1 text-gray-600 text-sm font-semibold">
-                  {alertMessage}
-                </AlertDescription>
+  // ---------- Render ----------
+  return (
+    <main className="min-h-screen w-full flex items-center justify-center bg-gradient-to-b from-white via-[#FFF3EC] to-[#FFE6D3] px-4 py-8">
+      {/* Card */}
+      <motion.div {...cardMotion} className="w-full max-w-md">
+        <Card className="rounded-2xl shadow-xl border border-white/40 bg-white/85">
+          <CardContent className="p-6 sm:p-7 space-y-5">
+            {/* Icon */}
+            <div className="flex justify-center">
+              <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-orange-400 to-orange-500 flex items-center justify-center shadow-md">
+                <UtensilsCrossed className="w-8 h-8 text-white" />
               </div>
-            </Alert>
-          )}
-        </AnimatePresence>
-
-        {/* CAMPOS */}
-        <div className="space-y-5">
-          {/* EMAIL */}
-          <div className="space-y-2">
-            <Label className="text-slate-700 font-semibold text-base">
-              Email
-            </Label>
-            <Input
-              name="email"
-              type="email"
-              placeholder="correo@example.com"
-              className="
-                bg-white border-slate-300 shadow-sm text-base
-                focus-visible:border-orange-400
-                focus-visible:ring-2 focus-visible:ring-orange-200/70
-                rounded-xl transition-all duration-200
-              "
-              value={form.email}
-              onChange={handleChange}
-              disabled={loading}
-            />
-          </div>
-
-          {/* CONTRASEÑA */}
-          <div className="space-y-2">
-            <Label className="text-slate-700 font-semibold text-base">
-              Contraseña
-            </Label>
-            <div className="relative">
-              <Input
-                name="password"
-                type={showPassword ? "text" : "password"}
-                placeholder="••••••••"
-                className="
-                  bg-white border-slate-300 shadow-sm text-base
-                  focus-visible:border-orange-400
-                  focus-visible:ring-2 focus-visible:ring-orange-200/70
-                  rounded-xl transition-all duration-200
-                  pr-12
-                "
-                value={form.password}
-                onChange={handleChange}
-                disabled={loading}
-              />
-
-              <button
-                type="button"
-                onClick={() => setShowPassword((prev) => !prev)}
-                className="
-                  absolute right-3 top-1/2 -translate-y-1/2
-                  text-slate-500 hover:text-slate-700
-                "
-              >
-                {showPassword ? (
-                  <Eye className="w-5 h-5" />
-                ) : (
-                  <EyeOff className="w-5 h-5" />
-                )}
-              </button>
             </div>
-          </div>
-        </div>
 
-        {/* BOTÓN ENTRAR AHORA DENTRO DEL CARD */}
-        <Button
-          onClick={handleSubmit}
-          disabled={loading}
-          className="
-            w-full py-5 rounded-xl text-lg
-            bg-gradient-to-r from-orange-400 to-orange-500
-            text-white font-semibold shadow-md hover:shadow-lg
-            active:scale-[0.97] transition-all
-          "
-        >
-          {loading ? "Ingresando..." : "Entrar"}
-        </Button>
+            {/* Title */}
+            <div className="text-center -mt-1">
+              <h1
+                className={`${manrope.className} text-2xl sm:text-3xl font-extrabold text-slate-900`}
+              >
+                Bienvenido
+              </h1>
+              <p className="text-slate-600 text-sm sm:text-base mt-1">
+                Iniciá sesión para continuar
+              </p>
+            </div>
+
+            {/* AlertMessage (errores de validación) */}
+            <AnimatePresence>
+              {alertMessage && (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.18 }}
+                >
+                  <Alert className="mb-2 bg-red-50 border border-red-200 p-3 rounded-lg">
+                    <AlertDescription className="whitespace-pre-line text-sm text-red-700 font-medium">
+                      {alertMessage}
+                    </AlertDescription>
+                  </Alert>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {/* Form */}
+            <div className="space-y-4">
+              <div>
+                <Label className="text-slate-700 text-sm font-semibold">
+                  Email
+                </Label>
+                <Input
+                  name="email"
+                  type="email"
+                  placeholder="correo@example.com"
+                  value={form.email}
+                  onChange={handleChange}
+                  disabled={loading}
+                  className="mt-1 rounded-lg"
+                />
+              </div>
+
+              <div>
+                <Label className="text-slate-700 text-sm font-semibold">
+                  Contraseña
+                </Label>
+                <div className="relative mt-1">
+                  <Input
+                    name="password"
+                    type={showPassword ? "text" : "password"}
+                    placeholder="••••••••"
+                    value={form.password}
+                    onChange={handleChange}
+                    disabled={loading}
+                    className="rounded-lg pr-10"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleTogglePassword}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-700"
+                  >
+                    {showPassword ? (
+                      <Eye className="w-5 h-5" />
+                    ) : (
+                      <EyeOff className="w-5 h-5" />
+                    )}
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Submit */}
+            <div className="pt-1">
+              <Button
+                onClick={handleSubmit}
+                disabled={loading}
+                className="w-full py-4 rounded-lg text-base bg-gradient-to-r from-orange-400 to-orange-500 text-white font-semibold shadow-sm hover:shadow-md active:scale-[0.98] transition-transform"
+              >
+                {loading ? "Ingresando..." : "Entrar"}
+              </Button>
+            </div>
+
+            {/* Divider + Socials */}
+            <div className="pt-3">
+              <div className="flex items-center gap-3">
+                <span className="flex-1 h-px bg-slate-200" />
+                <span className="text-xs text-slate-500">Seguinos en</span>
+                <span className="flex-1 h-px bg-slate-200" />
+              </div>
+
+              <div className="flex items-center justify-center gap-4 pt-3">
+                <SocialIcon
+                  href="https://instagram.com"
+                  ariaLabel="Instagram - abrir en nueva pestaña"
+                  gradient="bg-gradient-to-br from-[#F9CE34] via-[#EE2A7B] to-[#6228D7]"
+                >
+                  <Instagram className="w-6 h-6 text-white" />
+                </SocialIcon>
+
+                <SocialIcon
+                  href="https://tiktok.com"
+                  ariaLabel="TikTok - abrir en nueva pestaña"
+                  gradient="bg-black"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="w-6 h-6 text-white"
+                    viewBox="0 0 24 24"
+                    fill="currentColor"
+                  >
+                    <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1-.1z" />
+                  </svg>
+                </SocialIcon>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </motion.div>
-
-      {/* ERROR FLOTANTE */}
-      <AnimatePresence>
-        {error && (
-          <motion.div
-            initial={{ y: 100, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            exit={{ y: 100, opacity: 0 }}
-            transition={{ duration: 0.35 }}
-            className="
-            
-              fixed bottom-24 left-1/2 -translate-x-1/2 
-              w-[89%] max-w-md 
-              bg-red-100 border border-red-300 text-red-900
-              px-5 py-4 rounded-2xl shadow-lg
-              flex items-center gap-4
-            "
-          >
-            <X className="w-7 h-7 text-red-700" />
-            <p className="flex-1 text-sm">{error}</p>
-            <button
-              onClick={() => setError(null)}
-              className="text-red-700 font-bold px-2"
-            >
-              Cerrar
-            </button>
-          </motion.div>
-        )}
-      </AnimatePresence>
     </main>
   );
 }
