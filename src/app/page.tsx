@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { Manrope } from "next/font/google";
 import { toast } from "sonner";
@@ -241,7 +241,7 @@ export default function LoginPage() {
                     {/* button forgot password */}
                     <Button
                       type="button"
-                      onClick={() => router.push("/recover-password")}
+                      onClick={() => router.push("/password")}
                       className="bg-transparent text-orange-500 font-semibold p-0"
                     >
                       ¿Olvidaste la contraseña?
