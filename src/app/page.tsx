@@ -14,17 +14,7 @@ import { Input } from "@/common/components/ui/input";
 import { Label } from "@/common/components/ui/label";
 import { Alert, AlertDescription } from "@/common/components/ui/alert";
 
-import {
-  UtensilsCrossed,
-  Eye,
-  EyeOff,
-  Instagram,
-  Mail,
-  Lock,
-  Chrome,
-  Apple,
-  Loader2,
-} from "lucide-react";
+import { UtensilsCrossed, Eye, EyeOff, Instagram } from "lucide-react";
 
 const manrope = Manrope({ subsets: ["latin"] });
 
@@ -103,8 +93,10 @@ export default function LoginPage() {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     //valores del input
     const { name, value } = e.target;
+    // valores sin espacios en blanco
+    const cleanValue = value.replace(/\s+/g, "");
     //cambiar el estado del formulario
-    setForm((prev) => ({ ...prev, [name]: value }));
+    setForm((prev) => ({ ...prev, [name]: cleanValue }));
     //limpiar el mensaje de alerta
     if (alertMessage) setAlertMessage(null);
   };
@@ -176,13 +168,6 @@ export default function LoginPage() {
     transition: { duration: 0.36, ease: "easeOut" },
   };
 
-  const bannerMotion = {
-    initial: { opacity: 0, y: -12 },
-    animate: { opacity: 1, y: 0 },
-    exit: { opacity: 0, y: -12 },
-    transition: { duration: 0.32 },
-  };
-
   // ---------- Render ----------
   return (
     <main className="min-h-screen w-full flex items-center justify-center bg-gradient-to-b from-white via-[#FFF3EC] to-[#FFE6D3] px-4 py-8">
@@ -229,26 +214,42 @@ export default function LoginPage() {
 
             {/* Form */}
             <div className="space-y-4">
-              <div>
+              <div className="space-y-1">
                 <Label className="text-slate-700 text-sm font-semibold">
                   Email
                 </Label>
+                {/* Input email */}
                 <Input
                   name="email"
                   type="email"
                   placeholder="correo@example.com"
                   value={form.email}
                   onChange={handleChange}
+                  onKeyDown={(e) => {
+                    if (e.key === " ") e.preventDefault(); // bloquea la barra espaciadora
+                  }}
                   disabled={loading}
                   className="mt-1 rounded-lg"
                 />
               </div>
-
+              {/* Input password */}
               <div>
-                <Label className="text-slate-700 text-sm font-semibold">
-                  Contraseña
-                </Label>
+                <div className="flex items-center justify-between">
+                  <Label className="text-slate-700 text-sm font-semibold ">
+                    Contraseña
+                  </Label>
+                    {/* button forgot password */}
+                    <Button
+                      type="button"
+                      onClick={() => router.push("/recover-password")}
+                      className="bg-transparent text-orange-500 font-semibold p-0"
+                    >
+                      ¿Olvidaste la contraseña?
+                    </Button>
+                  
+                </div>
                 <div className="relative mt-1">
+                  {/* Input password */}
                   <Input
                     name="password"
                     type={showPassword ? "text" : "password"}
@@ -258,6 +259,7 @@ export default function LoginPage() {
                     disabled={loading}
                     className="rounded-lg pr-10"
                   />
+
                   <button
                     type="button"
                     onClick={handleTogglePassword}
