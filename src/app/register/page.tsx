@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/common/components/ui/button";
 import { X, ArrowLeft } from "lucide-react";
@@ -11,6 +11,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { Manrope } from "next/font/google";
 import { registerUser } from "@/common/utils/api";
 import { UtensilsCrossed, Eye, EyeOff } from "lucide-react";
+import { toast } from "sonner";
 
 const manrope = Manrope({ subsets: ["latin"] });
 
@@ -35,6 +36,26 @@ export default function RegisterPage() {
     if (alertMessage) setAlertMessage(null);
     if (error) setError(null);
   };
+
+  // ---------- Toast del error ----------
+  useEffect(() => {
+    if (error) {
+      toast.error(error, {
+        duration: 2000,
+        icon: null,
+        className: "error-toast-center",
+        style: {
+          background: "#ef4444",
+          color: "white",
+          fontWeight: 400,
+          borderRadius: "10px",
+          padding: "14px 16px",
+          fontSize: "16px",
+        },
+      });
+      setError(null);
+    }
+  }, [error]);
 
   const validateFields = () => {
     const errors: string[] = [];
@@ -67,12 +88,6 @@ export default function RegisterPage() {
       );
     }
 
-    if (!form.password.trim()) {
-      errors.push("La contraseña es obligatoria.");
-    } else if (form.password.length < 8 || form.password.length > 16) {
-      errors.push("La contraseña debe tener entre 8 y 16 caracteres.");
-    }
-
     if (errors.length > 0) {
       setAlertMessage(errors.join("\n"));
       return false;
@@ -96,7 +111,7 @@ export default function RegisterPage() {
         email: form.email.trim(),
         cel: form.cel.trim(),
         roleId: 2,
-        password: form.password.trim(),
+        password: "password123", // contraseña por defecto
       });
 
       router.push("/?registered=1");
@@ -135,22 +150,33 @@ export default function RegisterPage() {
         </div>
 
         <div className="text-center -mt-1">
-          <h1 className={`${manrope.className} text-3xl font-extrabold text-slate-900`}>
+          <h1
+            className={`${manrope.className} text-3xl font-extrabold text-slate-900`}
+          >
             Crear cuenta
           </h1>
-          <p className="text-slate-600 text-base mt-1">Completá tus datos para comenzar</p>
+          <p className="text-slate-600 text-base mt-1">
+            Completá tus datos para comenzar
+          </p>
         </div>
 
         {/* ALERTA */}
         <AnimatePresence>
           {alertMessage && (
-            <Alert className="mb-4 bg-red-100 border border-red-400 p-4 rounded-xl flex items-start gap-3">
-              <div>
-                <AlertDescription className="whitespace-pre-line mt-1 text-gray-600 text-sm font-semibold">
-                  {alertMessage}
-                </AlertDescription>
-              </div>
-            </Alert>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.18 }}
+            >
+              <Alert className="mb-2 bg-red-50 border border-red-200 p-3 rounded-lg flex items-start gap-3">
+                <div>
+                  <AlertDescription className="whitespace-pre-line text-sm text-red-700 font-medium">
+                    {alertMessage}
+                  </AlertDescription>
+                </div>
+              </Alert>
+            </motion.div>
           )}
         </AnimatePresence>
 
@@ -158,11 +184,13 @@ export default function RegisterPage() {
         <div className="space-y-5">
           {/* Nombre */}
           <div className="space-y-2">
-            <Label className="text-slate-700 font-semibold text-base">Nombre</Label>
+            <Label className="text-slate-700 font-semibold text-base">
+              Nombre
+            </Label>
             <Input
               name="name"
-              placeholder="Tu nombre"
-              className="bg-white border-slate-300 shadow-sm text-base focus-visible:border-orange-400 focus-visible:ring-2 focus-visible:ring-orange-200/70 rounded-xl transition-all duration-200"
+              placeholder="nombre"
+              className=""
               value={form.name}
               onChange={handleChange}
             />
@@ -170,11 +198,13 @@ export default function RegisterPage() {
 
           {/* Apellido */}
           <div className="space-y-2">
-            <Label className="text-slate-700 font-semibold text-base">Apellido</Label>
+            <Label className="text-slate-700 font-semibold text-base">
+              Apellido
+            </Label>
             <Input
               name="lastName"
-              placeholder="Tu apellido"
-              className="bg-white border-slate-300 shadow-sm text-base focus-visible:border-orange-400 focus-visible:ring-2 focus-visible:ring-orange-200/70 rounded-xl transition-all duration-200"
+              placeholder="apellido"
+              className=""
               value={form.lastName}
               onChange={handleChange}
             />
@@ -182,12 +212,14 @@ export default function RegisterPage() {
 
           {/* Email */}
           <div className="space-y-2">
-            <Label className="text-slate-700 font-semibold text-base">Email</Label>
+            <Label className="text-slate-700 font-semibold text-base">
+              Email
+            </Label>
             <Input
               name="email"
               type="email"
               placeholder="correo@example.com"
-              className="bg-white border-slate-300 shadow-sm text-base focus-visible:border-orange-400 focus-visible:ring-2 focus-visible:ring-orange-200/70 rounded-xl transition-all duration-200"
+              className=""
               value={form.email}
               onChange={handleChange}
             />
@@ -195,37 +227,16 @@ export default function RegisterPage() {
 
           {/* Celular */}
           <div className="space-y-2">
-            <Label className="text-slate-700 font-semibold text-base">Celular</Label>
+            <Label className="text-slate-700 font-semibold text-base">
+              Celular
+            </Label>
             <Input
               name="cel"
-              placeholder="Tu número"
-              className="bg-white border-slate-300 shadow-sm text-base focus-visible:border-orange-400 focus-visible:ring-2 focus-visible:ring-orange-200/70 rounded-xl transition-all duration-200"
+              placeholder="número de celular"
+              className=""
               value={form.cel}
               onChange={handleChange}
             />
-          </div>
-
-          {/* Contraseña */}
-          <div className="space-y-2">
-            <Label className="text-slate-700 font-semibold text-base">Contraseña</Label>
-            <div className="relative">
-              <Input
-                name="password"
-                type={showPassword ? "text" : "password"}
-                placeholder="••••••••"
-                className="bg-white border-slate-300 shadow-sm text-base focus-visible:border-orange-400 focus-visible:ring-2 focus-visible:ring-orange-200/70 rounded-xl transition-all duration-200 pr-12"
-                value={form.password}
-                onChange={handleChange}
-                disabled={loading}
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword((prev) => !prev)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-700"
-              >
-                {showPassword ? <Eye className="w-5 h-5" /> : <EyeOff className="w-5 h-5" />}
-              </button>
-            </div>
           </div>
         </div>
 
@@ -252,7 +263,10 @@ export default function RegisterPage() {
           >
             <X className="w-7 h-7 text-red-700" />
             <p className="flex-1 text-sm">{error}</p>
-            <button onClick={() => setError(null)} className="text-red-700 font-bold px-2">
+            <button
+              onClick={() => setError(null)}
+              className="text-red-700 font-bold px-2"
+            >
               Cerrar
             </button>
           </motion.div>

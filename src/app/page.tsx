@@ -36,6 +36,8 @@ export default function LoginPage() {
   // Error de login
   const [error, setError] = useState<string | null>(null);
 
+  
+
   // ---------- Hooks ----------
   const router = useRouter();
 
@@ -58,6 +60,39 @@ export default function LoginPage() {
       setError(null);
     }
   }, [error]);
+
+  //toast de exito
+  useEffect(() => {
+  const url = new URL(window.location.href);
+  const registered = url.searchParams.get("registered");
+
+  if (registered === "1") {
+    toast.success("Contraseña actualizada con éxito.", {
+      duration: 1400,
+      className: "success-toast-center",
+      style: {
+        background: "#22c55e",
+        color: "white",
+        fontWeight: 400,
+        borderRadius: "10px",
+        padding: "14px 16px",
+        fontSize: "16px",
+      },
+    });
+
+    // 1. Eliminamos el param
+    url.searchParams.delete("registered");
+
+    // 2. Si no quedan params, limpiamos completamente el "?"
+    const cleanUrl =
+      url.searchParams.toString().length > 0
+        ? `${url.pathname}?${url.searchParams.toString()}`
+        : url.pathname;
+
+    // 3. Reemplazamos SIN generar un re-render extra
+    router.replace(cleanUrl);
+  }
+}, []);
 
   // ---------- Validación ----------
   const validate = useCallback((values: FormState) => {
@@ -160,8 +195,6 @@ export default function LoginPage() {
     </a>
   );
 
-  
- 
   // ---------- Render ----------
   return (
     <main className="min-h-screen w-full flex items-center justify-center bg-gradient-to-b from-white via-[#FFF3EC] to-[#FFE6D3] px-4 py-8">
