@@ -15,7 +15,7 @@ import { UtensilsCrossed } from "lucide-react";
 
 const manrope = Manrope({ subsets: ["latin"] });
 
-const page = () => {
+const Page = () => {
   const router = useRouter();
 
   const [email, setEmail] = useState("");
@@ -195,4 +195,4 @@ const page = () => {
   );
 };
 
-export default page;
+export default Page;

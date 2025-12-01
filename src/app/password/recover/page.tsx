@@ -16,7 +16,7 @@ import { UtensilsCrossed, Eye, EyeOff } from "lucide-react";
 
 const manrope = Manrope({ subsets: ["latin"] });
 
-const page = () => {
+const Page = () => {
   const router = useRouter();
   const params = useSearchParams();
 
@@ -250,4 +250,4 @@ const page = () => {
   );
 };
 
-export default page;
+export default Page;
