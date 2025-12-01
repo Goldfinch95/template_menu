@@ -296,7 +296,7 @@ export default function LoginPage() {
 
               <div className="flex items-center justify-center gap-4 pt-3">
                 <SocialIcon
-                  href="https://instagram.com"
+                  href="https://www.instagram.com/flexitaim/?hl=es-la"
                   ariaLabel="Instagram - abrir en nueva pestaña"
                   gradient="bg-gradient-to-br from-[#F9CE34] via-[#EE2A7B] to-[#6228D7]"
                 >
@@ -304,7 +304,7 @@ export default function LoginPage() {
                 </SocialIcon>
 
                 <SocialIcon
-                  href="https://tiktok.com"
+                  href="https://www.tiktok.com/@flexitaim"
                   ariaLabel="TikTok - abrir en nueva pestaña"
                   gradient="bg-black"
                 >
