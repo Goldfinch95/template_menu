@@ -160,19 +160,19 @@ export default function LoginPage() {
     </a>
   );
 
-  // ---------- Animación de card ----------
-  const cardMotion = {
-    initial: { opacity: 0, y: 8 },
-    animate: { opacity: 1, y: 0 },
-    exit: { opacity: 0, y: 8 },
-    transition: { duration: 0.36, ease: "easeOut" },
-  };
-
+  
+ 
   // ---------- Render ----------
   return (
     <main className="min-h-screen w-full flex items-center justify-center bg-gradient-to-b from-white via-[#FFF3EC] to-[#FFE6D3] px-4 py-8">
       {/* Card */}
-      <motion.div {...cardMotion} className="w-full max-w-md">
+      <motion.div
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: 8 }}
+        transition={{ duration: 0.36, ease: "easeOut" }}
+        className="w-full max-w-md"
+      >
         <Card className="rounded-2xl shadow-xl border border-white/40 bg-white/85">
           <CardContent className="p-6 sm:p-7 space-y-5">
             {/* Icon */}
@@ -238,15 +238,14 @@ export default function LoginPage() {
                   <Label className="text-slate-700 text-sm font-semibold ">
                     Contraseña
                   </Label>
-                    {/* button forgot password */}
-                    <Button
-                      type="button"
-                      onClick={() => router.push("/password")}
-                      className="bg-transparent text-orange-500 font-semibold p-0"
-                    >
-                      ¿Olvidaste la contraseña?
-                    </Button>
-                  
+                  {/* button forgot password */}
+                  <Button
+                    type="button"
+                    onClick={() => router.push("/password")}
+                    className="bg-transparent text-orange-500 font-semibold p-0"
+                  >
+                    ¿Olvidaste la contraseña?
+                  </Button>
                 </div>
                 <div className="relative mt-1">
                   {/* Input password */}
