@@ -130,8 +130,8 @@ const getTenantHeaders = (): Record<string, string> => {
 export const logoutUser = (): void => {
   localStorage.removeItem("authToken");
   localStorage.removeItem("user");
-  localStorage.removeItem("subdomain"); // 👈 NUEVO
-  console.log("✅ Sesión cerrada");
+  localStorage.removeItem("subdomain"); 
+  //console.log("✅ Sesión cerrada");
 };
 
 // Obtener todos los menús

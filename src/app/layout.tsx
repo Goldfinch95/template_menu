@@ -18,7 +18,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${openSans.className} antialiased`}
+        className={`${openSans.className} antialiased `}
       >
         {children}
         <Toaster  position="top-center" />
