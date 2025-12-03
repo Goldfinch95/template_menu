@@ -23,7 +23,6 @@ import {
   ChevronUp,
   ChevronDown,
   Plus,
-  Edit2,
   Trash2,
   UtensilsCrossed,
   Pencil,
@@ -204,7 +203,6 @@ function SortableCategory({
   categoryTitles,
   handleTitleChange,
   handleEditSave,
-  savingId,
   handleDelete,
   handleDeleteItem,
   deletingItemId,
@@ -218,7 +216,6 @@ function SortableCategory({
   categoryTitles: Record<number, string>;
   handleTitleChange: (id: number, title: string) => void;
   handleEditSave: (id: number) => Promise<void>;
-  savingId: number | null;
   handleDelete: (id: number) => Promise<void>;
   handleDeleteItem: (id: number) => Promise<void>;
   deletingItemId: number | null;
