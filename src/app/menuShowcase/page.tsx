@@ -91,7 +91,7 @@ export default function Home() {
   hasShown.current = true;
 
   // Mostrar sonner
-  toast.success(`Bienvenido nuevamente!`, {
+  toast.success(`Bienvenido!`, {
     duration: 2000,
     icon: null,
     className: "success-toast-center",
