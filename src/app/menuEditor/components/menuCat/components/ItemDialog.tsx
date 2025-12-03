@@ -201,7 +201,7 @@ const ItemDialog = ({
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>{trigger}</DialogTrigger>
-      <DialogContent className="rounded-2xl max-w-md bg-white/90 backdrop-blur-xl border border-white/30 [&>button]:hidden">
+      <DialogContent className="rounded-2xl max-w-md  backdrop-blur-xl border border-white/30 [&>button]:hidden">
         <DialogHeader>
           <div className="relative flex justify-center items-center py-2 w-full">
             <DialogTitle className="text-slate-800 text-lg font-semibold">
@@ -224,31 +224,25 @@ const ItemDialog = ({
           </Alert>
         )}
         <div className="flex flex-col space-y-2">
-          <Label className="text-slate-700 text-base" htmlFor="categoryTitle">
+          <Label className="text-slate-700 text-sm font-semibold" htmlFor="categoryTitle">
             Titulo del plato
           </Label>
           <Input
             placeholder="Plato, Bebida, Postre"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            className="bg-white border-slate-300 shadow-sm text-base
-                focus-visible:border-orange-400
-                focus-visible:ring-2 focus-visible:ring-orange-200/70
-                rounded-xl transition-all duration-200"
+            className=""
           />
-          <Label className="text-slate-700 text-base" htmlFor="categoryTitle">
+          <Label className="text-slate-700 text-sm font-semibold" htmlFor="categoryTitle">
             Descripción
           </Label>
           <Input
             placeholder="Descripción"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            className="bg-white border-slate-300 shadow-sm text-base
-                focus-visible:border-orange-400
-                focus-visible:ring-2 focus-visible:ring-orange-200/70
-                rounded-xl transition-all duration-200"
+            className=""
           />
-          <Label className="text-slate-700 text-base" htmlFor="categoryTitle">
+          <Label className="text-slate-700 text-sm font-semibold" htmlFor="categoryTitle">
             Precio
           </Label>
           <Input
@@ -256,10 +250,7 @@ const ItemDialog = ({
             type="number"
             value={price}
             onChange={(e) => setPrice(e.target.value)}
-            className="bg-white border-slate-300 shadow-sm text-base
-                focus-visible:border-orange-400
-                focus-visible:ring-2 focus-visible:ring-orange-200/70
-                rounded-xl transition-all duration-200"
+            className=""
           />
         </div>
         <div className="relative w-full h-full group">
@@ -280,7 +271,9 @@ const ItemDialog = ({
                   src={previewUrl}
                   alt="Preview"
                   className="w-full h-full object-cover"
-                  layout="fill"
+                  width={500} // O el tamaño que desees
+                  height={500} // O el tamaño que desees
+                  sizes="(max-width: 600px) 100vw, 500px" // Tamaño responsivo si es necesario
                 />
                 <div className="absolute inset-0 bg-black/40 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center">
                   <span className="text-white font-medium">Cambiar imagen</span>

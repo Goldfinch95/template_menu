@@ -470,7 +470,7 @@ export const updateItem = async (
     }
 
     const updatedItem: Items = await response.json();
-    console.log(`✅ Ítem ${itemId} actualizado correctamente`);
+    //console.log(`✅ Ítem ${itemId} actualizado correctamente`);
     return updatedItem;
   } catch (error) {
     console.error("❌ Error al actualizar ítem:", error);
@@ -497,7 +497,7 @@ export const deleteItem = async (itemId: number): Promise<void> => {
       );
     }
 
-    console.log(`✅ Ítem ${itemId} eliminado correctamente.`);
+   // console.log(`✅ Ítem ${itemId} eliminado correctamente.`);
   } catch (error) {
     console.error("❌ Error al eliminar ítem:", error);
     throw error;
@@ -551,7 +551,7 @@ export const upsertItemImages = async (
     }
 
     const result = await response.json();
-    console.log(`✅ Imágenes del ítem ${itemId} actualizadas correctamente`);
+    //console.log(`✅ Imágenes del ítem ${itemId} actualizadas correctamente`);
     return result;
   } catch (error) {
     console.error("❌ Error al actualizar imágenes:", error);

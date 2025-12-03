@@ -562,14 +562,14 @@ const MenuCatPage = ({
         }
       }
 
-      console.log(
+      /*console.log(
         `🍽️ Moviendo item ${movedItem.id} desde posición ${oldIndex} a ${newIndex} con newPosition: ${newPosition}`
-      );
+      );*/
 
       try {
         await updateItem(movedItem.id, { newPosition });
         await onCategoryChange();
-        console.log(`✅ Orden de item actualizado correctamente`);
+        //console.log(`✅ Orden de item actualizado correctamente`);
       } catch {
         console.error("❌ Error al actualizar el orden de item");
         // Revertir el cambio local si falla
@@ -625,7 +625,7 @@ const MenuCatPage = ({
     try {
       await deleteItem(itemId);
       await onCategoryChange();
-      console.log(`✅ Ítem ${itemId} eliminado correctamente`);
+      //console.log(`✅ Ítem ${itemId} eliminado correctamente`);
     } catch {
       console.error("❌ Error al eliminar ítem");
       alert("Error al eliminar el plato. Revisa la consola.");
