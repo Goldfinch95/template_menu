@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams  } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
@@ -33,6 +33,8 @@ const hexToGradient = (primaryHex: string, secondaryHex: string) => ({
 export default function Home() {
   // ---------- Router ----------
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const fromLogin = searchParams.get("loginSuccess");
 
   // ---------- Estados ----------
   // Menú
@@ -66,37 +68,51 @@ export default function Home() {
   };
 
   // ---------- Efectos ----------
-  useEffect(() => {
-    // obtener usuario del localStorage
-    const userData = localStorage.getItem("user");
-
-    if (!userData) return;
-
+ useEffect(() => {
+  // 1. Obtener usuario del localStorage
+  const userData = localStorage.getItem("user");
+  if (userData) {
     try {
       const parsed = JSON.parse(userData);
       setRoleId(parsed.roleId);
-
-      if (!hasShown.current) {
-        hasShown.current = true;
-        // Mostrar toast de bienvenida al usuario
-        toast.success(`Bienvenido nuevamente!`, {
-          duration: 2000,
-          icon: null,
-          className: "success-toast-center",
-          style: {
-            background: "#22c55e",
-            color: "white",
-            fontWeight: 400,
-            borderRadius: "10px",
-            padding: "14px 16px",
-            fontSize: "16px",
-          },
-        });
-      }
-    } catch (error) {
-      console.error("Error parsing localStorage user:", error);
+    } catch (err) {
+      console.error("Error parsing localStorage user:", err);
     }
-  }, []);
+  }
+
+  // 2. Mostrar toast solo si venimos del login
+  const loginSuccess = searchParams.get("loginSuccess");
+
+  // No viene del login → no mostrar
+  if (loginSuccess !== "1") return;
+
+  // Evitar que se repita
+  if (hasShown.current) return;
+  hasShown.current = true;
+
+  // Mostrar sonner
+  toast.success(`Bienvenido nuevamente!`, {
+    duration: 2000,
+    icon: null,
+    className: "success-toast-center",
+    style: {
+      background: "#22c55e",
+      color: "white",
+      fontWeight: 400,
+      borderRadius: "10px",
+      padding: "14px 16px",
+      fontSize: "16px",
+    },
+  });
+
+  // 3. Eliminar el parámetro de la URL
+  const params = new URLSearchParams(searchParams.toString());
+  params.delete("loginSuccess");
+
+  router.replace(`?${params.toString()}`, {
+    scroll: false,
+  });
+}, [searchParams, router]);
 
   // obtener menús
   useEffect(() => {
