@@ -253,8 +253,10 @@ export const updateMenu = async (
       formData.append("userId", String(data.userId));
     }
 
-    if (data.pos !== undefined) {
-      formData.append("pos", data.pos);
+    // 🔥 SOLUCIÓN: Si pos es null o string vacío, enviar string vacío
+    // El backend lo convertirá a null con emptyToNull
+    if (data.hasOwnProperty("pos")) {
+      formData.append("pos", data.pos || "");
     }
 
     // Color (si existe, convertir a JSON string)

@@ -154,7 +154,7 @@ export default function LoginPage() {
       // llamar al API
       await loginUser(cleaned);
       // redirigir a los menús (showcase)
-      router.push("/menuShowcase?loginSuccess=1");
+      router.push("/home?fromLogin=1");
     } catch (err) {
       // mostrar error
       setError(err instanceof Error ? err.message : "Error al iniciar sesión.");

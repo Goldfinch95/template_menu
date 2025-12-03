@@ -1,28 +1,33 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import Image from "next/image";
+import { motion } from "framer-motion";
+import { cn } from "@/common/utils/utils";
+import { HexColorPicker } from "react-colorful";
+
+import { createMenu, updateMenu } from "@/common/utils/api";
+import { Menu, newMenu } from "@/interfaces/menu";
+
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTrigger,
   DialogFooter,
   DialogTitle,
 } from "@/common/components/ui/dialog";
-
-import { Input } from "@/common/components/ui/input";
-import { Label } from "@/common/components/ui/label";
-import { Button } from "@/common/components/ui/button";
-import Image from "next/image";
-import { ImageIcon, Upload, X } from "lucide-react";
-import { HexColorPicker } from "react-colorful";
-import { motion } from "framer-motion";
-import { cn } from "@/common/utils/utils";
 import { DialogClose } from "@radix-ui/react-dialog";
-import { createMenu, updateMenu } from "@/common/utils/api";
-import { Menu, newMenu } from "@/interfaces/menu";
 import { Alert, AlertDescription } from "@/common/components/ui/alert";
-import { useRouter } from "next/navigation";
+import { Label } from "@/common/components/ui/label";
+import { Input } from "@/common/components/ui/input";
+import { Button } from "@/common/components/ui/button";
+
+import { ImageIcon, Upload, X } from "lucide-react";
+
+// -----PROPS DEL COMPONENTE-----
 
 interface InfoDialogProps {
   trigger?: React.ReactNode;
@@ -33,11 +38,11 @@ interface InfoDialogProps {
   menuBackground?: string;
   menuPrimary?: string;
   menuSecondary?: string;
-  onCreated?: (newMenuId: number) => void; // 🔥 Para cuando se crea
+  onCreated?: (newMenuId: number) => void;
   onUpdated?: (menuId: number) => void;
 }
 
-const InfoDialog = ({
+export default function InfoDialog({
   trigger,
   menuId,
   menuTitle = "",
@@ -48,45 +53,49 @@ const InfoDialog = ({
   menuSecondary,
   onCreated,
   onUpdated,
-}: InfoDialogProps) => {
-  //RUTA
+}: InfoDialogProps) {
   const router = useRouter();
 
-  //estados para el titulo,direccion
+  // ---------- Estados ----------
+  // titulo del menú
   const [title, setTitle] = useState(menuTitle);
-  const [pos, setPos] = useState(menuPos);
-  //estado para los archivos logo y background
+  // ubicación / puntos de venta
+  const [pos, setPos] = useState(menuPos || "");
+  // logo
   const [logoFile, setLogoFile] = useState<File | null>(null);
+  // imagen de fondo
   const [backgroundFile, setBackgroundFile] = useState<File | null>(null);
-  //estados para mostrar el preview de logo y background
+  // preview de logo
   const [logoPreview, setLogoPreview] = useState(menuLogo || null);
+  // preview de fondo
   const [backgroundPreview, setBackgroundPreview] = useState(
     menuBackground || null
   );
-
-  // estado de los colores primario y secundario y su activacion
+  // color primario
   const [primaryColor, setPrimaryColor] = useState(menuPrimary || "#d4d4d4");
+  // color secundario
   const [secondaryColor, setSecondaryColor] = useState(
     menuSecondary || "#262626"
   );
+  // color actual del picker
+  const [color, setColor] = useState(primaryColor);
+  // input de color activo
   const [activeColorInput, setActiveColorInput] = useState<
     "primary" | "secondary"
   >("primary");
-
-  //estado de alerta
+  // mensaje de alerta / error
   const [alertMessage, setAlertMessage] = useState<string | null>(null);
 
-  // estado de color SELECCIONADO
-  const [color, setColor] = useState(primaryColor);
-
-  //Agrega refs para el alerta
-  const alertRef = useRef<HTMLDivElement>(null);
-
-  // Agregar refs para los inputs
+  // ---------- Refs ----------
+  // refs para inputs de color primario
   const primaryInputRef = useRef<HTMLInputElement>(null);
+  // refs para inputs de color secundario
   const secondaryInputRef = useRef<HTMLInputElement>(null);
+  // ref para el scroll del dialog
+  const dialogScrollRef = useRef<HTMLDivElement>(null);
 
-  // 🔥 CAMBIO 2: Actualizar los estados cuando cambien las props
+  // -----UseEffects-----
+  // inicializar / actualizar estados cuando cambian las props
   useEffect(() => {
     setTitle(menuTitle);
     setPos(menuPos);
@@ -104,16 +113,15 @@ const InfoDialog = ({
     menuSecondary,
   ]);
 
-  // Desplazarse a la alerta cuando se establece un mensaje de error
+  //  scroll al tope cuando hay un mensaje de alerta
   useEffect(() => {
-    if (alertMessage && alertRef.current) {
-      alertRef.current.scrollIntoView({
-        behavior: "smooth",
-        block: "center",
-      });
+    if (alertMessage && dialogScrollRef.current) {
+      dialogScrollRef.current.scrollTo({ top: 0, behavior: "smooth" });
     }
   }, [alertMessage]);
 
+  // -----Handlers-------
+  // Lee imágenes y genera preview
   const handleImageChange = (
     e: React.ChangeEvent<HTMLInputElement>,
     setterFile: (f: File | null) => void,
@@ -129,19 +137,16 @@ const InfoDialog = ({
     }
   };
 
-  //disparar los alert cuando faltan los campos obligatorios.
-
-  // validación y formato del input
+  // Normalizar formato HEX
   const formatHex = (value: string) => {
     if (!value.startsWith("#")) value = "#" + value;
     return value.replace(/[^#0-9A-Fa-f]/g, "").slice(0, 7);
   };
 
-  // manejo de cambios de input
+  // Maneja cambios en los inputs de color
   const handleInputChange = (type: "primary" | "secondary", value: string) => {
     const formatted = formatHex(value);
-    // ver en consola para testeo
-    //console.log(`[Input ${type}] Cambió a:`, formatted);
+
     if (type === "primary") {
       setPrimaryColor(formatted);
       setColor(formatted);
@@ -153,65 +158,82 @@ const InfoDialog = ({
     }
   };
 
-  // foco en input -> actualiza picker también
+  // Actualiza picker en foco
   const handleInputFocus = (type: "primary" | "secondary") => {
     setActiveColorInput(type);
     const selectedColor = type === "primary" ? primaryColor : secondaryColor;
     setColor(selectedColor);
   };
 
-  // click en preview -> activa picker y enfoca input
+  // Click en preview
   const handlePreviewClick = (type: "primary" | "secondary") => {
     setActiveColorInput(type);
     const selectedColor = type === "primary" ? primaryColor : secondaryColor;
     setColor(selectedColor);
+
     if (type === "primary") primaryInputRef.current?.focus();
     else secondaryInputRef.current?.focus();
   };
 
-  // cambio desde el picker
+  // Sincronización del picker
   const detectColorChange = (newColor: string) => {
     setColor(newColor);
     if (activeColorInput === "primary") setPrimaryColor(newColor);
     else setSecondaryColor(newColor);
   };
 
-  //VALIDACION DE DATOS
-  // VALIDACIÓN DE DATOS (acumulativa)
+  // ---------- Validación ----------
   const validateFields = () => {
     const errors: string[] = [];
 
-    if (title.trim().length < 3) {
+    if (title.trim().length <= 3) {
       errors.push("El título debe tener más de 3 caracteres.");
     }
 
-    if (!/^#[0-9A-Fa-f]{6}$/.test(primaryColor)) {
-      errors.push("El color primario debe ser un código HEX válido.");
+    // Validar pos solo si el usuario ingresó algo
+    const posTrimmed = pos.trim();
+    if (posTrimmed.length > 0 && posTrimmed.length <= 3) {
+      errors.push(
+        "La ubicación debe tener más de 3 caracteres o dejarse vacía."
+      );
     }
 
-    if (!/^#[0-9A-Fa-f]{6}$/.test(secondaryColor)) {
-      errors.push("El color secundario debe ser un código HEX válido.");
-    }
-
-    // Si hay errores → mostrarlos
     if (errors.length > 0) {
-      setAlertMessage(errors.join("\n")); // <-- convierte array a texto con saltos de línea
+      setAlertMessage(errors.join("\n"));
       return false;
     }
 
-    // Si pasa todas las validaciones → limpiar alerta
     setAlertMessage(null);
     return true;
   };
 
-  //subir los datos al back
+  // Función para validar si un color HEX es válido
+  const isValidHex = (value: string) => /^#[0-9A-Fa-f]{6}$/.test(value);
+
+  // ---------- Submit ----------
   const handleSubmit = async () => {
-    //console.log("🧪 menuId recibido:", menuId);
+    // Validar campos
     const isValid = validateFields();
-    // Si la validación falla, no continuamos con el submit
-    if (!isValid) return;
+    if (!isValid) {
+      // Hacer scroll al tope para mostrar el mensaje de alerta
+      if (dialogScrollRef.current) {
+        dialogScrollRef.current.scrollTo({ top: 0, behavior: "smooth" });
+      }
+      return;
+    }
+    // Validar colores y asignar valores por defecto si es necesario
+    const primary =
+      isValidHex(primaryColor.trim()) && primaryColor.trim() !== "#"
+        ? primaryColor.trim()
+        : menuPrimary || "#d4d4d4";
+
+    const secondary =
+      isValidHex(secondaryColor.trim()) && secondaryColor.trim() !== "#"
+        ? secondaryColor.trim()
+        : menuSecondary || "#262626";
+
     try {
-      // si es un menu nuevo
+      // Crear menú
       if (!menuId) {
         const payload: newMenu = {
           title: title.trim(),
@@ -220,129 +242,104 @@ const InfoDialog = ({
           logo: logoFile ?? null,
           backgroundImage: backgroundFile ?? null,
           color: {
-            primary: primaryColor.trim(),
-            secondary: secondaryColor.trim(),
+            primary: primary.trim(),
+            secondary: secondary.trim(),
           },
           categories: [],
         };
 
-        //crear BD
+        //console.log(payload);
+        // Crear menú via API
         const createdMenu = await createMenu(payload);
-        //console.log("✅ Menú creado:", createdMenu);
-
-        //notificar
-        //console.log("🔄 Notificando al padre con el nuevo ID:", createdMenu.id);
         onCreated?.(createdMenu.id);
-        router.push(`/menuShowcase?menuCreated=true`); // Pasamos el nuevo `menuId` al padre
+        // Redirigir a menus
+        router.push(`/menuShowcase?menuCreated=true`);
       }
-      // editar un menu
+
+      // Editar menú existente
       else {
         const payload: Partial<Menu> = {
-          title: title ? title.trim() : "",
+          title: title.trim(),
           pos: pos ? pos.trim() : "",
           color: {
-            primary: primaryColor.trim(),
-            secondary: secondaryColor.trim(),
+            primary: primary,
+            secondary: secondary,
           },
         };
-
-        // Logo - solo incluir si hay cambios
-        if (logoFile) {
-          payload.logo = logoFile as unknown as string;
-        } else if (menuLogo) {
-          payload.logo = menuLogo;
-        }
-
-        // Background - solo incluir si hay cambios
-        if (backgroundFile) {
+        // Adjuntar imágenes si se actualizaron
+        if (logoFile) payload.logo = logoFile as unknown as string;
+        // si no, mantener la existente
+        else if (menuLogo) payload.logo = menuLogo;
+        // adjuntar imagen de fondo si se actualizó
+        if (backgroundFile)
           payload.backgroundImage = backgroundFile as unknown as string;
-        } else if (menuBackground) {
-          payload.backgroundImage = menuBackground;
-        }
+        // si no, mantener la existente
+        else if (menuBackground) payload.backgroundImage = menuBackground;
 
-        //console.log("📤 Enviando actualización:", payload);
-        //editar BD
+        //console.log("📤 Payload enviado:", payload);
+        //console.log("📍 Valor de pos:", `"${payload.pos}"`);
+
+        // Actualizar menú via API
         await updateMenu(menuId, payload);
-        //console.log("✅ Menú actualizado:", payload);
-        //notificar
         onUpdated?.(menuId);
       }
-    } catch {
-      console.error("❌ Error al guardar");
+    } catch (err) {
+      console.error("❌ Error al guardar", err);
     }
   };
 
+  // ----- Render -----
   return (
     <Dialog>
       <DialogTrigger asChild>{trigger}</DialogTrigger>
 
-      <DialogContent className="max-w-md  max-h-[80vh] overflow-y-auto [&>button]:hidden">
-        {/* Botón de cerrar */}
-
+      <DialogContent
+        ref={dialogScrollRef}
+        className="max-w-md max-h-[80vh] overflow-y-auto [&>button]:hidden"
+      >
         <DialogHeader>
           <div className="relative flex items-center justify-center">
-            <DialogTitle className="text-xl font-semibold text-black text-center">
-              Editar información
+            <DialogTitle className="text-xl font-semibold text-black">
+              {menuId ? "Editar menú" : "Crear menú"}
             </DialogTitle>
-
-            <DialogClose className="absolute right-0 top-1/2 -translate-y-1/2 rounded-full p-2 hover:bg-white/70 transition-colors">
+            <DialogClose className="absolute right-0 top-1/2 -translate-y-1/2 p-2 rounded-full hover:bg-white/70">
               <X className="h-5 w-5 text-orange-400" />
             </DialogClose>
           </div>
+          <DialogDescription></DialogDescription>
         </DialogHeader>
 
         <div className="space-y-5 py-4">
-          {/*mostrar alertas */}
           {alertMessage && (
-            <Alert className="mb-4 bg-red-100 border border-red-400 p-4 rounded-xl flex items-start gap-3">
-              <div>
-                <AlertDescription className="whitespace-pre-line mt-1 text-gray-600 text-sm font-semibold">
-                  {alertMessage}
-                </AlertDescription>
-              </div>
+            <Alert className="bg-red-100 border border-red-400 p-4 rounded-xl">
+              <AlertDescription className="whitespace-pre-line text-gray-600 text-sm font-semibold">
+                {alertMessage}
+              </AlertDescription>
             </Alert>
           )}
+
           {/* Título */}
           <div className="flex flex-col space-y-2">
-            <Label
-              className="text-slate-600 text-sm font-medium"
-              htmlFor="title"
-            >
+            <Label className="text-slate-700 text-sm font-semibold">
               Nombre del Menú
             </Label>
-            <Input
-              id="title"
-              placeholder="Ej: La Pizzería de Mario"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              className="bg-white border-slate-300 shadow-sm text-base
-                focus-visible:border-orange-400
-                focus-visible:ring-2 focus-visible:ring-orange-200/70
-                rounded-xl transition-all duration-200"
-            />
+            <Input value={title} onChange={(e) => setTitle(e.target.value)} />
           </div>
 
           {/* POS */}
-          <div className="flex flex-col space-y-1">
-            <Label className="text-slate-600 text-sm font-medium" htmlFor="pos">
+          <div className="flex flex-col space-y-2">
+            <Label className="text-slate-700 text-sm font-semibold">
               Ubicación / Puntos de Venta
             </Label>
-            <Input
-              id="pos"
-              placeholder="Ej: Av. Principal 123, Centro"
-              value={pos}
-              onChange={(e) => setPos(e.target.value)}
-              className="bg-white border-slate-300 shadow-sm text-base
-                focus-visible:border-orange-400
-                focus-visible:ring-2 focus-visible:ring-orange-200/70
-                rounded-xl transition-all duration-200"
-            />
+            <Input value={pos} onChange={(e) => setPos(e.target.value)} />
           </div>
 
-          {/* Logo */}
-          <div className="flex flex-col justify-center space-y-2">
-            <Label className="text-slate-600 text-sm font-medium">Logo</Label>
-            <input
+          {/* LOGO */}
+
+          <div className="flex flex-col space-y-2">
+            <Label className="text-slate-700 text-sm font-semibold">Logo</Label>
+
+            <Input
               type="file"
               accept="image/*"
               id="logoInput"
@@ -351,202 +348,136 @@ const InfoDialog = ({
                 handleImageChange(e, setLogoFile, setLogoPreview)
               }
             />
-            <div className="flex flex-col justify-center items-center">
-              <Label
-                htmlFor="logoInput"
-                className={`w-24 h-24 rounded-full bg-slate-100 flex items-center justify-center overflow-hidden cursor-pointer hover:ring-2 hover:ring-orange-400 transition-all ${
-                  logoPreview
-                    ? "border-none"
-                    : "border-2 border-dashed border-slate-300"
-                }`}
-              >
-                {logoPreview ? (
-                  <Image
-                    src={logoPreview}
-                    alt="Logo preview"
-                    width={
-                      logoPreview ===
-                      "https://undevcode-menus.s3.sa-east-1.amazonaws.com/defaults/menu/default_menu.png"
-                        ? 70
-                        : 100 // Si no es la URL predeterminada, será 100
-                    }
-                    height={
-                      logoPreview ===
-                      "https://undevcode-menus.s3.sa-east-1.amazonaws.com/defaults/menu/default_menu.png"
-                        ? 70
-                        : 100 // Si no es la URL predeterminada, será 100
-                    }
-                    className={
-                      logoPreview ===
-                      "https://undevcode-menus.s3.sa-east-1.amazonaws.com/defaults/menu/default_menu.png"
-                        ? "object-contain" // Si es la URL predeterminada, usaremos object-contain
-                        : "object-cover" // Si no es la URL predeterminada, usaremos object-cover
-                    }
-                    priority
-                  />
-                ) : (
-                  <Upload className="w-6 h-6 text-slate-500" />
-                )}
-              </Label>
-              <p className="text-base text-slate-400 mt-2">
-                PNG, JPG hasta 4MB
-              </p>
-            </div>
+
+            <Label
+              htmlFor="logoInput"
+              className={cn(
+                " text-slate-700 text-sm font-semibold w-24 h-24 rounded-full bg-slate-100 flex items-center justify-center overflow-hidden cursor-pointer transition-all self-center",
+                logoPreview ? "" : "border-2 border-dashed border-slate-300"
+              )}
+            >
+              {logoPreview ? (
+                <Image
+                  src={logoPreview}
+                  alt="logo"
+                  width={100}
+                  height={100}
+                  className="object-cover"
+                />
+              ) : (
+                <Upload className="w-6 h-6 text-gray-500" />
+              )}
+            </Label>
+            <p className="text-base text-center text-slate-400 mt-2">
+              PNG, JPG hasta 4MB
+            </p>
           </div>
 
-          {/* Background */}
-          <div className="flex flex-col justify-center space-y-3">
-            <Label className="text-slate-600 text-sm font-medium">
+          {/* BACKGROUND */}
+          <div className="flex flex-col space-y-2">
+            <Label className="text-slate-700 text-sm font-semibold">
               Imagen de fondo
             </Label>
-            <input
+            <Input
               type="file"
               accept="image/*"
-              id="backgroundInput"
+              id="bgInput"
               className="hidden"
               onChange={(e) =>
                 handleImageChange(e, setBackgroundFile, setBackgroundPreview)
               }
             />
-
             <Label
-              htmlFor="backgroundInput"
-              className={`w-full h-32 bg-slate-100 rounded-xl flex items-center justify-center overflow-hidden cursor-pointer hover:ring-2 hover:ring-orange-400 transition-all ${
+              htmlFor="bgInput"
+              className={cn(
+                " text-slate-700 text-sm font-semibold w-full h-32 bg-slate-100 rounded-xl flex items-center justify-center overflow-hidden cursor-pointer transition-all",
                 backgroundPreview
-                  ? "border-none"
+                  ? ""
                   : "border-2 border-dashed border-slate-300"
-              }`}
+              )}
             >
               {backgroundPreview ? (
                 <Image
                   src={backgroundPreview}
-                  alt="Background preview"
+                  alt="background"
                   width={600}
-                  height={320}
+                  height={300}
                   className="object-cover w-full h-full"
                 />
               ) : (
-                <div className="flex items-center gap-2 text-slate-500">
+                <div className="flex items-center gap-2 text-gray-500">
                   <ImageIcon className="w-5 h-5" />
                   Subir imagen
                 </div>
               )}
             </Label>
-            <p className="flex justify-center text-base text-slate-400 mt-2">
+            <p className="text-base text-center text-slate-400 mt-2">
               PNG, JPG hasta 4MB
             </p>
           </div>
-          {/* color picker */}
-          <div className="flex flex-col justify-center space-y-1">
-            <Label className="text-slate-600 text-sm font-medium">
+
+          {/* COLOR PICKER */}
+          <div className="flex flex-col space-y-2">
+            <Label className="text-slate-700 text-sm font-semibold">
               Selector de colores
             </Label>
             <HexColorPicker
               color={color}
               onChange={detectColorChange}
-              style={{
-                width: "100%",
-                height: "220px",
-                borderRadius: "1rem",
-              }}
+              style={{ width: "100%", height: 220, borderRadius: "1rem" }}
             />
           </div>
-          {/* inputs del color picker */}
-          <div className="space-y-3">
-            <Label className="text-slate-700 text-sm font-medium">
+
+          {/* INPUT COLOR PRIMARIO */}
+          <div className="space-y-2">
+            <Label className="text-slate-700 text-sm font-semibold">
               Color Base
             </Label>
             <div className="flex items-center gap-4">
-              {/* preview del input primario con animación */}
               <motion.div
-                layoutId="color-preview-primary"
                 onClick={() => handlePreviewClick("primary")}
                 className={cn(
                   "w-10 h-10 rounded-lg border shadow-inner cursor-pointer",
-                  activeColorInput === "primary"
-                    ? "ring-2 ring-orange-400"
-                    : "border-white/50"
+                  activeColorInput === "primary" ? "ring-2 ring-orange-400" : ""
                 )}
                 style={{ backgroundColor: primaryColor }}
-                animate={{
-                  scale: activeColorInput === "primary" ? 1.1 : 1,
-                  boxShadow:
-                    activeColorInput === "primary"
-                      ? "0 0 10px rgba(251,146,60,0.4)"
-                      : "0 0 0px rgba(0,0,0,0)",
-                }}
-                transition={{
-                  type: "spring",
-                  stiffness: 300,
-                  damping: 20,
-                }}
               />
-
-              {/* input primario */}
               <Input
                 ref={primaryInputRef}
-                type="text"
                 value={primaryColor}
                 onChange={(e) => handleInputChange("primary", e.target.value)}
                 onFocus={() => handleInputFocus("primary")}
-                className="bg-white border-slate-300 shadow-sm text-base
-                focus-visible:border-orange-400
-                focus-visible:ring-2 focus-visible:ring-orange-200/70
-                rounded-xl transition-all duration-200"
-                placeholder="Color base"
               />
             </div>
           </div>
-          <div className="space-y-3">
-            <div className="flex flex-col gap-2 mt-2">
-              <Label className="text-slate-700 text-sm font-medium">
-                Color Secundario
-              </Label>
-              <div className="flex items-center gap-4">
-                {/* preview del input secundario con animación */}
-                <motion.div
-                  layoutId="color-preview-secondary"
-                  onClick={() => handlePreviewClick("secondary")}
-                  className={cn(
-                    "w-10 h-10 rounded-lg border shadow-inner cursor-pointer",
-                    activeColorInput === "secondary"
-                      ? "ring-2 ring-orange-400"
-                      : "border-white/50"
-                  )}
-                  style={{ backgroundColor: secondaryColor }}
-                  animate={{
-                    scale: activeColorInput === "secondary" ? 1.1 : 1,
-                    boxShadow:
-                      activeColorInput === "secondary"
-                        ? "0 0 10px rgba(251,146,60,0.4)"
-                        : "0 0 0px rgba(0,0,0,0)",
-                  }}
-                  transition={{
-                    type: "spring",
-                    stiffness: 300,
-                    damping: 20,
-                  }}
-                />
 
-                <Input
-                  ref={secondaryInputRef}
-                  type="text"
-                  value={secondaryColor}
-                  onChange={(e) =>
-                    handleInputChange("secondary", e.target.value)
-                  }
-                  onFocus={() => handleInputFocus("secondary")}
-                  className="bg-white border-slate-300 shadow-sm text-base
-                focus-visible:border-orange-400
-                focus-visible:ring-2 focus-visible:ring-orange-200/70
-                rounded-xl transition-all duration-200"
-                  placeholder="Color secundario"
-                />
-              </div>
+          {/* INPUT COLOR SECUNDARIO */}
+          <div className="space-y-2">
+            <Label className="text-slate-700 text-sm font-semibold">
+              Color Secundario
+            </Label>
+            <div className="flex items-center gap-4">
+              <motion.div
+                onClick={() => handlePreviewClick("secondary")}
+                className={cn(
+                  "w-10 h-10 rounded-lg border shadow-inner cursor-pointer",
+                  activeColorInput === "secondary"
+                    ? "ring-2 ring-orange-400"
+                    : ""
+                )}
+                style={{ backgroundColor: secondaryColor }}
+              />
+              <Input
+                ref={secondaryInputRef}
+                value={secondaryColor}
+                onChange={(e) => handleInputChange("secondary", e.target.value)}
+                onFocus={() => handleInputFocus("secondary")}
+              />
             </div>
           </div>
         </div>
 
+        {/* BOTÓN GUARDAR */}
         <DialogFooter>
           <Button
             className="bg-orange-500 hover:bg-orange-600"
@@ -558,6 +489,4 @@ const InfoDialog = ({
       </DialogContent>
     </Dialog>
   );
-};
-
-export default InfoDialog;
+}

@@ -113,7 +113,7 @@ const MenuInfoPage = ({ menuId, onMenuCreated }: InfoEditorProps) => {
             </h3>
 
             <p className="text-sm text-slate-500 max-w-[260px] leading-relaxed">
-              Todavía no cargaste un logo ni un título. Podés configurarlos
+              Todavía no creaste un menú. Podés empezar
               desde el botón Crear.
             </p>
 
