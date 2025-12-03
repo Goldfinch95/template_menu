@@ -343,7 +343,7 @@ export const createCategory = async (
     }
 
     const newCategory: Categories = await response.json();
-    console.log("✅ Categoría creada correctamente");
+    //console.log("✅ Categoría creada correctamente");
     return newCategory;
   } catch (error) {
     console.error("❌ Error al crear categoría:", error);
@@ -401,8 +401,8 @@ export const deleteCategory = async (categoryId: number): Promise<void> => {
       );
     }
 
-    // Opcional: Log para confirmar en el front
-    console.log(`✅ Categoría ${categoryId} eliminada correctamente.`);
+    //  Log para confirmar en el front
+    //console.log(`✅ Categoría ${categoryId} eliminada correctamente.`);
   } catch (error) {
     console.error("❌ Error al eliminar categoría:", error);
     throw error;

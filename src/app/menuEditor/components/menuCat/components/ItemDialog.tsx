@@ -8,6 +8,7 @@ import {
   DialogClose,
   DialogContent,
   DialogHeader,
+  DialogDescription,
   DialogTrigger,
   DialogFooter,
   DialogTitle,
@@ -211,6 +212,7 @@ const ItemDialog = ({
               <X className="h-5 w-5 text-orange-400" />
             </DialogClose>
           </div>
+          <DialogDescription></DialogDescription>
         </DialogHeader>
         {alertMessage && (
           <Alert className="bg-red-100 border border-red-400  p-4 rounded-xl flex items-start gap-3">

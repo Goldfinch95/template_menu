@@ -6,6 +6,7 @@ import {
   DialogContent,
   DialogClose,
   DialogHeader,
+  DialogDescription,
   DialogTrigger,
   DialogFooter,
   DialogTitle,
@@ -96,6 +97,7 @@ const CatDialog = ({ trigger, menuId, onCategoryCreated }: CatDialogProps) => {
               <X className="h-5 w-5 text-orange-400" />
             </DialogClose>
           </div>
+          <DialogDescription></DialogDescription>
         </DialogHeader>
         <div className="space-y-5 py-4">
           {alertMessage && (
@@ -108,7 +110,7 @@ const CatDialog = ({ trigger, menuId, onCategoryCreated }: CatDialogProps) => {
             </Alert>
           )}
           <div className="flex flex-col space-y-2">
-            <Label className="text-slate-700 text-base" htmlFor="categoryTitle">
+            <Label className="text-slate-700 text-sm font-semibold" htmlFor="categoryTitle">
               Título de la Categoría
             </Label>
             <Input
@@ -117,10 +119,7 @@ const CatDialog = ({ trigger, menuId, onCategoryCreated }: CatDialogProps) => {
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="Ingresa el título de la categoría"
-              className="bg-white border-slate-300 shadow-sm text-base
-                focus-visible:border-orange-400
-                focus-visible:ring-2 focus-visible:ring-orange-200/70
-                rounded-xl transition-all duration-200"
+              
             />
           </div>
         </div>
