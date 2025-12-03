@@ -216,6 +216,7 @@ function SortableCategory({
   categoryTitles: Record<number, string>;
   handleTitleChange: (id: number, title: string) => void;
   handleEditSave: (id: number) => Promise<void>;
+  savingId: number | null;
   handleDelete: (id: number) => Promise<void>;
   handleDeleteItem: (id: number) => Promise<void>;
   deletingItemId: number | null;
