@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
-import { useRouter, useSearchParams  } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
@@ -67,52 +67,78 @@ export default function Home() {
   };
 
   // ---------- Efectos ----------
- useEffect(() => {
-  // 1. Obtener usuario del localStorage
-  const userData = localStorage.getItem("user");
-  if (userData) {
-    try {
-      const parsed = JSON.parse(userData);
-      setRoleId(parsed.roleId);
-    } catch (err) {
-      console.error("Error parsing localStorage user:", err);
+  useEffect(() => {
+    // 1. Obtener usuario del localStorage
+    const userData = localStorage.getItem("user");
+    if (userData) {
+      try {
+        const parsed = JSON.parse(userData);
+        setRoleId(parsed.roleId);
+      } catch (err) {
+        console.error("Error parsing localStorage user:", err);
+      }
     }
-  }
 
-  // 2. Mostrar toast solo si venimos del login
-  const loginSuccess = searchParams.get("loginSuccess");
+    // 2. Mostrar toast solo si venimos del login
+    const loginSuccess = searchParams.get("loginSuccess");
 
-  // No viene del login → no mostrar
-  if (loginSuccess !== "1") return;
+    if (loginSuccess === "1") {
+      // Evitar que se repita
+      if (hasShown.current) return;
+      hasShown.current = true;
 
-  // Evitar que se repita
-  if (hasShown.current) return;
-  hasShown.current = true;
+      // Mostrar sonner (login éxito)
+      toast.success(`¡Bienvenido!`, {
+        duration: 2000,
+        icon: null,
+        className: "success-toast-center",
+        style: {
+          background: "#22c55e",
+          color: "white",
+          fontWeight: 400,
+          borderRadius: "10px",
+          padding: "14px 16px",
+          fontSize: "16px",
+        },
+      });
 
-  // Mostrar sonner
-  toast.success(`Bienvenido!`, {
-    duration: 2000,
-    icon: null,
-    className: "success-toast-center",
-    style: {
-      background: "#22c55e",
-      color: "white",
-      fontWeight: 400,
-      borderRadius: "10px",
-      padding: "14px 16px",
-      fontSize: "16px",
-    },
-  });
+      // Eliminar el parámetro de la URL
+      const params = new URLSearchParams(searchParams.toString());
+      params.delete("loginSuccess");
+      router.replace(`?${params.toString()}`, { scroll: false });
+    }
 
-  // 3. Eliminar el parámetro de la URL
-  const params = new URLSearchParams(searchParams.toString());
-  params.delete("loginSuccess");
+    // 3. Mostrar toast si el menú fue creado exitosamente
+    const menuCreated = searchParams.get("menuCreated");
 
-  router.replace(`?${params.toString()}`, {
-    scroll: false,
-  });
-}, [searchParams, router]);
+    if (menuCreated === "true") {
+      // Evitar que se repita
+      if (hasShown.current) return;
+      hasShown.current = true;
 
+      // Mostrar sonner (menú creado)
+      toast.success(`¡Menú creado con éxito!`, {
+        duration: 2000,
+        icon: null,
+        className: "success-toast-center",
+        style: {
+          background: "#22c55e",
+          color: "white",
+          fontWeight: 400,
+          borderRadius: "10px",
+          padding: "14px 16px",
+          fontSize: "16px",
+        },
+      });
+
+      // Eliminar el parámetro de la URL después de un pequeño retraso
+      setTimeout(() => {
+        const params = new URLSearchParams(searchParams.toString());
+        params.delete("menuCreated");
+        router.replace(`?${params.toString()}`, { scroll: false });
+      }, 2000); // Retraso de 2 segundos para que el toast se vea antes de eliminar el parámetro
+    }
+  }, [searchParams, router]);
   // obtener menús
   useEffect(() => {
     const fetchMenus = async () => {
@@ -194,10 +220,10 @@ export default function Home() {
       <section className="w-full px-5 lg:px-12">
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            whileHover={{ scale: 1.01 }}
-            whileTap={{ scale: 0.97 }}
-            transition={{ duration: 0.3 }}
+          animate={{ opacity: 1, scale: 1 }}
+          whileHover={{ scale: 1.01 }}
+          whileTap={{ scale: 0.97 }}
+          transition={{ duration: 0.3 }}
         >
           <div className="max-w-7xl mx-auto mb-6">
             <div
@@ -233,136 +259,145 @@ export default function Home() {
 
       {/* lista de menus */}
       <section className="w-full px-5 lg:px-12 flex-1">
-          <div className="max-w-7xl mx-auto">
-            <AnimatePresence>
-              {isLoading ? (
-                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6 lg:gap-8">
-                  {Array.from({ length: 6 }).map((_, i) => (
-                    <div
-                      key={i}
-                      className="rounded-3xl overflow-hidden shadow-md bg-white/10 backdrop-blur-sm p-4 sm:p-5"
-                    >
-                      <div className="flex flex-col items-center space-y-3">
-                        <Skeleton className="w-16 h-16 rounded-full" />
-                        <Skeleton className="w-24 h-4 rounded-md" />
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : menus.length === 0 ? (
-                <motion.div
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.4, ease: "easeOut" }}
-                  className="flex flex-col items-center justify-center text-center py-16 px-6 bg-white/50 backdrop-blur-md rounded-3xl shadow-inner border border-white/30"
-                >
-                  <div className="w-16 h-16 mb-4 rounded-full bg-gradient-to-br from-orange-400 to-orange-500 flex items-center justify-center shadow-md">
-                    <UtensilsCrossed className="w-8 h-8 text-white" />
-                  </div>
-
-                  <h3
-                    className={`${manrope.className} text-lg font-bold text-slate-800 mb-2`}
+        <div className="max-w-7xl mx-auto">
+          <AnimatePresence>
+            {isLoading ? (
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6 lg:gap-8">
+                {Array.from({ length: 6 }).map((_, i) => (
+                  <div
+                    key={i}
+                    className="rounded-3xl overflow-hidden shadow-md bg-white/10 backdrop-blur-sm p-4 sm:p-5"
                   >
-                    Aún no tienes menús
-                  </h3>
+                    <div className="flex flex-col items-center space-y-3">
+                      <Skeleton className="w-16 h-16 rounded-full" />
+                      <Skeleton className="w-24 h-4 rounded-md" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : menus.length === 0 ? (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4, ease: "easeOut" }}
+                className="flex flex-col items-center justify-center text-center py-16 px-6 bg-white/50 backdrop-blur-md rounded-3xl shadow-inner border border-white/30"
+              >
+                <div className="w-16 h-16 mb-4 rounded-full bg-gradient-to-br from-orange-400 to-orange-500 flex items-center justify-center shadow-md">
+                  <UtensilsCrossed className="w-8 h-8 text-white" />
+                </div>
 
-                  <p className="text-slate-500 text-sm mb-6">
-                    Crea tu primer menú digital para empezar a personalizarlo.
-                  </p>
-                </motion.div>
-              ) : (
-                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6 lg:gap-8">
-                  {menus.map((menu) => (
-                    <motion.div
-                      key={menu.id}
-                      initial={{ opacity: 0, y: 15, scale: 0.98 }}
-                      animate={{
-                        opacity: 1,
-                        y: 0,
-                        scale: 1,
-                        transition: {
-                          type: "spring",
-                          stiffness: 110,
-                          damping: 18,
-                          duration: 0.45,
-                        },
-                      }}
-                      whileHover={{ scale: 1.03 }}
-                      whileTap={{ scale: 0.96 }}
-                      className="group cursor-pointer overflow-hidden rounded-3xl bg-transparent"
-                      onClick={() => handleMenuClick(menu.id, menu.title)}
-                    >
-                      <Card className="p-0 border-0 bg-transparent">
-                        <div
-                          className="
+                <h3
+                  className={`${manrope.className} text-lg font-bold text-slate-800 mb-2`}
+                >
+                  Aún no tienes menús
+                </h3>
+
+                <p className="text-slate-500 text-sm mb-6">
+                  Crea tu primer menú digital para empezar a personalizarlo.
+                </p>
+              </motion.div>
+            ) : (
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6 lg:gap-8">
+                {menus.map((menu) => (
+                  <motion.div
+                    key={menu.id}
+                    initial={{ opacity: 0, y: 15, scale: 0.98 }}
+                    animate={{
+                      opacity: 1,
+                      y: 0,
+                      scale: 1,
+                      transition: {
+                        type: "spring",
+                        stiffness: 110,
+                        damping: 18,
+                        duration: 0.45,
+                      },
+                    }}
+                    whileHover={{ scale: 1.03 }}
+                    whileTap={{ scale: 0.96 }}
+                    className="group cursor-pointer overflow-hidden rounded-3xl bg-transparent"
+                    onClick={() => handleMenuClick(menu.id, menu.title)}
+                  >
+                    <Card className="p-0 border-0 bg-transparent">
+                      <div
+                        className="
                           relative h-36 sm:h-44 lg:h-48  /* 💡 menos altura en desktop
                           rounded-3xl p-4 sm:p-5 
                           flex flex-col justify-center items-center 
                           shadow-lg hover:shadow-xl transition
                         "
-                          style={hexToGradient(
-                            menu.color?.primary,
-                            menu.color?.secondary
-                          )}
-                        >
-                          <div className="absolute inset-0 bg-black/10 rounded-3xl" />
+                        style={hexToGradient(
+                          menu.color?.primary,
+                          menu.color?.secondary
+                        )}
+                      >
+                        <div className="absolute inset-0 bg-black/10 rounded-3xl" />
 
-                          <div className="relative z-10 flex flex-col h-full justify-between">
-                            <div className="flex-1 flex items-center justify-center">
-                              {menu.logo ? (
-                                <div className="w-16 h-16 lg:w-20 lg:h-20 rounded-full bg-white/25 backdrop-blur-sm flex items-center justify-center overflow-hidden group-hover:scale-110 transition-transform">
-                                  <Image
-                                    src={menu.logo}
-                                    alt={menu.title}
-                                    width={80}
-                                    height={80}
-                                    className="object-contain"
-                                    priority
-                                  />
-                                </div>
-                              ) : (
-                                <div className="w-14 h-14 lg:w-16 lg:h-16 rounded-full bg-white/25 backdrop-blur-sm flex items-center justify-center group-hover:scale-110 transition-transform">
-                                  <UtensilsCrossed className="w-7 h-7 lg:w-8 lg:h-8 text-white absolute group-hover:opacity-0 group-hover:scale-75" />
-                                  <ChevronRight className="w-7 h-7 lg:w-8 lg:h-8 text-white absolute opacity-0 scale-75 group-hover:opacity-100 group-hover:scale-100" />
-                                </div>
-                              )}
-                            </div>
-
-                            <h3 className="text-center font-bold text-white text-sm sm:text-base lg:text-lg leading-tight">
-                              {menu.title}
-                            </h3>
+                        <div className="relative z-10 flex flex-col h-full justify-between">
+                          <div className="flex-1 flex items-center justify-center">
+                            {menu.logo ? (
+                              <div className="w-16 h-16 lg:w-20 lg:h-20 rounded-full bg-white/25 backdrop-blur-sm flex items-center justify-center overflow-hidden group-hover:scale-110 transition-transform">
+                                <Image
+                                  src={menu.logo}
+                                  alt={menu.title}
+                                  width={
+                                    menu.logo ===
+                                    "https://undevcode-menus.s3.sa-east-1.amazonaws.com/defaults/menu/default_menu.png"
+                                      ? 50
+                                      : 80
+                                  }
+                                  height={
+                                    menu.logo ===
+                                    "https://undevcode-menus.s3.sa-east-1.amazonaws.com/defaults/menu/default_menu.png"
+                                      ? 50
+                                      : 80
+                                  }
+                                  className="object-contain"
+                                  priority
+                                />
+                              </div>
+                            ) : (
+                              <div className="w-14 h-14 lg:w-16 lg:h-16 rounded-full bg-white/25 backdrop-blur-sm flex items-center justify-center group-hover:scale-110 transition-transform">
+                                <UtensilsCrossed className="w-7 h-7 lg:w-8 lg:h-8 text-white absolute group-hover:opacity-0 group-hover:scale-75" />
+                                <ChevronRight className="w-7 h-7 lg:w-8 lg:h-8 text-white absolute opacity-0 scale-75 group-hover:opacity-100 group-hover:scale-100" />
+                              </div>
+                            )}
                           </div>
+
+                          <h3 className="text-center font-bold text-white text-sm sm:text-base lg:text-lg leading-tight">
+                            {menu.title}
+                          </h3>
                         </div>
-                      </Card>
-                    </motion.div>
-                  ))}
-                </div>
-              )}
-            </AnimatePresence>
-          </div>
-        </section>
-        {/* footer */}
-        <footer className="pt-16 pb-10 text-center">
-          <div className="text-slate-600">
-            {/* ayuda */}
-            <p className="text-sm text-slate-500 mb-4">
-              <Link
-                href="/menuShowcase/FAQ"
-                className="text-slate-600 hover:text-orange-500 transition duration-200 hover:underline"
-              >
-                ¿Necesitas ayuda?
-              </Link>
-            </p>
-            {/* contacto */}
-            <Button
-              variant="ghost"
-              className="text-orange-500 hover:text-orange-600 hover:bg-orange-50 rounded-xl px-6 py-2 transition font-medium"
+                      </div>
+                    </Card>
+                  </motion.div>
+                ))}
+              </div>
+            )}
+          </AnimatePresence>
+        </div>
+      </section>
+      {/* footer */}
+      <footer className="pt-16 pb-10 text-center">
+        <div className="text-slate-600">
+          {/* ayuda */}
+          <p className="text-sm text-slate-500 mb-4">
+            <Link
+              href="/menuShowcase/FAQ"
+              className="text-slate-600 hover:text-orange-500 transition duration-200 hover:underline"
             >
-              Contáctanos
-            </Button>
-          </div>
-        </footer>
-      
+              ¿Necesitas ayuda?
+            </Link>
+          </p>
+          {/* contacto */}
+          <Button
+            variant="ghost"
+            className="text-orange-500 hover:text-orange-600 hover:bg-orange-50 rounded-xl px-6 py-2 transition font-medium"
+          >
+            Contáctanos
+          </Button>
+        </div>
+      </footer>
     </main>
   );
 }

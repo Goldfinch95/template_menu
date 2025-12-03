@@ -182,6 +182,7 @@ const MenuInfoPage = ({ menuId, onMenuCreated }: InfoEditorProps) => {
                     ? ""
                     : "w-full h-full object-cover"
                 }`} // Si es la URL predeterminada, ajusta el tamaño; si no, ocupa todo el contenedor
+              priority
               />
             ) : (
               <BookImage className="w-8 h-8 text-slate-400" />

@@ -358,12 +358,28 @@ export default function InfoDialog({
             >
               {logoPreview ? (
                 <Image
-                  src={logoPreview}
-                  alt="logo"
-                  width={100}
-                  height={100}
-                  className="object-cover"
-                />
+                    src={logoPreview}
+                    alt="Logo preview"
+                    width={
+                      logoPreview ===
+                      "https://undevcode-menus.s3.sa-east-1.amazonaws.com/defaults/menu/default_menu.png"
+                        ? 70
+                        : 100 // Si no es la URL predeterminada, será 100
+                    }
+                    height={
+                      logoPreview ===
+                      "https://undevcode-menus.s3.sa-east-1.amazonaws.com/defaults/menu/default_menu.png"
+                        ? 70
+                        : 100 // Si no es la URL predeterminada, será 100
+                    }
+                    className={
+                      logoPreview ===
+                      "https://undevcode-menus.s3.sa-east-1.amazonaws.com/defaults/menu/default_menu.png"
+                        ? "object-contain" // Si es la URL predeterminada, usaremos object-contain
+                        : "object-cover" // Si no es la URL predeterminada, usaremos object-cover
+                    }
+                    priority
+                  />
               ) : (
                 <Upload className="w-6 h-6 text-gray-500" />
               )}
