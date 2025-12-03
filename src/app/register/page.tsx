@@ -114,7 +114,7 @@ export default function RegisterPage() {
         password: "password123", // contraseña por defecto
       });
 
-      router.push("/?registered=1");
+      router.push("/?registered=true");
     } catch (err: unknown) {
       setError(
         err instanceof Error

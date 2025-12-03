@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
-import { useRouter } from "next/navigation";
+import React, { useState, useEffect, useCallback, useRef } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { Manrope } from "next/font/google";
 import { toast } from "sonner";
@@ -24,6 +24,10 @@ type FormState = {
 };
 
 export default function LoginPage() {
+  // ---------- Hooks ----------
+  const router = useRouter();
+  const params = useSearchParams();
+
   // ---------- Estados ----------
   // Formulario
   const [form, setForm] = useState<FormState>({ email: "", password: "" });
@@ -35,11 +39,10 @@ export default function LoginPage() {
   const [alertMessage, setAlertMessage] = useState<string | null>(null);
   // Error de login
   const [error, setError] = useState<string | null>(null);
-
-  
-
-  // ---------- Hooks ----------
-  const router = useRouter();
+  // Parámetro de cuenta creada
+  const registered = params.get("registered");
+  // Ref para controlar que el toast de cuenta creada solo se muestre una vez
+  const toastShown = useRef(false);
 
   // ---------- Toast del error ----------
   useEffect(() => {
@@ -61,38 +64,33 @@ export default function LoginPage() {
     }
   }, [error]);
 
-  //toast de exito
+  // Mostrar toasts de "Cuenta creada"
   useEffect(() => {
-  const url = new URL(window.location.href);
-  const registered = url.searchParams.get("registered");
+    let shouldCleanURL = false;
 
-  if (registered === "1") {
-    toast.success("Contraseña actualizada con éxito.", {
-      duration: 1400,
-      className: "success-toast-center",
-      style: {
-        background: "#22c55e",
-        color: "white",
-        fontWeight: 400,
-        borderRadius: "10px",
-        padding: "14px 16px",
-        fontSize: "16px",
-      },
-    });
-
-    // 1. Eliminamos el param
-    url.searchParams.delete("registered");
-
-    // 2. Si no quedan params, limpiamos completamente el "?"
-    const cleanUrl =
-      url.searchParams.toString().length > 0
-        ? `${url.pathname}?${url.searchParams.toString()}`
-        : url.pathname;
-
-    // 3. Reemplazamos SIN generar un re-render extra
-    router.replace(cleanUrl);
-  }
-}, []);
+    if (registered === "true" && !toastShown.current) {
+      toastShown.current = true;
+      toast.success("Cuenta creada con éxito.", {
+        duration: 1500,
+        className: "success-toast-center",
+        style: {
+          background: "#22c55e",
+          color: "white",
+          fontWeight: 400,
+          borderRadius: "10px",
+          padding: "14px 16px",
+          fontSize: "16px",
+        },
+      });
+      shouldCleanURL = true;
+    }
+    // Limpia los parámetros de la URL para evitar repetición de toasts
+    if (shouldCleanURL) {
+      setTimeout(() => {
+        router.replace("/"); // limpia la url
+      }, 50);
+    }
+  }, [registered, router]);
 
   // ---------- Validación ----------
   const validate = useCallback((values: FormState) => {

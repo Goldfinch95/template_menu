@@ -96,7 +96,7 @@ const Page = () => {
         },
       });
 
-      setTimeout(() => router.push("/"), 1500);
+      setTimeout(() => router.push("/?password=updated"), 1500);
     } catch (err) {
       setError(
         err instanceof Error ? err.message : "Error al actualizar contraseña."
