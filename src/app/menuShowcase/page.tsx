@@ -34,7 +34,6 @@ export default function Home() {
   // ---------- Router ----------
   const router = useRouter();
   const searchParams = useSearchParams();
-  const fromLogin = searchParams.get("loginSuccess");
 
   // ---------- Estados ----------
   // Menú
