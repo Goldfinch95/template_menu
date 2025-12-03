@@ -102,31 +102,36 @@ function SortableItem({
         </div>
 
         <div className="flex items-center gap-2 overflow-hidden flex-1">
-  {previewUrl ? (
-    <div
-      style={{ backgroundImage: `url(${previewUrl})` }}
-      className="w-12 h-12 flex-shrink-0 rounded-lg border border-slate-200 bg-center bg-cover"
-    />
-  ) : (
-    <div className="w-12 h-12 flex-shrink-0 rounded-lg bg-slate-100 flex items-center justify-center">
-      <UtensilsCrossed className="w-6 h-6 text-slate-400" />
-    </div>
-  )}
+          {previewUrl ? (
+            <div
+              style={{ backgroundImage: `url(${previewUrl})` }}
+              className="w-12 h-12 flex-shrink-0 rounded-lg border border-slate-200 bg-center bg-cover"
+            />
+          ) : (
+            <div className="w-12 h-12 flex-shrink-0 rounded-lg bg-slate-100 flex items-center justify-center">
+              <UtensilsCrossed className="w-6 h-6 text-slate-400" />
+            </div>
+          )}
 
-  <div className="flex-1 min-w-0 overflow-hidden"> {/* Aseguramos que el texto no desborde */}
-    <p className="font-medium text-slate-700 text-sm truncate">
-      {item.title || "Nuevo plato"}
-    </p>
-  </div>
+          <div className="flex-1 min-w-0 overflow-hidden">
+            {" "}
+            {/* Aseguramos que el texto no desborde */}
+            <p className="font-medium text-slate-700 text-sm truncate">
+              {item.title || "Nuevo plato"}
+            </p>
+          </div>
 
-  {item.price && item.price > 0 && (
-    <div className="w-16 flex justify-center items-center">
-      <p className="text-slate-500 text-xs">
-        ${Number.isInteger(Number(item.price)) ? Number(item.price) : Number(item.price).toFixed(2)}
-      </p>
-    </div>
-  )}
-</div>
+          {item.price && item.price > 0 && (
+            <div className="w-16 flex justify-center items-center">
+              <p className="text-slate-500 text-xs">
+                $
+                {Number.isInteger(Number(item.price))
+                  ? Number(item.price)
+                  : Number(item.price).toFixed(2)}
+              </p>
+            </div>
+          )}
+        </div>
 
         <div className="flex gap-2">
           <ItemDialog
@@ -227,9 +232,7 @@ function SortableCategory({
   ) => Promise<void>;
 }) {
   // Estado local para los items de esta categoría
-  const [localItems, setLocalItems] = useState<Items[]>(
-    category.items || []
-  );
+  const [localItems, setLocalItems] = useState<Items[]>(category.items || []);
 
   // Sincronizar cuando cambien los items de la categoría
   useEffect(() => {
@@ -276,45 +279,17 @@ function SortableCategory({
             type="text"
             value={categoryTitles[category.id] ?? category.title}
             onChange={(e) => handleTitleChange(category.id, e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                handleEditSave(category.id);
+              }
+            }}
             className="flex-1 min-w-0 p-1 font-semibold text-slate-700 bg-transparent border-b border-transparent focus:border-orange-500 focus:outline-none transition-colors truncate"
           />
 
           {/* BOTONES DE ACCIÓN */}
           <div className="flex space-x-2">
-            {/* Botón Guardar/Editar */}
-            <Button
-              variant="ghost"
-              size="icon"
-              disabled={savingId === category.id}
-              onClick={() => handleEditSave(category.id)}
-              className="h-8 w-8 text-orange-500 hover:text-orange-600 relative"
-            >
-              {savingId === category.id ? (
-                <svg
-                  className="animate-spin h-4 w-4 text-orange-500"
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                >
-                  <circle
-                    className="opacity-25"
-                    cx="12"
-                    cy="12"
-                    r="10"
-                    stroke="currentColor"
-                    strokeWidth="4"
-                  ></circle>
-                  <path
-                    className="opacity-75"
-                    fill="currentColor"
-                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                  ></path>
-                </svg>
-              ) : (
-                <Edit2 className="h-4 w-4" />
-              )}
-            </Button>
-
             {/* Botón Eliminar */}
             <Dialog>
               <DialogTrigger asChild>
@@ -524,15 +499,15 @@ const MenuCatPage = ({
         }
       }
 
-      console.log(
+      /*console.log(
         `📦 Moviendo categoría ${movedCategory.id} desde posición ${oldIndex} a ${newIndex} con newPosition: ${newPosition}`
-      );
+      );*/
 
       try {
         const updateData: UpdateCategoryPosition = { newPosition };
         await updateCategory(movedCategory.id, updateData);
         await onCategoryChange();
-        console.log(`✅ Orden de categoría actualizado correctamente`);
+       // console.log(`✅ Orden de categoría actualizado correctamente`);
       } catch {
         console.error("❌ Error al actualizar el orden de categoría");
         setCategories(categories);
@@ -627,7 +602,8 @@ const MenuCatPage = ({
     try {
       await updateCategory(categoryId, { title: newTitle });
       await onCategoryChange();
-      console.log(`✅ Categoría ${categoryId} actualizada: ${newTitle}`);
+      //aqui deberia avisarle al sonner
+      //console.log(`✅ Categoría ${categoryId} actualizada: ${newTitle}`);
     } catch {
       console.error("❌ Error al guardar la edición de categoría");
       alert("Error al guardar la categoría. Revisa la consola.");

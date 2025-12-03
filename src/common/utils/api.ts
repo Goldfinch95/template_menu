@@ -374,7 +374,7 @@ export const updateCategory = async (
     } // El backend devuelve la categoría actualizada
 
     const updatedCategory: Categories = await response.json();
-    console.log(`✅ Categoría ${categoryId} actualizada correctamente`);
+    //console.log(`✅ Categoría ${categoryId} actualizada correctamente`);
     return updatedCategory;
   } catch (error) {
     console.error("❌ Error al actualizar categoría:", error);
