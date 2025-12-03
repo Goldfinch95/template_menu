@@ -10,7 +10,7 @@ import { Label } from "@/common/components/ui/label";
 import { AnimatePresence, motion } from "framer-motion";
 import { Manrope } from "next/font/google";
 import { registerUser } from "@/common/utils/api";
-import { UtensilsCrossed, Eye, EyeOff } from "lucide-react";
+import { UtensilsCrossed } from "lucide-react";
 import { toast } from "sonner";
 
 const manrope = Manrope({ subsets: ["latin"] });
