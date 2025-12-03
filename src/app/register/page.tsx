@@ -16,8 +16,17 @@ import { toast } from "sonner";
 const manrope = Manrope({ subsets: ["latin"] });
 
 export default function RegisterPage() {
+  // ---------- hooks ----------
   const router = useRouter();
 
+  // ---------- Estados ----------
+  // Cargando
+  const [loading, setLoading] = useState(false);
+  // Mensaje de alerta
+  const [alertMessage, setAlertMessage] = useState<string | null>(null);
+  // Error global
+  const [error, setError] = useState<string | null>(null);
+  // Datos del formulario
   const [form, setForm] = useState({
     name: "",
     lastName: "",
@@ -25,17 +34,6 @@ export default function RegisterPage() {
     cel: "",
     password: "",
   });
-
-  const [loading, setLoading] = useState(false);
-  const [alertMessage, setAlertMessage] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [showPassword, setShowPassword] = useState(false);
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
-    if (alertMessage) setAlertMessage(null);
-    if (error) setError(null);
-  };
 
   // ---------- Toast del error ----------
   useEffect(() => {
@@ -57,19 +55,38 @@ export default function RegisterPage() {
     }
   }, [error]);
 
+  // Capitaliza la primera letra y pone el resto en minúsculas
+  const capitalize = (str: string): string => {
+    const trimmed = str.trim();
+    if (!trimmed) return "";
+    return trimmed.charAt(0).toUpperCase() + trimmed.slice(1).toLowerCase();
+  };
+
+  // ---------- Validación ----------
   const validateFields = () => {
     const errors: string[] = [];
+
+    // Capitalizar nombre y apellido
+    form.name = capitalize(form.name);
+    form.lastName = capitalize(form.lastName);
+
+    // Regex: solo letras (incluye acentos) y espacios
+    const nameRegex = /^[A-Za-zÁÉÍÓÚáéíóúÑñ ]+$/;
 
     if (!form.name.trim()) {
       errors.push("El nombre es obligatorio.");
     } else if (form.name.trim().length < 3) {
       errors.push("El nombre debe tener al menos 3 caracteres.");
+    } else if (!nameRegex.test(form.name.trim())) {
+      errors.push("El nombre solo puede contener letras y espacios.");
     }
 
     if (!form.lastName.trim()) {
       errors.push("El apellido es obligatorio.");
     } else if (form.lastName.trim().length < 3) {
       errors.push("El apellido debe tener al menos 3 caracteres.");
+    } else if (!nameRegex.test(form.lastName.trim())) {
+      errors.push("El apellido solo puede contener letras y espacios.");
     }
 
     if (!form.email.trim()) {
@@ -97,7 +114,16 @@ export default function RegisterPage() {
     return true;
   };
 
+  // ---------- handlers ----------
+  // Cambio en los inputs
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setForm({ ...form, [e.target.name]: e.target.value });
+    if (alertMessage) setAlertMessage(null);
+    if (error) setError(null);
+  };
+  // Envío del formulario
   const handleSubmit = async () => {
+    // Validar campos
     if (!validateFields()) return;
 
     setLoading(true);
@@ -105,6 +131,7 @@ export default function RegisterPage() {
     setError(null);
 
     try {
+      // Registrar usuario
       await registerUser({
         name: form.name.trim(),
         lastName: form.lastName.trim(),
@@ -113,7 +140,7 @@ export default function RegisterPage() {
         roleId: 2,
         password: "password123", // contraseña por defecto
       });
-
+      // Redirigir al login con parámetro de cuenta creada
       router.push("/?registered=true");
     } catch (err: unknown) {
       setError(
@@ -191,6 +218,9 @@ export default function RegisterPage() {
               name="name"
               placeholder="nombre"
               className=""
+              onKeyDown={(e) => {
+                if (e.key === " ") e.preventDefault(); // bloquea la barra espaciadora
+              }}
               value={form.name}
               onChange={handleChange}
             />
@@ -205,6 +235,9 @@ export default function RegisterPage() {
               name="lastName"
               placeholder="apellido"
               className=""
+              onKeyDown={(e) => {
+                if (e.key === " ") e.preventDefault(); // bloquea la barra espaciadora
+              }}
               value={form.lastName}
               onChange={handleChange}
             />
@@ -220,6 +253,9 @@ export default function RegisterPage() {
               type="email"
               placeholder="correo@example.com"
               className=""
+              onKeyDown={(e) => {
+                if (e.key === " ") e.preventDefault(); // bloquea la barra espaciadora
+              }}
               value={form.email}
               onChange={handleChange}
             />
@@ -234,6 +270,9 @@ export default function RegisterPage() {
               name="cel"
               placeholder="número de celular"
               className=""
+              onKeyDown={(e) => {
+                if (e.key === " ") e.preventDefault(); // bloquea la barra espaciadora
+              }}
               value={form.cel}
               onChange={handleChange}
             />

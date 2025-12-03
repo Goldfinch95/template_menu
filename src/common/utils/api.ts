@@ -30,12 +30,12 @@ export const registerUser = async (data: RegisterData): Promise<User> => {
         // No incluimos TENANT_HEADER porque es un registro nuevo
       },
       body: JSON.stringify({
-        name: data.name,
-        lastName: data.lastName,
-        email: data.email,
+        name: data.name.trim(),
+        lastName: data.lastName.trim(),
+        email: data.email.trim(),
         cel: data.cel,
         roleId: data.roleId,
-        password: data.password,
+        password: data.password.trim(),
         
       }),
     });
