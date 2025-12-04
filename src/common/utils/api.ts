@@ -181,10 +181,11 @@ export const getMenuQr = async (menuId: string | number, format: string = 'png',
 
     // Obtener la imagen QR como blob
     const qrBlob = await response.blob();
+    console.log("✅ QR Blob recibido:", qrBlob);
 
     // Convertir el blob a una URL de imagen en base64
     const qrImageUrl = URL.createObjectURL(qrBlob);
-
+console.log("✅ URL del QR generada:", qrImageUrl);
     return qrImageUrl; // Devuelve la URL de la imagen QR en base64
   } catch (error) {
     console.error("❌ Error al obtener el QR del menú:", error);
