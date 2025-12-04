@@ -179,12 +179,13 @@ export const getMenuQr = async (menuId: string | number, format: string = 'png',
       throw new Error("No se pudo obtener el QR del menú");
     }
 
-    // Convertir el buffer a una URL de imagen
-    //const buffer = await response.arrayBuffer();
-    const blob = new Blob([response], { type: `image/${format}` });
-    const imageUrl = URL.createObjectURL(blob);
+    // Obtener la imagen QR como blob
+    const qrBlob = await response.blob();
 
-    return imageUrl; // Devuelve la URL que puedes usar en un <img src={imageUrl} />
+    // Convertir el blob a una URL de imagen en base64
+    const qrImageUrl = URL.createObjectURL(qrBlob);
+
+    return qrImageUrl; // Devuelve la URL de la imagen QR en base64
   } catch (error) {
     console.error("❌ Error al obtener el QR del menú:", error);
     throw error;

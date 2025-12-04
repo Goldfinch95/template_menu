@@ -104,7 +104,7 @@ const MenuEditorContent = () => {
             <div className="px-4 w-full">
               <Dialog>
                 <DialogTrigger asChild>
-                  <button className="w-full py-4 mt-8 flex items-center justify-center gap-2 bg-red-500 hover:bg-red-600 active:bg-red-700 text-white font-semibold rounded-xl transition-all duration-200 shadow-lg shadow-red-500/25">
+                  <button className="w-full py-4 mt-8 flex items-center justify-center gap-2 bg-red-500 hover:bg-red-600 active:bg-red-700 text-white font-semibold rounded-xl transition-all duration-200 shadow-lg shadow-red-500/25 max-w-sm mx-auto">
                     <Trash2 size={18} />
                     Eliminar Menú
                   </button>

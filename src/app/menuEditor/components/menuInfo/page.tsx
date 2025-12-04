@@ -136,17 +136,17 @@ const MenuInfoPage = ({ menuId, onMenuCreated }: InfoEditorProps) => {
   transition={{ duration: 0.35 }}
   className="w-full px-4"
 >
-  <Card className="bg-white/80 backdrop-blur-sm border border-slate-200/50 rounded-2xl shadow-md pt-0 w-full max-w-sm mx-auto">
-    <CardHeader className="bg-gradient-to-r from-orange-500 to-orange-600 text-white pt-6 pb-6 relative">
-      <div className="text-left">
+  <Card className="bg-white/80 backdrop-blur-sm border border-slate-200/50 rounded-2xl shadow-lg pt-0 w-full max-w-sm mx-auto">
+    <CardHeader className="bg-gradient-to-r from-orange-500 to-orange-600 text-white pt-8 pb-15 relative rounded-t-xl ">
+      <div className="text-left space-y-2">
         <p className="text-xs font-semibold uppercase tracking-wider opacity-90 mb-1">
           Información del menú
         </p>
-        <h2 className="text-3xl font-bold tracking-tight">{menu.title}</h2>
+        <h2 className="text-3xl font-extrabold tracking-tight">{menu.title}</h2>
       </div>
       {/* Círculo blanco con icono centrado */}
-      <div className="absolute -bottom-16 left-1/2 transform -translate-x-1/2">
-        <div className="w-28 h-28 bg-white rounded-full flex items-center justify-center border-4 border-white">
+      <div className="absolute -bottom-14 left-1/2 transform -translate-x-1/2">
+        <div className="w-28 h-28 bg-white rounded-full flex items-center justify-center border-4 border-white shadow-xl">
           {/* logo */}
           <div
             className={`w-28 h-28 rounded-full overflow-hidden flex items-center justify-center 
@@ -170,8 +170,8 @@ const MenuInfoPage = ({ menuId, onMenuCreated }: InfoEditorProps) => {
     </CardHeader>
     <CardContent className="pt-10 pb-6 px-6">
       {/* Botones */}
-      <div className="flex gap-4 pt-8">
-  <div className="flex flex-col w-full">
+      <div className="flex align-center justify-center gap-6 pt-8">
+  <div className="flex flex-row items-center justify-center gap-4 w-1/2">
     <InfoDialog
       menuId={currentMenuId}
       menuTitle={menu.title}
@@ -182,17 +182,15 @@ const MenuInfoPage = ({ menuId, onMenuCreated }: InfoEditorProps) => {
       menuSecondary={menu.color?.secondary}
       onUpdated={handleMenuUpdated}
       trigger={
-        <Button className="w-full flex-col  h-25 bg-orange-500 text-white py-3 rounded-xl flex items-center justify-center">
-          <Edit className="w-6 h-6" />
-          Editar
+        <Button className="w-full h-25 bg-orange-500 text-white rounded-xl flex flex-col items-center justify-center shadow-lg hover:shadow-2xl transition duration-300">
+          <Edit className="!w-8 !h-8" />
+          <span className="text-sm mt-2">Editar</span>
         </Button>
       }
     />
-  </div>
-  <div className="flex flex-col w-full">
-    <Button className=" flex-col w-full h-25 bg-blue-500 hover:bg-blue-600 text-white font-semibold rounded-xl shadow-md transition-all duration-200 hover:shadow-lg flex items-center justify-center">
-      <QrCode className="w-6 h-6" />
-      Generar QR
+    <Button className="w-full h-25 bg-blue-500 hover:bg-blue-600 text-white font-semibold rounded-xl shadow-lg transition-all duration-300 hover:shadow-2xl flex flex-col items-center justify-center">
+      <QrCode className="!w-8 !h-8" />
+      <span className="text-sm mt-2">Generar QR</span>
     </Button>
   </div>
 </div>
