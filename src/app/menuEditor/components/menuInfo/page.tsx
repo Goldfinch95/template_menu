@@ -1,9 +1,9 @@
 "use client";
 
 import React, { useEffect, useState, useCallback } from "react";
-import { Card } from "@/common/components/ui/card";
+import { Card, CardHeader, CardContent } from "@/common/components/ui/card";
 import Image from "next/image";
-import { BookImage } from "lucide-react";
+import { BookImage, Edit, QrCode } from "lucide-react";
 import { Spinner } from "@/common/components/ui/spinner";
 import { Button } from "@/common/components/ui/button";
 import { motion } from "framer-motion";
@@ -46,9 +46,7 @@ const MenuInfoPage = ({ menuId, onMenuCreated }: InfoEditorProps) => {
     setLoading(true);
     //si hay menu
     try {
-      const [menuData] = await Promise.all([
-        getMenu(id),
-      ]);
+      const [menuData] = await Promise.all([getMenu(id)]);
       //console.log("📥 Menú cargado:", menuData);
       setMenu(menuData);
       setIsEmpty(false);
@@ -113,8 +111,7 @@ const MenuInfoPage = ({ menuId, onMenuCreated }: InfoEditorProps) => {
             </h3>
 
             <p className="text-sm text-slate-500 max-w-[260px] leading-relaxed">
-              Todavía no creaste un menú. Podés empezar
-              desde el botón Crear.
+              Todavía no creaste un menú. Podés empezar desde el botón Crear.
             </p>
 
             <InfoDialog
@@ -134,80 +131,76 @@ const MenuInfoPage = ({ menuId, onMenuCreated }: InfoEditorProps) => {
   // renderizado NORMAL
   return (
     <motion.div
-      initial={{ opacity: 0, y: 12 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.35 }}
-      className="w-full px-4"
-    >
-      <Card className="bg-white/80 backdrop-blur-sm border border-slate-200/50 rounded-2xl shadow-md p-6 w-full max-w-sm mx-auto">
-        <div className="text-center mb-4">
-          <p className="text-sm font-medium text-slate-500 uppercase tracking-wider mb-2">
-            Información del menú
-          </p>
-          <h2 className="text-2xl font-bold text-slate-800 tracking-tight">
-            {menu.title}
-          </h2>
-        </div>
-
-        {/* Logo */}
-        <div className="flex flex-col items-center space-y-4 mb-3">
+  initial={{ opacity: 0, y: 12 }}
+  animate={{ opacity: 1, y: 0 }}
+  transition={{ duration: 0.35 }}
+  className="w-full px-4"
+>
+  <Card className="bg-white/80 backdrop-blur-sm border border-slate-200/50 rounded-2xl shadow-md pt-0 w-full max-w-sm mx-auto">
+    <CardHeader className="bg-gradient-to-r from-orange-500 to-orange-600 text-white pt-6 pb-6 relative">
+      <div className="text-left">
+        <p className="text-xs font-semibold uppercase tracking-wider opacity-90 mb-1">
+          Información del menú
+        </p>
+        <h2 className="text-3xl font-bold tracking-tight">{menu.title}</h2>
+      </div>
+      {/* Círculo blanco con icono centrado */}
+      <div className="absolute -bottom-16 left-1/2 transform -translate-x-1/2">
+        <div className="w-28 h-28 bg-white rounded-full flex items-center justify-center border-4 border-white">
+          {/* logo */}
           <div
-            className={`w-32 h-32 rounded-full overflow-hidden flex items-center justify-center 
-              transition-all duration-300 transform
-              ${
-                menu.logo
-                  ? "ring-4 ring-slate-200 shadow-xl"
-                  : "border-4 border-dashed border-slate-300 bg-slate-50 shadow-lg"
-              }`}
+            className={`w-28 h-28 rounded-full overflow-hidden flex items-center justify-center 
+              ${menu.logo ? "ring-2 ring-slate-200" : "border-2 border-dashed border-slate-300"}`}
           >
             {menu.logo ? (
               <Image
                 src={menu.logo}
                 alt="Logo preview"
-                width={
-                  menu.logo ===
-                  "https://undevcode-menus.s3.sa-east-1.amazonaws.com/defaults/menu/default_menu.png"
-                    ? 90
-                    : 100
-                } // Se ajusta solo cuando es la URL predeterminada
-                height={
-                  menu.logo ===
-                  "https://undevcode-menus.s3.sa-east-1.amazonaws.com/defaults/menu/default_menu.png"
-                    ? 90
-                    : 100
-                } // Se ajusta solo cuando es la URL predeterminada
-                className={`object-cover ${
-                  menu.logo ===
-                  "https://undevcode-menus.s3.sa-east-1.amazonaws.com/defaults/menu/default_menu.png"
-                    ? ""
-                    : "w-full h-full object-cover"
-                }`} // Si es la URL predeterminada, ajusta el tamaño; si no, ocupa todo el contenedor
-              priority
+                width={80}
+                height={80}
+                className="object-cover"
+                priority
               />
             ) : (
-              <BookImage className="w-8 h-8 text-slate-400" />
+              <BookImage className="w-12 h-12 text-slate-400" />
             )}
           </div>
         </div>
-        {/* Botón Editar */}
-        <InfoDialog
-          menuId={currentMenuId}
-          menuTitle={menu.title}
-          menuPos={menu.pos}
-          menuLogo={menu.logo}
-          menuBackground={menu.backgroundImage}
-          menuPrimary={menu.color?.primary}
-          menuSecondary={menu.color?.secondary}
-          onUpdated={handleMenuUpdated}
-          trigger={
-            <Button className="w-full mt-3 bg-orange-500 text-white py-6 rounded-xl">
-              Editar
-            </Button>
-          }
-        />
-      </Card>
-    </motion.div>
+      </div>
+    </CardHeader>
+    <CardContent className="pt-10 pb-6 px-6">
+      {/* Botones */}
+      <div className="flex gap-4 pt-8">
+  <div className="flex flex-col w-full">
+    <InfoDialog
+      menuId={currentMenuId}
+      menuTitle={menu.title}
+      menuPos={menu.pos}
+      menuLogo={menu.logo}
+      menuBackground={menu.backgroundImage}
+      menuPrimary={menu.color?.primary}
+      menuSecondary={menu.color?.secondary}
+      onUpdated={handleMenuUpdated}
+      trigger={
+        <Button className="w-full flex-col  h-25 bg-orange-500 text-white py-3 rounded-xl flex items-center justify-center">
+          <Edit className="w-6 h-6" />
+          Editar
+        </Button>
+      }
+    />
+  </div>
+  <div className="flex flex-col w-full">
+    <Button className=" flex-col w-full h-25 bg-blue-500 hover:bg-blue-600 text-white font-semibold rounded-xl shadow-md transition-all duration-200 hover:shadow-lg flex items-center justify-center">
+      <QrCode className="w-6 h-6" />
+      Generar QR
+    </Button>
+  </div>
+</div>
+    </CardContent>
+  </Card>
+</motion.div>
   );
 };
 
 export default MenuInfoPage;
+

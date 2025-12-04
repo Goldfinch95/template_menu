@@ -13,12 +13,11 @@ import {
   UpdateItemPosition
 } from "@/interfaces/menu";
 
-const USERS_BASE_URL = "http://localhost:3000/api/users";
-const BASE_URL = "http://localhost:3000/api/menus";
-const CATEGORIES_BASE_URL = "http://localhost:3000/api/categories";
-const ITEM_BASE_URL = "http://localhost:3000/api/items";
-const IMAGES_BASE_URL = "http://localhost:3000/api/images";
-
+const USERS_BASE_URL = "https://proyecto-menu-dzfw.onrender.com/api/users";
+const BASE_URL = "https://proyecto-menu-dzfw.onrender.com/api/menus";
+const CATEGORIES_BASE_URL = "https://proyecto-menu-dzfw.onrender.com/api/categories";
+const ITEM_BASE_URL = "https://proyecto-menu-dzfw.onrender.com/api/items";
+const IMAGES_BASE_URL = "https://proyecto-menu-dzfw.onrender.com/api/images";
 
 //registrarse
 export const registerUser = async (data: RegisterData): Promise<User> => {
@@ -63,7 +62,7 @@ export const registerUser = async (data: RegisterData): Promise<User> => {
 //logearse
 export const loginUser = async (data: LoginData): Promise<LoginResponse> => {
   try {
-    const response = await fetch(`http://localhost:3000/api/auth/login`, {
+    const response = await fetch(`https://proyecto-menu-dzfw.onrender.com/api/auth/login`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -161,6 +160,38 @@ export const getMenus = async (): Promise<Menu[]> => {
     throw error;
   }
 };
+
+
+
+
+// Obtener el QR de un menú
+export const getMenuQr = async (menuId: string | number, format: string = 'png', size: number = 300): Promise<string> => {
+  try {
+    const response = await fetch(`${BASE_URL}/${menuId}/qr?format=${format}&size=${size}`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        ...getTenantHeaders(),
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error("No se pudo obtener el QR del menú");
+    }
+
+    // Convertir el buffer a una URL de imagen
+    //const buffer = await response.arrayBuffer();
+    const blob = new Blob([response], { type: `image/${format}` });
+    const imageUrl = URL.createObjectURL(blob);
+
+    return imageUrl; // Devuelve la URL que puedes usar en un <img src={imageUrl} />
+  } catch (error) {
+    console.error("❌ Error al obtener el QR del menú:", error);
+    throw error;
+  }
+};
+
+
 
 //CRUD MENÚ
 

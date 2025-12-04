@@ -60,7 +60,7 @@ export default function InfoDialog({
   // titulo del menú
   const [title, setTitle] = useState(menuTitle);
   // ubicación / puntos de venta
-  const [pos, setPos] = useState(menuPos || "");
+  const [pos, setPos] = useState(menuPos ?? "");
   // logo
   const [logoFile, setLogoFile] = useState<File | null>(null);
   // imagen de fondo
@@ -98,7 +98,7 @@ export default function InfoDialog({
   // inicializar / actualizar estados cuando cambian las props
   useEffect(() => {
     setTitle(menuTitle);
-    setPos(menuPos);
+    setPos(menuPos ?? "");
     setLogoPreview(menuLogo || null);
     setBackgroundPreview(menuBackground || null);
     setPrimaryColor(menuPrimary || "#d4d4d4");
