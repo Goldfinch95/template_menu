@@ -1,28 +1,66 @@
 "use client";
 
-import React, { useState, useEffect, useRef, Suspense } from "react";
-import { useSearchParams } from "next/navigation";
+import React, { useState, useEffect, useRef, Suspense, useMemo } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
 import FoodMenuItem from "@/app/components/FoodMenuItem";
 import type { Menu, Categories } from "@/interfaces/menu";
 import { getMenu } from "@/common/utils/api";
 import Image from "next/image";
+import { Button } from "@/common/components/ui/button";
+import { Badge } from "@/common/components/ui/badge";
+import { Card, CardContent } from "@/common/components/ui/card";
+import { Separator } from "@/common/components/ui/separator";
+import { ArrowLeft } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import ItemCardDialog from "@/app/menu/itemCardDialog.tsx/page";
 
-// Componente interno que usa useSearchParams
+/* --------------------------------------------------
+   🔍 Detecta luminancia y determina si el color
+   es claro u oscuro
+-------------------------------------------------- */
+function getLuminance(color: string): number {
+  let r, g, b;
+
+  if (color.startsWith("#")) {
+    const hex = color.replace("#", "");
+    const bigint = parseInt(
+      hex.length === 3
+        ? hex
+            .split("")
+            .map((x) => x + x)
+            .join("")
+        : hex,
+      16
+    );
+    r = (bigint >> 16) & 255;
+    g = (bigint >> 8) & 255;
+    b = bigint & 255;
+  } else if (color.startsWith("rgb")) {
+    const values = color.match(/\d+/g);
+    if (!values) return 255;
+    [r, g, b] = values.map(Number);
+  } else {
+    return 255;
+  }
+
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+}
+
 function MenuContent() {
-  //Estado para el menu
   const [menu, setMenu] = useState<Menu>({} as Menu);
-  // Estado para las categorias
   const [categories, setCategories] = useState<Categories[]>([]);
-  //obtener el id
+  const [selectedItem, setSelectedItem] = useState<any | null>(null);
   const searchParams = useSearchParams();
   const menuId = searchParams.get("id");
+  const router = useRouter();
 
-  //estados para el scroll
   const [activeCategory, setActiveCategory] = useState(1);
   const [isScrolling, setIsScrolling] = useState(false);
   const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  // GET de categorías
+  /* --------------------------------------------------
+     📌 Cargar menú
+  -------------------------------------------------- */
   useEffect(() => {
     if (!menuId) return;
 
@@ -30,43 +68,78 @@ function MenuContent() {
       try {
         const menuData = await getMenu(menuId);
         setMenu(menuData);
-        setCategories(menuData.categories);
+
+        const sortedCategories = [...menuData.categories].sort(
+          (a, b) => a.position - b.position
+        );
+        setCategories(sortedCategories);
       } catch (error) {
         console.error("❌ Error al cargar el menú:", error);
       }
     };
+
     loadMenu();
   }, [menuId]);
 
+  /* --------------------------------------------------
+     📌 Detectar color claro/oscuro
+  -------------------------------------------------- */
+  const isDark = useMemo(() => {
+    if (!menu.color?.primary) return false;
+    return getLuminance(menu.color.primary) < 140;
+  }, [menu.color?.primary]);
+
+  /* --------------------------------------------------
+     🎨 Card con colores dinámicos
+  -------------------------------------------------- */
+  const cardClass = isDark
+    ? `
+        rounded-3xl
+        bg-white/15
+        backdrop-blur-xl
+        border border-white/20
+        shadow-[0_8px_30px_rgba(0,0,0,0.3)]
+        hover:bg-white/25
+        transition-all
+      `
+    : `
+        rounded-3xl
+        bg-black/10
+        backdrop-blur-xl
+        border border-black/20
+        shadow-[0_8px_30px_rgba(0,0,0,0.12)]
+        hover:bg-black/15
+        transition-all
+      `;
+
+  /* --------------------------------------------------
+     📌 Sincronizar navbar con el scroll
+  -------------------------------------------------- */
   useEffect(() => {
     if (categories.length === 0) return;
 
     const handleScroll = () => {
-      // Si estamos haciendo scroll programático, no actualizar la categoría activa
       if (isScrolling) return;
 
       const categoryIds = categories.map((cat) => cat.id);
-      const navHeight = 80;
+      const navHeight = 120;
 
-      // Verificar si estamos exactamente al final de la página (no puede hacer más scroll)
       const isAtBottom =
         Math.ceil(window.innerHeight + window.scrollY) >=
         document.documentElement.scrollHeight;
 
       if (isAtBottom) {
-        // Si estamos al final, activar la última categoría
         setActiveCategory(categoryIds[categoryIds.length - 1]);
         return;
       }
 
-      // Recorrer en orden inverso para priorizar categorías más abajo
       for (let i = categoryIds.length - 1; i >= 0; i--) {
         const categoryId = categoryIds[i];
         const element = document.getElementById(categoryId.toString());
+
         if (element) {
           const rect = element.getBoundingClientRect();
-          // Si el título de la categoría está visible en el área superior
-          if (rect.top <= navHeight + 10) {
+          if (rect.top <= navHeight + 12) {
             setActiveCategory(categoryId);
             break;
           }
@@ -75,23 +148,25 @@ function MenuContent() {
     };
 
     window.addEventListener("scroll", handleScroll);
+
     return () => window.removeEventListener("scroll", handleScroll);
   }, [categories, isScrolling]);
 
+  /* --------------------------------------------------
+     📌 Scroll suave a categoría
+  -------------------------------------------------- */
   const scrollToCategory = (categoryId: number) => {
     setActiveCategory(categoryId);
     setIsScrolling(true);
 
-    // Limpiar timeout anterior si existe
-    if (scrollTimeoutRef.current) {
-      clearTimeout(scrollTimeoutRef.current);
-    }
+    if (scrollTimeoutRef.current) clearTimeout(scrollTimeoutRef.current);
 
     const element = document.getElementById(categoryId.toString());
     if (element) {
-      const navHeight = 80;
+      const navHeight = 120;
       const elementPosition =
         element.getBoundingClientRect().top + window.pageYOffset;
+
       const offsetPosition = elementPosition - navHeight;
 
       window.scrollTo({
@@ -99,132 +174,192 @@ function MenuContent() {
         behavior: "smooth",
       });
 
-      // Esperar a que termine la animación de scroll (aprox 800ms para estar seguros)
       scrollTimeoutRef.current = setTimeout(() => {
         setIsScrolling(false);
-        // Forzar una actualización de la categoría activa después del scroll
-        const categoryIds = categories.map((cat) => cat.id);
-        const navHeight = 80;
-
-        // Verificar si estamos exactamente al final de la página
-        const isAtBottom =
-          Math.ceil(window.innerHeight + window.scrollY) >=
-          document.documentElement.scrollHeight - 5;
-
-        if (isAtBottom) {
-          setActiveCategory(categoryIds[categoryIds.length - 1]);
-        } else {
-          // Encontrar qué categoría está actualmente visible
-          for (let i = categoryIds.length - 1; i >= 0; i--) {
-            const catId = categoryIds[i];
-            const el = document.getElementById(catId.toString());
-            if (el) {
-              const rect = el.getBoundingClientRect();
-              if (rect.top <= navHeight + 10) {
-                setActiveCategory(catId);
-                break;
-              }
-            }
-          }
-        }
-      }, 800);
+      }, 700);
     }
   };
 
+  /* --------------------------------------------------
+     📌 RENDER MENU PAGE
+  -------------------------------------------------- */
   return (
-    <div className="min-h-screen">
-      {/* Header del menú con imagen de fondo */}
-      <header className="relative h-72 overflow-hidden">
+    <div className="min-h-screen bg-background flex flex-col">
+      {/* NAVBAR */}
+      <motion.div
+        initial={{ opacity: 0, y: -15 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.35 }}
+        className="fixed top-0 left-0 right-0 z-50 backdrop-blur-md bg-background/70"
+      >
+        <div className="max-w-xl mx-auto px-4 py-2 flex items-center justify-start">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="rounded-xl hover:bg-accent"
+            onClick={() => router.push(`/menuEditor?id=${menuId}`)}
+          >
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
+        </div>
+      </motion.div>
+
+      {/* HEADER */}
+      <header className="relative h-64 w-full mt-14">
         <div
           className="absolute inset-0 bg-cover bg-center"
-          style={{
-            backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.6)), url(${menu.backgroundImage})`,
-          }}
+          style={
+            menu.backgroundImage
+              ? {
+                  backgroundImage: `linear-gradient(to bottom, rgba(0,0,0,0.55), rgba(0,0,0,0.55)), url(${menu.backgroundImage})`,
+                }
+              : { backgroundColor: menu.color?.primary }
+          }
         />
-        {/* Contenido del header */}
-        <div className="relative h-full flex flex-col items-center justify-center px-6">
-          <div className="w-28 h-28 mb-4  rounded-3xl flex items-center justify-center shadow-2xl overflow-hidden ">
-            <Image
-              src={menu.logo}
-              alt="Logo"
-              width={112}
-              height={112}
-              className="w-full h-full object-cover"
-            />
-          </div>
-          <div>
-            <h1 className="text-white text-4xl font-bold text-center drop-shadow-lg mb-2">
-              {menu.title}
-            </h1>
-            <h2 className="text-white text-lg">{menu.pos}</h2>
-          </div>
+
+        <div className="relative flex flex-col items-center justify-center text-center h-full max-w-xl mx-auto px-4">
+          {menu.logo && (
+            <Card className="p-2 w-28 h-28 flex items-center justify-center rounded-2xl shadow-xl overflow-hidden  bg-transparent border-0 mb-3">
+              <Image
+                src={menu.logo}
+                alt="Logo"
+                width={50} // tamaño original alto/resolución
+                height={50}
+                className="object-cover w-full h-full"
+              />
+            </Card>
+          )}
+
+          <h1 className="text-white text-3xl font-semibold drop-shadow-lg">
+            {menu.title}
+          </h1>
+
+          <p className="text-white/90 text-md mt-1">{menu.pos}</p>
         </div>
       </header>
-      <div className="pb-8 min-h-screen" style={{
-            backgroundColor: menu.color?.primary || "rgba(255,255,255,0.95)",
-          }}>
-        {/* Category Navigation */}
-        <nav
-          className="flex justify-center sticky top-0 z-10 shadow-md"
-          style={{
-            backgroundColor: menu.color?.primary || "rgba(255,255,255,0.95)",
-          }}
+
+      {/* CATEGORY NAV */}
+      <div
+        className="sticky top-12 z-40 bg-background/95 backdrop-blur-md "
+        style={{
+          backgroundColor: menu.color?.primary,
+        }}
+      >
+        <div
+          className={`
+            max-w-xl mx-auto px-3 py-3 flex gap-2 scrollbar-hide 
+            ${
+              categories.length <= 4
+                ? "justify-center overflow-visible"
+                : "overflow-x-auto justify-start"
+            }
+          `}
         >
-          <div className="max-w-2xl mx-auto px-2 py-3">
-            <div className="flex gap-1.5 overflow-x-auto scrollbar-hide">
-              {categories.map((category) => (
-                <button
-                  key={category.id}
-                  onClick={() => scrollToCategory(category.id)}
-                  className={`flex-shrink-0 px-3 py-2 rounded-lg text-base font-semibold transition-all whitespace-nowrap ${
-                    activeCategory === category.id
-                      ? "bg-slate-600 text-white"
-                      : "bg-gray-800 text-gray-400 hover:bg-gray-700"
-                  }`}
-                >
-                  {category.title}
-                </button>
-              ))}
-            </div>
-          </div>
-        </nav>
-        <div className=" px-4 py-6" >
-          {/* Menu Content */}
-          <main className="space-y-4 ">
-            {categories.map((category) => (
-              <section key={category.id} id={category.id.toString()}>
-                <h2 className="text-xl text-black font-bold mb-4 ">
-                  {category.title}
-                </h2>
-                <div className="space-y-4 ">
-                  {category.items && category.items.length > 0 ? (
-                    category.items.map((item) => (
-                      <div key={item.id} className="space-y-4">
-                        <FoodMenuItem key={item.id} {...item} />
-                      </div>
-                    ))
-                  ) : (
-                    <p className="text-gray-400 text-sm">
-                      No hay items en esta categoría
-                    </p>
-                  )}
-                </div>
-              </section>
-            ))}
-          </main>
+          {categories.map((cat) => {
+            const isActive = activeCategory === cat.id;
+
+            // Color de fondo de la categoría activa
+            const activeBg = menu.color?.secondary || "#000";
+            // Determinar si el texto debe ser claro u oscuro según luminancia
+            const textColor =
+              getLuminance(activeBg) < 140 ? "text-white" : "text-black";
+
+            return (
+              <Badge
+                key={cat.id}
+                onClick={() => scrollToCategory(cat.id)}
+                className={`
+        px-4 py-2 rounded-full cursor-pointer transition-all whitespace-nowrap
+        ${
+          isActive
+            ? `shadow-lg ${textColor}`
+            : "bg-accent text-accent-foreground hover:bg-accent/80"
+        }
+      `}
+                style={isActive ? { backgroundColor: activeBg } : {}}
+              >
+                {cat.title}
+              </Badge>
+            );
+          })}
         </div>
       </div>
+
+      {/* CONTENT */}
+      <div
+        className="flex-grow pb-20"
+        style={{
+          backgroundColor: menu.color?.primary,
+        }}
+      >
+        <main className="max-w-xl mx-auto px-4 py-6 space-y-8">
+          {categories.map((category) => {
+            const sortedItems = category.items
+              ? [...category.items].sort((a, b) => a.position - b.position)
+              : [];
+
+            return (
+              <section key={category.id} id={category.id.toString()}>
+                <div className="mb-4">
+                  <h2
+                    className="text-xl font-semibold text-foreground"
+                    style={{ color: menu.color?.secondary }}
+                  >
+                    {category.title}
+                  </h2>
+                  <Separator className="mt-2" />
+                </div>
+
+                <div className="space-y-4">
+                  <AnimatePresence>
+                    {sortedItems.map((item) => (
+                      <motion.div
+                        key={item.id}
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }}
+                        transition={{ duration: 0.25 }}
+                      >
+                        {/* Card clickeable */}
+                        <Card
+                          className={cardClass + " cursor-pointer"}
+                          onClick={() => setSelectedItem(item)}
+                        >
+                          <CardContent className="p-4">
+                            <FoodMenuItem
+                              {...item}
+                              primaryColor={menu.color?.primary}
+                            />
+                          </CardContent>
+                        </Card>
+                      </motion.div>
+                    ))}
+                  </AnimatePresence>
+                </div>
+              </section>
+            );
+          })}
+        </main>
+      </div>
+      {selectedItem && (
+      <ItemCardDialog
+        item={selectedItem}
+        onClose={() => setSelectedItem(null)}
+      />
+    )}
     </div>
+    
   );
 }
 
-// Componente principal con Suspense
+
+
 export default function Menupage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen bg-gradient-to-br from-gray-800 via-gray-900 to-black flex items-center justify-center">
-          <div className="text-white text-xl">Cargando menú...</div>
+        <div className="min-h-screen flex items-center justify-center bg-background">
+          <p className="text-lg text-muted-foreground">Cargando menú...</p>
         </div>
       }
     >
