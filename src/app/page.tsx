@@ -8,11 +8,12 @@ import { toast } from "sonner";
 
 import { loginUser } from "@/common/utils/api";
 
-import { Card, CardContent } from "@/common/components/ui/card";
-import { Button } from "@/common/components/ui/button";
-import { Input } from "@/common/components/ui/input";
-import { Label } from "@/common/components/ui/label";
 import { Alert, AlertDescription } from "@/common/components/ui/alert";
+import { Button } from "@/common/components/ui/button";
+import { Card, CardContent } from "@/common/components/ui/card";
+import { Label } from "@/common/components/ui/label";
+import { Input } from "@/common/components/ui/input";
+import { Spinner } from "@/common/components/ui/spinner";
 
 import { UtensilsCrossed, Eye, EyeOff, Instagram } from "lucide-react";
 
@@ -24,27 +25,50 @@ type FormState = {
 };
 
 export default function LoginPage() {
-  // ---------- Hooks ----------
   const router = useRouter();
   const params = useSearchParams();
 
-  // ---------- Estados ----------
-  // Formulario
   const [form, setForm] = useState<FormState>({ email: "", password: "" });
-  // Carga
   const [loading, setLoading] = useState(false);
-  // Mostrar/ocultar contraseña
+
   const [showPassword, setShowPassword] = useState(false);
-  // Mensaje de alerta (errores de validación)
   const [alertMessage, setAlertMessage] = useState<string | null>(null);
-  // Error de login
   const [error, setError] = useState<string | null>(null);
-  // Parámetro de cuenta creada
+
   const registered = params.get("registered");
-  // Ref para controlar que el toast de cuenta creada solo se muestre una vez
   const toastShown = useRef(false);
 
-  // ---------- Toast del error ----------
+  // ---------------- CANCEL BUTTON ----------------
+  const [showCancel, setShowCancel] = useState(false);
+
+  useEffect(() => {
+    if (loading) {
+      const timer = setTimeout(() => setShowCancel(true), 2500);
+      return () => clearTimeout(timer);
+    } else {
+      setShowCancel(false);
+    }
+  }, [loading]);
+
+  const handleCancel = () => {
+    setLoading(false);
+    setShowCancel(false);
+    toast.error("Operación cancelada.", {
+      icon: null,
+      className: "cancel-toast-center",
+      style: {
+        background: "#f97316", // naranja (podés poner cualquier color)
+        color: "white",
+        fontWeight: 500,
+        borderRadius: "12px",
+        padding: "14px 16px",
+        fontSize: "16px",
+      },
+    });
+  };
+  // -------------------------------------------------
+
+  // Toast de error
   useEffect(() => {
     if (error) {
       toast.error(error, {
@@ -64,12 +88,12 @@ export default function LoginPage() {
     }
   }, [error]);
 
-  // Mostrar toasts de "Cuenta creada"
   useEffect(() => {
     let shouldCleanURL = false;
 
     if (registered === "true" && !toastShown.current) {
       toastShown.current = true;
+
       toast.success("Cuenta creada con éxito.", {
         duration: 1500,
         className: "success-toast-center",
@@ -82,35 +106,35 @@ export default function LoginPage() {
           fontSize: "16px",
         },
       });
+
       shouldCleanURL = true;
     }
-    // Limpia los parámetros de la URL para evitar repetición de toasts
+
     if (shouldCleanURL) {
       setTimeout(() => {
-        router.replace("/"); // limpia la url
+        router.replace("/");
       }, 50);
     }
   }, [registered, router]);
 
-  // ---------- Validación ----------
   const validate = useCallback((values: FormState) => {
     const errs: string[] = [];
     const { email, password } = values;
 
     if (!email && !password) {
-      errs.push("El email y la contraseña son obligatorios.");
+      errs.push("El Email y la Contraseña son obligatorios.");
     } else {
-      if (!email) errs.push("El email es obligatorio.");
+      if (!email) errs.push("El Email es obligatorio.");
       else if (
         !/^(?!.*\.\.)[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[A-Za-z]{2,}$/.test(
           email
         )
       )
-        errs.push("Ingresá un email válido.");
+        errs.push("Ingresá un Email válido.");
 
-      if (!password) errs.push("La contraseña es obligatoria.");
+      if (!password) errs.push("La Contraseña es obligatoria.");
       else if (password.length < 8 || password.length > 16)
-        errs.push("La contraseña debe tener entre 8 y 16 caracteres.");
+        errs.push("La Contraseña debe tener entre 8 y 16 caracteres.");
     }
 
     if (errs.length) {
@@ -121,50 +145,38 @@ export default function LoginPage() {
     return true;
   }, []);
 
-  // ---------- Handlers ----------
-  // Cambio en los inputs
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    //valores del input
     const { name, value } = e.target;
-    // valores sin espacios en blanco
     const cleanValue = value.replace(/\s+/g, "");
-    //cambiar el estado del formulario
+
     setForm((prev) => ({ ...prev, [name]: cleanValue }));
-    //limpiar el mensaje de alerta
+
     if (alertMessage) setAlertMessage(null);
   };
 
-  // Mostrar/ocultar contraseña
   const handleTogglePassword = () => setShowPassword((s) => !s);
 
-  // Enviar formulario
   const handleSubmit = async () => {
-    // recortar espacios en blanco
     const cleaned = {
       email: form.email.trim(),
       password: form.password.trim(),
     };
-    // actualizar el estado del formulario
+
     setForm(cleaned);
-    // validar
+
     if (!validate(cleaned)) return;
-    // iniciar sesión
+
     setLoading(true);
     try {
-      // llamar al API
       await loginUser(cleaned);
-      // redirigir a los menús (showcase)
       router.push("/menuShowcase?loginSuccess=1");
     } catch (err) {
-      // mostrar error
       setError(err instanceof Error ? err.message : "Error al iniciar sesión.");
     } finally {
-      // finalizar carga
       setLoading(false);
     }
   };
 
-  // ---------- Social Icon ----------
   const SocialIcon = ({
     href,
     children,
@@ -193,10 +205,8 @@ export default function LoginPage() {
     </a>
   );
 
-  // ---------- Render ----------
   return (
     <main className="min-h-screen w-full flex items-center justify-center bg-gradient-to-b from-white via-[#FFF3EC] to-[#FFE6D3] px-4 py-8">
-      {/* Card */}
       <motion.div
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
@@ -206,149 +216,188 @@ export default function LoginPage() {
       >
         <Card className="rounded-2xl shadow-xl border border-white/40 bg-white/85">
           <CardContent className="p-6 sm:p-7 space-y-5">
-            {/* Icon */}
-            <div className="flex justify-center">
-              <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-orange-400 to-orange-500 flex items-center justify-center shadow-md">
-                <UtensilsCrossed className="w-8 h-8 text-white" />
-              </div>
-            </div>
+            {loading ? (
+              <div className="h-full flex flex-col items-center justify-center text-center">
+                <div className="flex flex-col items-center gap-8 w-full">
+                  {/* Spinner con glow */}
+                  <div className="relative">
+                    <div className="absolute inset-0 w-14 h-14 bg-orange-200/30 rounded-full blur-xl animate-pulse"></div>
+                    <Spinner className="relative h-9 w-9 text-orange-500" />
+                  </div>
+                  {/* Título + barra de progreso */}
+                  <div className="w-full max-w-xs space-y-4">
+                    <h2 className="text-2xl font-extrabold text-slate-800 tracking-tight">
+                      Procesando tu solicitud
+                    </h2>
+                    {/* Barra de progreso */}
+                    <div className="w-full bg-slate-200 rounded-full h-2 overflow-hidden shadow-inner">
+                      <div className="h-full bg-gradient-to-r from-orange-500 to-orange-600 rounded-full animate-[loading_2s_ease-in-out_infinite]"></div>
+                    </div>
+                  </div>
+                  {/* Descripción */}
+                  <p className="text-base text-slate-600 leading-relaxed max-w-xs">
+                    Por favor esperá mientras completamos el proceso. No cierres
+                    ni actualices la página.
+                  </p>
+                </div>
 
-            {/* Title */}
-            <div className="text-center -mt-1">
-              <h1
-                className={`${manrope.className} text-2xl sm:text-3xl font-extrabold text-slate-900`}
-              >
-                Bienvenido
-              </h1>
-              <p className="text-slate-600 text-sm sm:text-base mt-1">
-                Iniciá sesión para continuar
-              </p>
-            </div>
-
-            {/* AlertMessage (errores de validación) */}
-            <AnimatePresence>
-              {alertMessage && (
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.18 }}
-                >
-                  <Alert className="mb-2 bg-red-50 border border-red-200 p-3 rounded-lg">
-                    <AlertDescription className="whitespace-pre-line text-sm text-red-700 font-medium">
-                      {alertMessage}
-                    </AlertDescription>
-                  </Alert>
-                </motion.div>
-              )}
-            </AnimatePresence>
-
-            {/* Form */}
-            <div className="space-y-4">
-              <div className="space-y-1">
-                <Label className="text-slate-700 text-sm font-semibold">
-                  Email
-                </Label>
-                {/* Input email */}
-                <Input
-                  name="email"
-                  type="email"
-                  placeholder="correo@example.com"
-                  value={form.email}
-                  onChange={handleChange}
-                  onKeyDown={(e) => {
-                    if (e.key === " ") e.preventDefault(); // bloquea la barra espaciadora
-                  }}
-                  disabled={loading}
-                  className="mt-1 rounded-lg"
-                />
-              </div>
-              {/* Input password */}
-              <div>
-                <div className="flex items-center justify-between">
-                  <Label className="text-slate-700 text-sm font-semibold ">
-                    Contraseña
-                  </Label>
-                  {/* button forgot password */}
+                {/* Botón Cancelar bien separado */}
+                {showCancel && (
                   <Button
-                    type="button"
-                    onClick={() => router.push("/password")}
-                    className="bg-transparent text-orange-500 font-semibold p-0"
+                    variant="outline"
+                    onClick={handleCancel}
+                    className="text-sm font-medium text-slate-700 hover:text-slate-900 mt-10"
                   >
-                    ¿Olvidaste la contraseña?
+                    Cancelar
+                  </Button>
+                )}
+              </div>
+            ) : (
+              <>
+                <div className="flex justify-center">
+                  <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-orange-400 to-orange-500 flex items-center justify-center shadow-md">
+                    <UtensilsCrossed className="w-8 h-8 text-white" />
+                  </div>
+                </div>
+
+                <div className="text-center -mt-1">
+                  <h1
+                    className={`${manrope.className} text-2xl sm:text-3xl font-extrabold text-slate-900`}
+                  >
+                    Bienvenido
+                  </h1>
+                  <p className="text-slate-600 text-sm sm:text-base mt-1">
+                    Iniciá sesión para continuar
+                  </p>
+                </div>
+
+                <AnimatePresence>
+                  {alertMessage && (
+                    <motion.div
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ duration: 0.18 }}
+                    >
+                      <Alert variant="destructive" className="mb-2 bg-red-50 border border-red-200 p-3 rounded-lg">
+                        <AlertDescription className="whitespace-pre-line text-sm">
+                          {alertMessage}
+                        </AlertDescription>
+                      </Alert>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+
+                <div className="space-y-4">
+                  <div className="space-y-1">
+                    <Label className="text-slate-700 text-sm font-semibold">
+                      Email
+                    </Label>
+
+                    <Input
+                      name="email"
+                      type="email"
+                      placeholder="correo@example.com"
+                      value={form.email}
+                      onChange={handleChange}
+                      onKeyDown={(e) => {
+                        if (e.key === " ") e.preventDefault();
+                      }}
+                      disabled={loading}
+                      className="mt-1 rounded-lg 
+    focus-visible:ring-1
+    focus-visible:ring-orange-400
+    focus-visible:border-orange-400"
+                    />
+                  </div>
+
+                  <div>
+                    <div className="flex items-center justify-between">
+                      <Label className="text-slate-700 text-sm font-semibold">
+                        Contraseña
+                      </Label>
+
+                      <Button
+                        type="button"
+                        onClick={() => router.push("/password")}
+                        className="bg-transparent text-orange-500 font-semibold p-0"
+                      >
+                        ¿Olvidaste la Contraseña?
+                      </Button>
+                    </div>
+
+                    <div className="relative mt-1">
+                      <Input
+                        name="password"
+                        type={showPassword ? "text" : "password"}
+                        placeholder="••••••••"
+                        value={form.password}
+                        onChange={handleChange}
+                        disabled={loading}
+                        className="rounded-lg pr-10 focus-visible:ring-1
+    focus-visible:ring-orange-400
+    focus-visible:border-orange-400"
+                      />
+
+                      <button
+                        type="button"
+                        onClick={handleTogglePassword}
+                        className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-700"
+                      >
+                        {showPassword ? (
+                          <Eye className="w-5 h-5" />
+                        ) : (
+                          <EyeOff className="w-5 h-5" />
+                        )}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="pt-1">
+                  <Button
+                    onClick={handleSubmit}
+                    disabled={loading}
+                    className="w-full py-4 rounded-lg text-base bg-gradient-to-r from-orange-400 to-orange-500 text-white font-semibold shadow-sm hover:shadow-md active:scale-[0.98] transition-transform"
+                  >
+                    Entrar
                   </Button>
                 </div>
-                <div className="relative mt-1">
-                  {/* Input password */}
-                  <Input
-                    name="password"
-                    type={showPassword ? "text" : "password"}
-                    placeholder="••••••••"
-                    value={form.password}
-                    onChange={handleChange}
-                    disabled={loading}
-                    className="rounded-lg pr-10"
-                  />
 
-                  <button
-                    type="button"
-                    onClick={handleTogglePassword}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-700"
-                  >
-                    {showPassword ? (
-                      <Eye className="w-5 h-5" />
-                    ) : (
-                      <EyeOff className="w-5 h-5" />
-                    )}
-                  </button>
+                <div className="pt-3">
+                  <div className="flex items-center gap-3">
+                    <span className="flex-1 h-px bg-slate-200" />
+                    <span className="text-xs text-slate-500">Seguinos en</span>
+                    <span className="flex-1 h-px bg-slate-200" />
+                  </div>
+
+                  <div className="flex items-center justify-center gap-4 pt-3">
+                    <SocialIcon
+                      href="https://www.instagram.com/flexitaim/?hl=es-la"
+                      ariaLabel="Instagram - abrir en nueva pestaña"
+                      gradient="bg-gradient-to-br from-[#F9CE34] via-[#EE2A7B] to-[#6228D7]"
+                    >
+                      <Instagram className="w-6 h-6 text-white" />
+                    </SocialIcon>
+
+                    <SocialIcon
+                      href="https://www.tiktok.com/@flexitaim"
+                      ariaLabel="TikTok - abrir en nueva pestaña"
+                      gradient="bg-black"
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="w-6 h-6 text-white"
+                        viewBox="0 0 24 24"
+                        fill="currentColor"
+                      >
+                        <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1-.1z" />
+                      </svg>
+                    </SocialIcon>
+                  </div>
                 </div>
-              </div>
-            </div>
-
-            {/* Submit */}
-            <div className="pt-1">
-              <Button
-                onClick={handleSubmit}
-                disabled={loading}
-                className="w-full py-4 rounded-lg text-base bg-gradient-to-r from-orange-400 to-orange-500 text-white font-semibold shadow-sm hover:shadow-md active:scale-[0.98] transition-transform"
-              >
-                {loading ? "Ingresando..." : "Entrar"}
-              </Button>
-            </div>
-
-            {/* Divider + Socials */}
-            <div className="pt-3">
-              <div className="flex items-center gap-3">
-                <span className="flex-1 h-px bg-slate-200" />
-                <span className="text-xs text-slate-500">Seguinos en</span>
-                <span className="flex-1 h-px bg-slate-200" />
-              </div>
-
-              <div className="flex items-center justify-center gap-4 pt-3">
-                <SocialIcon
-                  href="https://www.instagram.com/flexitaim/?hl=es-la"
-                  ariaLabel="Instagram - abrir en nueva pestaña"
-                  gradient="bg-gradient-to-br from-[#F9CE34] via-[#EE2A7B] to-[#6228D7]"
-                >
-                  <Instagram className="w-6 h-6 text-white" />
-                </SocialIcon>
-
-                <SocialIcon
-                  href="https://www.tiktok.com/@flexitaim"
-                  ariaLabel="TikTok - abrir en nueva pestaña"
-                  gradient="bg-black"
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="w-6 h-6 text-white"
-                    viewBox="0 0 24 24"
-                    fill="currentColor"
-                  >
-                    <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1-.1z" />
-                  </svg>
-                </SocialIcon>
-              </div>
-            </div>
+              </>
+            )}
           </CardContent>
         </Card>
       </motion.div>
