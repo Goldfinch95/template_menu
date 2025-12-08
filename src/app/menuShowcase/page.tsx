@@ -143,6 +143,37 @@ export default function Home() {
         router.replace(`?${params.toString()}`, { scroll: false });
       }, 2000); // Retraso de 2 segundos para que el toast se vea antes de eliminar el parámetro
     }
+
+    // 4. Mostrar toast si el menú fue eliminado exitosamente
+    const menuDeleted = searchParams.get("menuDeleted");
+
+    if (menuDeleted === "true") {
+      // Evitar que se repita
+      if (hasShown.current) return;
+      hasShown.current = true;
+
+      // Mostrar sonner (menú eliminado)
+      toast.success(`¡Menú eliminado con éxito!`, {
+        duration: 2000,
+        icon: null,
+        className: "success-toast-center",
+        style: {
+          background: "#22c55e", // Verde
+          color: "white",
+          fontWeight: 500,
+          borderRadius: "12px",
+          padding: "14px 16px",
+          fontSize: "16px",
+        },
+      });
+
+      // Eliminar el parámetro de la URL después de un pequeño retraso
+      setTimeout(() => {
+        const params = new URLSearchParams(searchParams.toString());
+        params.delete("menuDeleted");
+        router.replace(`?${params.toString()}`, { scroll: false });
+      }, 2000); // Retraso de 2 segundos para que el toast se vea antes de eliminar el parámetro
+    }
   }, [searchParams, router]);
   // obtener menús
   useEffect(() => {
