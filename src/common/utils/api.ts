@@ -10,14 +10,14 @@ import {
   newMenu,
   newItem,
   UpdateCategoryPosition,
-  UpdateItemPosition
+  UpdateItemPosition,
 } from "@/interfaces/menu";
 
-const USERS_BASE_URL = "https://proyecto-menu-dzfw.onrender.com/api/users";
-const BASE_URL = "https://proyecto-menu-dzfw.onrender.com/api/menus";
-const CATEGORIES_BASE_URL = "https://proyecto-menu-dzfw.onrender.com/api/categories";
-const ITEM_BASE_URL = "https://proyecto-menu-dzfw.onrender.com/api/items";
-const IMAGES_BASE_URL = "https://proyecto-menu-dzfw.onrender.com/api/images";
+const USERS_BASE_URL = "http://localhost:3000/api/users";
+const BASE_URL = "http://localhost:3000/api/menus";
+const CATEGORIES_BASE_URL = "http://localhost:3000/api/categories";
+const ITEM_BASE_URL = "http://localhost:3000/api/items";
+const IMAGES_BASE_URL = "http://localhost:3000/api/images";
 
 //registrarse
 export const registerUser = async (data: RegisterData): Promise<User> => {
@@ -35,7 +35,6 @@ export const registerUser = async (data: RegisterData): Promise<User> => {
         cel: data.cel,
         roleId: data.roleId,
         password: data.password.trim(),
-        
       }),
     });
 
@@ -62,7 +61,7 @@ export const registerUser = async (data: RegisterData): Promise<User> => {
 //logearse
 export const loginUser = async (data: LoginData): Promise<LoginResponse> => {
   try {
-    const response = await fetch(`https://proyecto-menu-dzfw.onrender.com/api/auth/login`, {
+    const response = await fetch(`http://localhost:3000/api/auth/login`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -97,6 +96,8 @@ export const loginUser = async (data: LoginData): Promise<LoginResponse> => {
       localStorage.setItem("authToken", loginResponse.token);
       localStorage.setItem("user", JSON.stringify(loginResponse.user));
       localStorage.setItem("subdomain", loginResponse.user.subdomain);
+      // Guardar token en cookies para el middleware
+      document.cookie = `authToken=${loginResponse.token}; path=/; max-age=86400;`;
     }
 
     //console.log("✅ Login exitoso");
@@ -129,7 +130,10 @@ const getTenantHeaders = (): Record<string, string> => {
 export const logoutUser = (): void => {
   localStorage.removeItem("authToken");
   localStorage.removeItem("user");
-  localStorage.removeItem("subdomain"); 
+  localStorage.removeItem("subdomain");
+  // Si usás cookies (solo si corresponde)
+    document.cookie =
+      "authToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
   //console.log("✅ Sesión cerrada");
 };
 
@@ -161,19 +165,23 @@ export const getMenus = async (): Promise<Menu[]> => {
   }
 };
 
-
-
-
 // Obtener el QR de un menú
-export const getMenuQr = async (menuId: string | number, format: string = 'png', size: number = 300): Promise<string> => {
+export const getMenuQr = async (
+  menuId: string | number,
+  format: string = "png",
+  size: number = 300
+): Promise<string> => {
   try {
-    const response = await fetch(`${BASE_URL}/${menuId}/qr?format=${format}&size=${size}`, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        ...getTenantHeaders(),
-      },
-    });
+    const response = await fetch(
+      `${BASE_URL}/${menuId}/qr?format=${format}&size=${size}`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          ...getTenantHeaders(),
+        },
+      }
+    );
 
     if (!response.ok) {
       throw new Error("No se pudo obtener el QR del menú");
@@ -185,15 +193,13 @@ export const getMenuQr = async (menuId: string | number, format: string = 'png',
 
     // Convertir el blob a una URL de imagen en base64
     const qrImageUrl = URL.createObjectURL(qrBlob);
-console.log("✅ URL del QR generada:", qrImageUrl);
+    console.log("✅ URL del QR generada:", qrImageUrl);
     return qrImageUrl; // Devuelve la URL de la imagen QR en base64
   } catch (error) {
     console.error("❌ Error al obtener el QR del menú:", error);
     throw error;
   }
 };
-
-
 
 //CRUD MENÚ
 
@@ -530,7 +536,7 @@ export const deleteItem = async (itemId: number): Promise<void> => {
       );
     }
 
-   // console.log(`✅ Ítem ${itemId} eliminado correctamente.`);
+    // console.log(`✅ Ítem ${itemId} eliminado correctamente.`);
   } catch (error) {
     console.error("❌ Error al eliminar ítem:", error);
     throw error;
