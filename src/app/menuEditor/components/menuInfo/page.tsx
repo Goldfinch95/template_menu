@@ -35,6 +35,11 @@ const MenuInfoPage = ({ menuId, onMenuCreated }: InfoEditorProps) => {
   /*const [newMenuTitle, setNewMenuTitle] = useState<string>(""); // Título del nuevo menú
   const [newMenuLogo, setNewMenuLogo] = useState<string>("");*/
 
+
+  // Simular delay (para demostraciones o pruebas)
+  const simulateDelay = (ms: number) =>
+    new Promise((resolve) => setTimeout(resolve, ms));
+
   // 🔥 Función para cargar/recargar el menú desde la API
   const fetchMenuData = useCallback(async (id?: number) => {
     //console.log("📥 Intentando cargar menu con ID:", id);
@@ -49,6 +54,8 @@ const MenuInfoPage = ({ menuId, onMenuCreated }: InfoEditorProps) => {
     setLoading(true);
     //si hay menu
     try {
+      const fakeTime = Math.random() * 700 + 1500;
+        await simulateDelay(fakeTime);
       const [menuData] = await Promise.all([getMenu(id)]);
       //console.log("📥 Menú cargado:", menuData);
       setMenu(menuData);

@@ -442,10 +442,20 @@ const MenuCatPage = ({
       coordinateGetter: sortableKeyboardCoordinates,
     })
   );
+  
+  // Simular delay (para demostraciones o pruebas)
+  const simulateDelay = (ms: number) =>
+    new Promise((resolve) => setTimeout(resolve, ms));
 
   useEffect(() => {
     const loadCategories = async () => {
+      // Si menuCategories es undefined, no hacer nada
+      if (!menuCategories) {
+        return;
+      }
       setLoading(true);
+      const fakeTime = Math.random() * 700 + 1500;
+      await simulateDelay(fakeTime);
       setCategories(menuCategories);
       setLoading(false);
     };
@@ -505,7 +515,7 @@ const MenuCatPage = ({
         const updateData: UpdateCategoryPosition = { newPosition };
         await updateCategory(movedCategory.id, updateData);
         await onCategoryChange();
-       // console.log(`✅ Orden de categoría actualizado correctamente`);
+        // console.log(`✅ Orden de categoría actualizado correctamente`);
       } catch {
         console.error("❌ Error al actualizar el orden de categoría");
         setCategories(categories);
@@ -611,6 +621,7 @@ const MenuCatPage = ({
   };
 
   const handleDelete = async (categoryId: number) => {
+    
     try {
       await deleteCategory(categoryId);
       await onCategoryChange();
@@ -707,11 +718,11 @@ const MenuCatPage = ({
                   ))}
                 </SortableContext>
               </DndContext>
-            ) : (
+            ) : !loading ? (
               <p className="text-sm text-slate-400 italic mt-6">
                 No hay categorías creadas aún.
               </p>
-            )}
+            ) : null}
           </div>
         </div>
       </Card>
