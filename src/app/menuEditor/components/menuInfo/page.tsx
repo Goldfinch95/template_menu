@@ -30,8 +30,7 @@ const MenuInfoPage = ({ menuId, onMenuCreated }: InfoEditorProps) => {
   const [loading, setLoading] = useState(true);
   // estado para determinar si es un menú vacío (nuevo)
   const [isEmpty, setIsEmpty] = useState<boolean>(false);
-  // estado para la imagen del QR
-  const [qrImageUrl, setQrImageUrl] = useState<string>("");
+  
 
   /*const [newMenuTitle, setNewMenuTitle] = useState<string>(""); // Título del nuevo menú
   const [newMenuLogo, setNewMenuLogo] = useState<string>("");*/
@@ -393,16 +392,6 @@ const MenuInfoPage = ({ menuId, onMenuCreated }: InfoEditorProps) => {
                 <QrCode className="!w-8 !h-8" />
                 <span className="text-sm mt-2">Generar QR</span>
               </Button>
-              {qrImageUrl && (
-                <div className="mt-8 text-center">
-                  <Image
-                    src={qrImageUrl} // Asegúrate de que esto sea la URL generada por createObjectURL
-                    alt="QR del Menú"
-                    width={300}
-                    height={300}
-                  />
-                </div>
-              )}
             </div>
           </div>
         </CardContent>
