@@ -10,11 +10,12 @@ import {
 import Image from "next/image";
 import { Items } from "@/interfaces/menu";
 interface Props {
-  item: Items;
+  item: Items | null;
   onClose: () => void;
 }
 
 export default function ItemCardDialog({ item, onClose }: Props) {
+  if (!item) return null;
   return (
     <Dialog open={!!item} onOpenChange={onClose}>
       <DialogContent className="max-w-md w-full rounded-2xl p-0 overflow-hidden">

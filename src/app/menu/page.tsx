@@ -12,7 +12,7 @@ import { Card, CardContent } from "@/common/components/ui/card";
 import { Separator } from "@/common/components/ui/separator";
 import { ArrowLeft } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import ItemCardDialog from "@/app/menu/itemCardDialog.tsx/page";
+import ItemCardDialog from "./components/ItemCardDialog";
 
 /* --------------------------------------------------
    🔍 Detecta luminancia y determina si el color
