@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef, Suspense, useMemo } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import FoodMenuItem from "@/app/components/FoodMenuItem";
-import type { Menu, Categories } from "@/interfaces/menu";
+import type { Menu, Categories, Items  } from "@/interfaces/menu";
 import { getMenu } from "@/common/utils/api";
 import Image from "next/image";
 import { Button } from "@/common/components/ui/button";
@@ -49,7 +49,7 @@ function getLuminance(color: string): number {
 function MenuContent() {
   const [menu, setMenu] = useState<Menu>({} as Menu);
   const [categories, setCategories] = useState<Categories[]>([]);
-  const [selectedItem, setSelectedItem] = useState<any | null>(null);
+  const [selectedItem, setSelectedItem] = useState<Items  | null>(null);
   const searchParams = useSearchParams();
   const menuId = searchParams.get("id");
   const router = useRouter();
