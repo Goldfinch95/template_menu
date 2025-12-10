@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { Manrope } from "next/font/google";
@@ -34,6 +34,8 @@ const Page = () => {
   const [alertMessage, setAlertMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const token = params.get("token") || "";
+  const abortControllerRef = useRef<AbortController | null>(null);
+  const [success, setSuccess] = useState(false);
 
   // Toast error
   useEffect(() => {
@@ -78,13 +80,20 @@ const Page = () => {
     return true;
   }, [password, confirm]);
 
+  // Simular delay (para demostraciones o pruebas)
+  const simulateDelay = (ms: number) =>
+    new Promise((resolve) => setTimeout(resolve, ms));
+
   // Submit
   const handleSubmit = async () => {
     if (!validate()) return;
 
     setLoading(true);
     try {
-      await resetPassword(token, password);
+      abortControllerRef.current = new AbortController();
+      const fakeTime = Math.random() * 700 + 1500;
+      await simulateDelay(fakeTime);
+      await resetPassword(token, password, abortControllerRef.current.signal);
 
       toast.success("Contraseña actualizada con éxito.", {
         duration: 1400,
@@ -98,11 +107,28 @@ const Page = () => {
           fontSize: "16px",
         },
       });
-
-      setTimeout(() => router.push("/?password=updated"), 1500);
+      setSuccess(true);
+      await new Promise((resolve) => setTimeout(resolve, 100));
+      router.push("/");
     } catch (err) {
+      // Verificar si fue una cancelación
+      if (err instanceof Error && err.message === "ABORTED") {
+        toast.info("Solicitud cancelada", {
+          duration: 1500,
+          icon: null,
+          style: {
+            background: "#f97316",
+            color: "white",
+            fontWeight: 400,
+            borderRadius: "10px",
+            padding: "14px 16px",
+            fontSize: "16px",
+          },
+        });
+        return;
+      }
       setError(
-        err instanceof Error ? err.message : "Error al actualizar contraseña."
+        err instanceof Error ? err.message : "Error al enviar el correo."
       );
     } finally {
       setLoading(false);
@@ -117,7 +143,7 @@ const Page = () => {
   };
 
   // -------- Si está cargando, mostrar loading card --------
-  if (loading) {
+  if (loading || success) {
     return (
       <main className="min-h-screen w-full flex items-center justify-center bg-gradient-to-b from-white via-[#FFF3EC] to-[#FFE6D3] px-4 py-8">
         <Card className="rounded-2xl shadow-xl border border-white/40 bg-white/85 w-full max-w-md">
