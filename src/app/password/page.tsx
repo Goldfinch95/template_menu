@@ -12,7 +12,7 @@ import { Input } from "@/common/components/ui/input";
 import { Label } from "@/common/components/ui/label";
 import { Alert, AlertDescription } from "@/common/components/ui/alert";
 import { UtensilsCrossed } from "lucide-react";
-
+import { forgotPassword } from "@/common/utils/api";
 const manrope = Manrope({ subsets: ["latin"] });
 
 const Page = () => {
@@ -67,7 +67,7 @@ const Page = () => {
 
     setLoading(true);
     try {
-      //await recoverPassword(cleanedEmail);
+      await forgotPassword(cleanedEmail);
 
       toast.success(`Se envió el email a  "${cleanedEmail}"`, {
         duration: 2000,
@@ -82,8 +82,6 @@ const Page = () => {
           fontSize: "16px",
         },
       });
-
-      router.push(`/password/recover`);
     } catch (err) {
       setError(
         err instanceof Error ? err.message : "Error al enviar el correo."

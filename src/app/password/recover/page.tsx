@@ -11,6 +11,7 @@ import { Button } from "@/common/components/ui/button";
 import { Input } from "@/common/components/ui/input";
 import { Label } from "@/common/components/ui/label";
 import { Alert, AlertDescription } from "@/common/components/ui/alert";
+import { resetPassword } from "@/common/utils/api";
 
 import { UtensilsCrossed, Eye, EyeOff } from "lucide-react";
 
@@ -31,6 +32,7 @@ const Page = () => {
   const [loading, setLoading] = useState(false);
   const [alertMessage, setAlertMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const token = params.get("token") || "";
 
   // Toast error
   useEffect(() => {
@@ -81,7 +83,7 @@ const Page = () => {
 
     setLoading(true);
     try {
-      //await updatePassword(email, password);
+      await resetPassword(token, password);
 
       toast.success("Contraseña actualizada con éxito.", {
         duration: 1400,

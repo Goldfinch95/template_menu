@@ -34,7 +34,6 @@ export const registerUser = async (data: RegisterData): Promise<User> => {
         email: data.email.trim(),
         cel: data.cel,
         roleId: data.roleId,
-        password: data.password.trim(),
       }),
     });
 
@@ -58,6 +57,71 @@ export const registerUser = async (data: RegisterData): Promise<User> => {
   }
 };
 
+// Resetear contraseña
+export const resetPassword = async (
+  token: string,
+  password: string
+): Promise<{ message: string }> => {
+  try {
+    const response = await fetch(
+      "http://localhost:3000/api/auth/reset-password",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          token,
+          password: password.trim(),
+        }),
+      }
+    );
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message || "Error al restablecer la contraseña");
+    }
+
+    return data; // { message: "Contraseña actualizada correctamente" }
+  } catch (error) {
+    console.error("❌ Error al resetear contraseña:", error);
+    throw error;
+  }
+};
+
+// Solicitud para recuperar contraseña (enviar email con link)
+export const forgotPassword = async (
+  email: string,
+): Promise<{ message: string }> => {
+  try {
+    const response = await fetch(
+      "http://localhost:3000/api/users/forgot-password",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email: email.trim(),
+        }),
+      }
+    );
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(
+        data.message || "No se pudo enviar el email de recuperación"
+      );
+    }
+
+    return data; // { message: "Email enviado" } o lo que devuelva tu backend
+  } catch (error) {
+    console.error("❌ Error en forgotPassword:", error);
+    throw error;
+  }
+};
 //logearse
 export const loginUser = async (data: LoginData): Promise<LoginResponse> => {
   try {
@@ -132,8 +196,8 @@ export const logoutUser = (): void => {
   localStorage.removeItem("user");
   localStorage.removeItem("subdomain");
   // Si usás cookies (solo si corresponde)
-    document.cookie =
-      "authToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+  document.cookie =
+    "authToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
   //console.log("✅ Sesión cerrada");
 };
 

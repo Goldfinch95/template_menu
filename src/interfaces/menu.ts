@@ -44,8 +44,7 @@ export interface RegisterData {
   email: string;
   cel?: string;
   roleId?: number;
-  password: string;
-   //revisar con naza
+
 }
 
 

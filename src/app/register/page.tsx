@@ -138,7 +138,6 @@ export default function RegisterPage() {
         email: form.email.trim(),
         cel: form.cel.trim(),
         roleId: 2,
-        password: "password123", // contraseña por defecto
       });
       // Redirigir al login con parámetro de cuenta creada
       router.push("/?registered=true");
