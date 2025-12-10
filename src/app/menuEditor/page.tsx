@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useCallback, useState, useEffect } from "react";
+import React, { useCallback, useState, useEffect, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { Menu } from "@/interfaces/menu";
 import { deleteMenu, getMenu } from "@/common/utils/api";
@@ -148,4 +148,18 @@ const MenuEditorContent = () => {
   );
 };
 
-export default MenuEditorContent;
+// Componente wrapper con Suspense
+export default function MenuEditor() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen w-full bg-gradient-to-b from-white via-[#FFF3EC] to-[#FFE6D3] flex items-center justify-center">
+          <p className="text-lg text-gray-600">Cargando editor...</p>
+        </div>
+      }
+    >
+      <MenuEditorContent />
+    </Suspense>
+  );
+}
+
