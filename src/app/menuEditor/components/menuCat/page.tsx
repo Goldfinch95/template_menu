@@ -615,7 +615,7 @@ const MenuCatPage = ({
   duration: 2000,
   icon: null,
   style: {
-    background: "#f97316",
+    background: "#22c55e",
     color: "white",
     borderRadius: "10px",
     padding: "14px 16px",
@@ -641,7 +641,7 @@ const MenuCatPage = ({
   duration: 2000,
   icon: null,
   style: {
-    background: "#ef4444",
+    background: "#22c55e",
     color: "white",
     borderRadius: "10px",
     padding: "14px 16px",
@@ -663,7 +663,7 @@ const MenuCatPage = ({
   duration: 2000,
   icon: null,
   style: {
-    background: "#ef4444",
+    background: "#22c55e",
     color: "white",
     borderRadius: "10px",
     padding: "14px 16px",

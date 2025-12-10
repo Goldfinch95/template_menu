@@ -83,7 +83,7 @@ const Page = () => {
         },
       });
 
-      router.push(`/password/recover?email=${cleanedEmail}`);
+      router.push(`/password/recover`);
     } catch (err) {
       setError(
         err instanceof Error ? err.message : "Error al enviar el correo."

@@ -147,7 +147,7 @@ const ItemDialog = ({
           duration: 2000,
           icon: null,
           style: {
-            background: "#f97316", // naranja
+            background: "#22c55e",
             color: "white",
             borderRadius: "10px",
             padding: "14px 16px",
