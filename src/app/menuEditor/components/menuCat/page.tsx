@@ -57,7 +57,7 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-
+import { toast } from "sonner";
 function SortableItem({
   item,
   categoryId,
@@ -234,6 +234,7 @@ function SortableCategory({
 
   // Sincronizar cuando cambien los items de la categoría
   useEffect(() => {
+    
     setLocalItems(category.items || []);
   }, [category.items]);
 
@@ -610,6 +611,17 @@ const MenuCatPage = ({
     try {
       await updateCategory(categoryId, { title: newTitle });
       await onCategoryChange();
+      toast("Categoría actualizada con éxito.", {
+  duration: 2000,
+  icon: null,
+  style: {
+    background: "#f97316",
+    color: "white",
+    borderRadius: "10px",
+    padding: "14px 16px",
+    fontSize: "16px",
+  },
+});
       //aqui deberia avisarle al sonner
       //console.log(`✅ Categoría ${categoryId} actualizada: ${newTitle}`);
     } catch {
@@ -625,6 +637,17 @@ const MenuCatPage = ({
     try {
       await deleteCategory(categoryId);
       await onCategoryChange();
+      toast("Categoría eliminada con éxito.", {
+  duration: 2000,
+  icon: null,
+  style: {
+    background: "#ef4444",
+    color: "white",
+    borderRadius: "10px",
+    padding: "14px 16px",
+    fontSize: "16px",
+  },
+});
     } catch {
       console.error("Error al eliminar categoría");
     }

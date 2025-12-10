@@ -22,7 +22,7 @@ import { X } from "lucide-react";
 import { Button } from "@/common/components/ui/button";
 import { newCategory } from "@/interfaces/menu";
 import { createCategory } from "@/common/utils/api";
-
+import { toast } from "sonner";
 interface CatDialogProps {
   trigger?: React.ReactNode;
   menuId?: number;
@@ -76,6 +76,17 @@ const CatDialog = ({ trigger, menuId, onCategoryCreated }: CatDialogProps) => {
         setTitle("");
         if (onCategoryCreated) {
           onCategoryCreated();
+          toast.success("Categoría creada con éxito.", {
+  duration: 2000,
+  icon: null,
+  style: {
+    background: "#22c55e",
+    color: "white",
+    borderRadius: "10px",
+    padding: "14px 16px",
+    fontSize: "16px",
+  },
+});
         }
         setIsOpen(false); // Limpiar el campo
       }
