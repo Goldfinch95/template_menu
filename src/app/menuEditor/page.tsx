@@ -12,6 +12,7 @@ import MenuCatPage from "./components/menuCat/page";
 import { Trash2, X, AlertTriangle } from "lucide-react";
 
 import { motion } from "framer-motion";
+import { toast } from "sonner";
 
 import {
   Dialog,
@@ -26,14 +27,13 @@ import {
 import { Button } from "@/common/components/ui/button";
 
 const MenuEditorContent = () => {
+
+  // ---------- Router ----------
+    const router = useRouter();
+    const searchParams = useSearchParams();
+
   // Estado para el menú
   const [menu, setMenu] = useState<Menu>({} as Menu);
-
-  // Estado para obtener id del menú
-  const searchParams = useSearchParams();
-  // Estado para el router
-  const router = useRouter();
-
   // Cargar menú existente si hay id en los parámetros
   const fetchMenuData = useCallback(async (menuId: string) => {
     try {

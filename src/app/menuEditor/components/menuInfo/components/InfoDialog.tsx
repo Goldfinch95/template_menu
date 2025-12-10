@@ -9,6 +9,7 @@ import { HexColorPicker } from "react-colorful";
 
 import { createMenu, updateMenu } from "@/common/utils/api";
 import { Menu, newMenu } from "@/interfaces/menu";
+import { toast } from "sonner";
 
 import {
   Dialog,
@@ -212,28 +213,30 @@ export default function InfoDialog({
 
   // ---------- Submit ----------
   const handleSubmit = async () => {
-    // Validar campos
     const isValid = validateFields();
     if (!isValid) {
-      // Hacer scroll al tope para mostrar el mensaje de alerta
       if (dialogScrollRef.current) {
         dialogScrollRef.current.scrollTo({ top: 0, behavior: "smooth" });
       }
       return;
     }
-    // Validar colores y asignar valores por defecto si es necesario
-    const primary =
-      isValidHex(primaryColor.trim()) && primaryColor.trim() !== "#"
-        ? primaryColor.trim()
-        : menuPrimary || "#d4d4d4";
 
-    const secondary =
-      isValidHex(secondaryColor.trim()) && secondaryColor.trim() !== "#"
-        ? secondaryColor.trim()
-        : menuSecondary || "#262626";
+    const primary = isValidHex(primaryColor.trim()) && primaryColor.trim() !== "#" ? primaryColor.trim() : menuPrimary || "#d4d4d4";
+    const secondary = isValidHex(secondaryColor.trim()) && secondaryColor.trim() !== "#" ? secondaryColor.trim() : menuSecondary || "#262626";
+
+    const menuDataChanged =
+      title.trim() !== menuTitle ||
+      pos.trim() !== menuPos ||
+      primary !== menuPrimary ||
+      secondary !== menuSecondary ||
+      logoFile !== null ||
+      backgroundFile !== null;
+
+    if (menuId && !menuDataChanged) {
+      return;
+    }
 
     try {
-      // Crear menú
       if (!menuId) {
         const payload: newMenu = {
           title: title.trim(),
@@ -248,40 +251,39 @@ export default function InfoDialog({
           categories: [],
         };
 
-        //console.log(payload);
-        // Crear menú via API
         const createdMenu = await createMenu(payload);
         onCreated?.(createdMenu.id);
-        // Redirigir a menus
         router.push(`/menuShowcase?menuCreated=true`);
-      }
-
-      // Editar menú existente
-      else {
+      } else {
         const payload: Partial<Menu> = {
           title: title.trim(),
-          pos: pos ? pos.trim() : "",
-          color: {
-            primary: primary,
-            secondary: secondary,
-          },
+          pos: pos.trim(),
+          color: { primary, secondary },
         };
-        // Adjuntar imágenes si se actualizaron
+
         if (logoFile) payload.logo = logoFile as unknown as string;
-        // si no, mantener la existente
         else if (menuLogo) payload.logo = menuLogo;
-        // adjuntar imagen de fondo si se actualizó
-        if (backgroundFile)
-          payload.backgroundImage = backgroundFile as unknown as string;
-        // si no, mantener la existente
+
+        if (backgroundFile) payload.backgroundImage = backgroundFile as unknown as string;
         else if (menuBackground) payload.backgroundImage = menuBackground;
 
-        //console.log("📤 Payload enviado:", payload);
-        //console.log("📍 Valor de pos:", `"${payload.pos}"`);
-
-        // Actualizar menú via API
-        await updateMenu(menuId, payload);
-        onUpdated?.(menuId);
+        if (menuDataChanged) {
+          await updateMenu(menuId, payload);
+          onUpdated?.(menuId);
+          toast.success("Menú actualizado con éxito.", {
+            duration: 2000,
+            icon: null,
+            className: "success-toast-center",
+            style: {
+              background: "#22c55e",
+              color: "white",
+              fontWeight: 400,
+              borderRadius: "10px",
+              padding: "14px 16px",
+              fontSize: "16px",
+            },
+          });
+        }
       }
     } catch (err) {
       console.error("❌ Error al guardar", err);
