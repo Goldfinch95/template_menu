@@ -221,6 +221,9 @@ const Page = () => {
                     value={password}
                     disabled={loading}
                     placeholder="••••••••"
+                    onPaste={(e) => e.preventDefault()} // Bloquea pegar
+                    onCopy={(e) => e.preventDefault()} // Bloquea copiar
+                    onCut={(e) => e.preventDefault()} // Bloquea cortar
                     onChange={(e) =>
                       setPassword(e.target.value.replace(/\s+/g, ""))
                     }
@@ -252,6 +255,9 @@ const Page = () => {
                     value={confirm}
                     disabled={loading}
                     placeholder="••••••••"
+                    onPaste={(e) => e.preventDefault()} // Bloquea pegar
+                    onCopy={(e) => e.preventDefault()} // Bloquea copiar
+                    onCut={(e) => e.preventDefault()} // Bloquea cortar
                     onChange={(e) =>
                       setConfirm(e.target.value.replace(/\s+/g, ""))
                     }
