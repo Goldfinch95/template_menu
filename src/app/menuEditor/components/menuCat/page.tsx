@@ -659,6 +659,17 @@ const MenuCatPage = ({
     try {
       await deleteItem(itemId);
       await onCategoryChange();
+      toast("Plato eliminado con éxito.", {
+  duration: 2000,
+  icon: null,
+  style: {
+    background: "#ef4444",
+    color: "white",
+    borderRadius: "10px",
+    padding: "14px 16px",
+    fontSize: "16px",
+  },
+});
       //console.log(`✅ Ítem ${itemId} eliminado correctamente`);
     } catch {
       console.error("❌ Error al eliminar ítem");

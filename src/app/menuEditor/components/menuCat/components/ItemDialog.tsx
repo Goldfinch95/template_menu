@@ -19,6 +19,7 @@ import { Label } from "@/common/components/ui/label";
 import { Button } from "@/common/components/ui/button";
 import { createItem, updateItem, upsertItemImages } from "@/common/utils/api";
 import Image from "next/image"; // Importa Image desde next/image
+import { toast } from "sonner";
 
 interface ItemDialogProps {
   trigger: React.ReactNode;
@@ -135,12 +136,24 @@ const ItemDialog = ({
       let savedItemId = item?.id;
 
       if (isEditMode) {
+        // Actualizar ítem existente
         const payload: Partial<Items> = {
           title: title.trim(),
           description: description.trim() || undefined,
           price: Number(price),
         };
         await updateItem(item.id, payload);
+        toast("Plato actualizado con éxito.", {
+          duration: 2000,
+          icon: null,
+          style: {
+            background: "#f97316", // naranja
+            color: "white",
+            borderRadius: "10px",
+            padding: "14px 16px",
+            fontSize: "16px",
+          },
+        });
         savedItemId = item.id;
 
         if (selectedImage) {
@@ -157,6 +170,7 @@ const ItemDialog = ({
           await upsertItemImages(savedItemId, images, [selectedImage]);
         }
       } else {
+        // Crear nuevo ítem
         const payload: newItem = {
           categoryId: Number(categoryId),
           title: title.trim(),
@@ -177,6 +191,17 @@ const ItemDialog = ({
           ];
           await upsertItemImages(savedItemId, images, [selectedImage]);
         }
+        toast.success("Plato creado con éxito.", {
+          duration: 2000,
+          icon: null,
+          style: {
+            background: "#22c55e",
+            color: "white",
+            borderRadius: "10px",
+            padding: "14px 16px",
+            fontSize: "16px",
+          },
+        });
       }
 
       onItemSaved?.();
@@ -224,7 +249,10 @@ const ItemDialog = ({
           </Alert>
         )}
         <div className="flex flex-col space-y-2">
-          <Label className="text-slate-700 text-sm font-semibold" htmlFor="categoryTitle">
+          <Label
+            className="text-slate-700 text-sm font-semibold"
+            htmlFor="categoryTitle"
+          >
             Titulo del plato
           </Label>
           <Input
@@ -233,7 +261,10 @@ const ItemDialog = ({
             onChange={(e) => setTitle(e.target.value)}
             className=""
           />
-          <Label className="text-slate-700 text-sm font-semibold" htmlFor="categoryTitle">
+          <Label
+            className="text-slate-700 text-sm font-semibold"
+            htmlFor="categoryTitle"
+          >
             Descripción
           </Label>
           <Input
@@ -242,7 +273,10 @@ const ItemDialog = ({
             onChange={(e) => setDescription(e.target.value)}
             className=""
           />
-          <Label className="text-slate-700 text-sm font-semibold" htmlFor="categoryTitle">
+          <Label
+            className="text-slate-700 text-sm font-semibold"
+            htmlFor="categoryTitle"
+          >
             Precio
           </Label>
           <Input
