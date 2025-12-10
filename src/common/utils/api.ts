@@ -60,7 +60,8 @@ export const registerUser = async (data: RegisterData): Promise<User> => {
 // Resetear contraseña
 export const resetPassword = async (
   token: string,
-  password: string
+  password: string,
+  signal?: AbortSignal
 ): Promise<{ message: string }> => {
   try {
     const response = await fetch(
@@ -73,7 +74,9 @@ export const resetPassword = async (
         body: JSON.stringify({
           token,
           password: password.trim(),
+          
         }),
+        signal,
       }
     );
 
@@ -85,7 +88,13 @@ export const resetPassword = async (
 
     return data; // { message: "Contraseña actualizada correctamente" }
   } catch (error) {
-    console.error("❌ Error al resetear contraseña:", error);
+    // Verificar si es un AbortError (solicitud cancelada)
+    if (error instanceof DOMException && error.name === "AbortError") {
+      throw new Error("ABORTED"); // Lanzar sin loguear
+    }
+    
+    // Solo loguear errores reales, no cancelaciones
+    console.error("❌ Error en forgotPassword:", error);
     throw error;
   }
 };
@@ -93,6 +102,7 @@ export const resetPassword = async (
 // Solicitud para recuperar contraseña (enviar email con link)
 export const forgotPassword = async (
   email: string,
+  signal?: AbortSignal
 ): Promise<{ message: string }> => {
   try {
     const response = await fetch(
@@ -105,6 +115,7 @@ export const forgotPassword = async (
         body: JSON.stringify({
           email: email.trim(),
         }),
+        signal,
       }
     );
 
@@ -116,8 +127,14 @@ export const forgotPassword = async (
       );
     }
 
-    return data; // { message: "Email enviado" } o lo que devuelva tu backend
+    return data;
   } catch (error) {
+    // Verificar si es un AbortError (solicitud cancelada)
+    if (error instanceof DOMException && error.name === "AbortError") {
+      throw new Error("ABORTED"); // Lanzar sin loguear
+    }
+    
+    // Solo loguear errores reales, no cancelaciones
     console.error("❌ Error en forgotPassword:", error);
     throw error;
   }

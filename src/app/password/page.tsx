@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useCallback, useEffect } from "react";
+import React, { useState, useCallback, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { Manrope } from "next/font/google";
@@ -13,6 +13,8 @@ import { Label } from "@/common/components/ui/label";
 import { Alert, AlertDescription } from "@/common/components/ui/alert";
 import { UtensilsCrossed } from "lucide-react";
 import { forgotPassword } from "@/common/utils/api";
+import { Spinner } from "@/common/components/ui/spinner"; // Importar el spinner de shadcn/ui
+
 const manrope = Manrope({ subsets: ["latin"] });
 
 const Page = () => {
@@ -22,6 +24,7 @@ const Page = () => {
   const [loading, setLoading] = useState(false);
   const [alertMessage, setAlertMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   // -------- Toast de error --------
   useEffect(() => {
@@ -59,6 +62,10 @@ const Page = () => {
     return true;
   }, [email]);
 
+  // Simular delay (para demostraciones o pruebas)
+  const simulateDelay = (ms: number) =>
+    new Promise((resolve) => setTimeout(resolve, ms));
+
   // -------- Enviar formulario --------
   const handleSubmit = async () => {
     const cleanedEmail = email.trim();
@@ -67,7 +74,10 @@ const Page = () => {
 
     setLoading(true);
     try {
-      await forgotPassword(cleanedEmail);
+      abortControllerRef.current = new AbortController();
+      const fakeTime = Math.random() * 700 + 1500;
+      await simulateDelay(fakeTime);
+      await forgotPassword(cleanedEmail, abortControllerRef.current.signal);
 
       toast.success(`Se envió el email a  "${cleanedEmail}"`, {
         duration: 2000,
@@ -82,7 +92,25 @@ const Page = () => {
           fontSize: "16px",
         },
       });
+
+      router.push("/");
     } catch (err) {
+      if (err instanceof Error && err.message === "ABORTED") {
+  toast.info("Solicitud cancelada", {
+    duration: 1500,
+    icon: null,
+    style: {
+      background: "#f97316",
+      color: "white",
+      fontWeight: 400,
+      borderRadius: "10px",
+      padding: "14px 16px",
+      fontSize: "16px",
+    },
+  });
+  return;
+}
+
       setError(
         err instanceof Error ? err.message : "Error al enviar el correo."
       );
@@ -90,6 +118,56 @@ const Page = () => {
       setLoading(false);
     }
   };
+
+  // -------- Cancelar solicitud --------
+  const handleCancel = () => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+    setLoading(false);
+  };
+
+  // -------- Si está cargando, mostrar loading card --------
+  if (loading) {
+    return (
+      <main className="min-h-screen w-full flex items-center justify-center bg-gradient-to-b from-white via-[#FFF3EC] to-[#FFE6D3] px-4 py-8">
+        <Card className="rounded-2xl shadow-xl border border-white/40 bg-white/85 w-full max-w-md">
+          <CardContent className="p-10">
+            <div className="h-full flex flex-col items-center justify-center text-center">
+              <div className="flex flex-col items-center gap-8 w-full">
+                {/* Spinner glow */}
+                <div className="relative">
+                  <div className="absolute inset-0 w-14 h-14 bg-orange-200/30 rounded-full blur-xl animate-pulse"></div>
+                  <Spinner className="relative h-9 w-9 text-orange-500" />
+                </div>
+
+                {/* Título + barra de progreso */}
+                <div className="w-full max-w-xs space-y-4">
+                  <h2 className="text-2xl font-extrabold text-slate-800 tracking-tight">
+                    Procesando tu solicitud
+                  </h2>
+
+                  {/* Barra de progreso */}
+                  <div className="w-full bg-slate-200 rounded-full h-2 overflow-hidden shadow-inner">
+                    <div className="h-full bg-gradient-to-r from-orange-500 to-orange-600 rounded-full animate-[loading_2s_ease-in-out_infinite]"></div>
+                  </div>
+                </div>
+
+                {/* Descripción */}
+                <p className="text-base text-slate-600 leading-relaxed max-w-xs">
+                  Por favor esperá mientras completamos el proceso. No cierres
+                  ni actualices la página.
+                </p>
+                <Button variant="outline" onClick={handleCancel}>
+                  Cancelar
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </main>
+    );
+  }
 
   // -------- render --------
   return (
