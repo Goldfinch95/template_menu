@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useCallback, useEffect, useRef } from "react";
+import React, { useState, useCallback, useEffect, useRef, Suspense } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { Manrope } from "next/font/google";
@@ -17,7 +17,7 @@ import { Spinner } from "@/common/components/ui/spinner"; // Importar el spinner
 
 const manrope = Manrope({ subsets: ["latin"] });
 
-const Page = () => {
+const PasswordRecoverContent = () => {
   const router = useRouter();
 
   const [email, setEmail] = useState("");
@@ -270,4 +270,16 @@ const Page = () => {
   );
 };
 
-export default Page;
+export default function Page() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen w-full bg-gradient-to-b from-white via-[#FFF3EC] to-[#FFE6D3] flex items-center justify-center">
+          <p className="text-lg text-gray-600">Cargando...</p>
+        </div>
+      }
+    >
+      <PasswordRecoverContent />
+    </Suspense>
+  );
+}
