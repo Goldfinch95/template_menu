@@ -12,6 +12,7 @@ import InfoDialog from "./components/InfoDialog";
 import { getMenu, getMenuQr } from "@/common/utils/api";
 import { Menu } from "@/interfaces/menu";
 import { jsPDF } from "jspdf";
+import { toast } from "sonner";
 
 interface InfoEditorProps {
   menuId: number;
@@ -35,7 +36,6 @@ const MenuInfoPage = ({ menuId, onMenuCreated }: InfoEditorProps) => {
   /*const [newMenuTitle, setNewMenuTitle] = useState<string>(""); // Título del nuevo menú
   const [newMenuLogo, setNewMenuLogo] = useState<string>("");*/
 
-
   // Simular delay (para demostraciones o pruebas)
   const simulateDelay = (ms: number) =>
     new Promise((resolve) => setTimeout(resolve, ms));
@@ -55,7 +55,7 @@ const MenuInfoPage = ({ menuId, onMenuCreated }: InfoEditorProps) => {
     //si hay menu
     try {
       const fakeTime = Math.random() * 700 + 1500;
-        await simulateDelay(fakeTime);
+      await simulateDelay(fakeTime);
       const [menuData] = await Promise.all([getMenu(id)]);
       //console.log("📥 Menú cargado:", menuData);
       setMenu(menuData);
@@ -91,149 +91,186 @@ const MenuInfoPage = ({ menuId, onMenuCreated }: InfoEditorProps) => {
   };
 
   // Función helper mejorada para cargar imágenes con transparencia
-const loadImageAsDataURL = (url: string): Promise<string> => {
-  return new Promise((resolve, reject) => {
-    // Usar HTMLImageElement explícitamente
-    const img = document.createElement('img') as HTMLImageElement;
-    img.crossOrigin = 'anonymous';
-    
-    img.onload = () => {
-      const canvas = document.createElement('canvas');
-      canvas.width = img.width;
-      canvas.height = img.height;
-      const ctx = canvas.getContext('2d');
-      
-      if (ctx) {
-        // Dibujar la imagen manteniendo la transparencia
-        ctx.drawImage(img, 0, 0);
-        resolve(canvas.toDataURL('image/png'));
-      } else {
-        reject(new Error('No se pudo obtener el contexto del canvas'));
-      }
-    };
-    
-    img.onerror = () => reject(new Error('Error al cargar la imagen'));
-    img.src = url;
-  });
-};
+  const loadImageAsDataURL = (url: string): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      // Usar HTMLImageElement explícitamente
+      const img = document.createElement("img") as HTMLImageElement;
+      img.crossOrigin = "anonymous";
+
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        canvas.width = img.width;
+        canvas.height = img.height;
+        const ctx = canvas.getContext("2d");
+
+        if (ctx) {
+          // Dibujar la imagen manteniendo la transparencia
+          ctx.drawImage(img, 0, 0);
+          resolve(canvas.toDataURL("image/png"));
+        } else {
+          reject(new Error("No se pudo obtener el contexto del canvas"));
+        }
+      };
+
+      img.onerror = () => reject(new Error("Error al cargar la imagen"));
+      img.src = url;
+    });
+  };
   // Función para obtener el QR del menú
   const handleGenerateQr = async () => {
-  if (!currentMenuId) return;
-
-  try {
-    const qrUrl = await getMenuQr(currentMenuId);
-    const doc = new jsPDF();
-
-    const title = menu.title || "Sin título";
-    const pos = menu.pos;
-
-    // ---------------------------------------------------
-    // FONDO
-    // ---------------------------------------------------
-    doc.setFillColor(255, 250, 245);
-    doc.rect(0, 0, 210, 297, "F");
-
-    // ---------------------------------------------------
-    // HEADER - TÍTULO Y DIRECCIÓN A LA IZQUIERDA, LOGO A LA DERECHA
-    // ---------------------------------------------------
-    const headerY = 25;
+    if (!currentMenuId) return;
     
-    // Título
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(26);
-    doc.setTextColor(33, 33, 33);
-    doc.text(title, 15, headerY);
-
-    // Dirección/posición como subtítulo (si existe)
-    let lineY = headerY + 23;
-    if (pos) {
-      doc.setFont("helvetica", "normal");
-      doc.setFontSize(13);
-      doc.setTextColor(102, 102, 102);
-      doc.text(String(pos), 15, headerY + 8);
-      lineY = headerY + 23;
-    }
-
-    // Logo a la derecha (si existe)
-    if (menu.logo) {
-      const logoDataURL = await loadImageAsDataURL(menu.logo);
-      const logoSize = 25;
-      const logoX = 210 - logoSize - 15;
-      const logoY = 15;
+    try {
+      const qrUrl = await getMenuQr(currentMenuId);
+      // Muestra el toast de éxito
+      if(qrUrl) {
+        toast.success("Codigo QR creado con éxito.", {
+        duration: 2000,
+        icon: null,
+        className: "success-toast-center",
+        style: {
+          background: "#22c55e",
+          color: "white",
+          fontWeight: 400,
+          borderRadius: "10px",
+          padding: "14px 16px",
+          fontSize: "16px",
+        },
+      });
+      }
       
-      // Agregar imagen con transparencia
-      doc.addImage(logoDataURL, 'PNG', logoX, logoY, logoSize, logoSize);
+      const doc = new jsPDF();
+
+      const title = menu.title || "Sin título";
+      const pos = menu.pos;
+
+      // ---------------------------------------------------
+      // FONDO
+      // ---------------------------------------------------
+      doc.setFillColor(255, 250, 245);
+      doc.rect(0, 0, 210, 297, "F");
+
+      // ---------------------------------------------------
+      // HEADER - TÍTULO Y DIRECCIÓN A LA IZQUIERDA, LOGO A LA DERECHA
+      // ---------------------------------------------------
+      const headerY = 25;
+
+      // Título
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(26);
+      doc.setTextColor(33, 33, 33);
+      doc.text(title, 15, headerY);
+
+      // Dirección/posición como subtítulo (si existe)
+      let lineY = headerY + 23;
+      if (pos) {
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(13);
+        doc.setTextColor(102, 102, 102);
+        doc.text(String(pos), 15, headerY + 8);
+        lineY = headerY + 23;
+      }
+
+      // Logo a la derecha (si existe)
+      if (menu.logo) {
+        const logoDataURL = await loadImageAsDataURL(menu.logo);
+        const logoSize = 25;
+        const logoX = 210 - logoSize - 15;
+        const logoY = 15;
+
+        // Agregar imagen con transparencia
+        doc.addImage(logoDataURL, "PNG", logoX, logoY, logoSize, logoSize);
+      }
+
+      // Línea divisoria naranja - de borde a borde
+      doc.setDrawColor(255, 107, 53);
+      doc.setLineWidth(0.5);
+      doc.line(0, lineY, 210, lineY);
+
+      // ---------------------------------------------------
+      // TARJETA CENTRAL CON QR
+      // ---------------------------------------------------
+      const cardY = lineY + 40;
+      const cardHeight = 155;
+
+      // Sombra de la tarjeta
+      doc.setFillColor(220, 220, 220);
+      doc.roundedRect(22, cardY + 2, 166, cardHeight, 4, 4, "F");
+
+      // Tarjeta blanca
+      doc.setFillColor(255, 255, 255);
+      doc.roundedRect(20, cardY, 166, cardHeight, 4, 4, "F");
+
+      // Título de la sección
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(16);
+      doc.setTextColor(33, 33, 33);
+      doc.text("Escanea para ver el menú", 105, cardY + 20, {
+        align: "center",
+      });
+
+      // Línea decorativa
+      doc.setDrawColor(255, 107, 53);
+      doc.setLineWidth(2);
+      const decorLineY = cardY + 27;
+      doc.line(80, decorLineY, 130, decorLineY);
+
+      // QR Code
+      const qrSize = 90;
+      const qrX = (210 - qrSize) / 2;
+      const qrY = cardY + 40;
+
+      doc.addImage(qrUrl, "PNG", qrX, qrY, qrSize, qrSize);
+
+      // Instrucción debajo del QR
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(11);
+      doc.setTextColor(102, 102, 102);
+      doc.text("Apunta tu cámara aquí", 105, qrY + qrSize + 12, {
+        align: "center",
+      });
+
+      // ---------------------------------------------------
+      // FOOTER EN LA PARTE INFERIOR
+      // ---------------------------------------------------
+      const footerY = 285;
+
+      // Línea decorativa
+      doc.setDrawColor(220, 220, 220);
+      doc.setLineWidth(0.5);
+      doc.line(40, footerY, 170, footerY);
+
+      // Texto del footer
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(9);
+      doc.setTextColor(140, 140, 140);
+      doc.text("Gracias por usar nuestro servicio", 105, footerY + 5, {
+        align: "center",
+      });
+
+      // ---------------------------------------------------
+      // GUARDAR
+      // ---------------------------------------------------
+      doc.save(`${title}-QR.pdf`);
+    } catch (error) {
+      console.error("❌ Error al generar PDF:", error);
+      if(error instanceof Error){
+        toast.error("No se pudo generar el QR, recargue e intente de nuevo", {
+              duration: 2000,
+              icon: null,
+              className: "error-toast-center",
+              style: {
+                background: "#ef4444",
+                color: "white",
+                fontWeight: 400,
+                borderRadius: "10px",
+                padding: "14px 16px",
+                fontSize: "16px",
+              },
+            });
+      }
     }
-
-    // Línea divisoria naranja - de borde a borde
-    doc.setDrawColor(255, 107, 53);
-    doc.setLineWidth(0.5);
-    doc.line(0, lineY, 210, lineY);
-
-    // ---------------------------------------------------
-    // TARJETA CENTRAL CON QR
-    // ---------------------------------------------------
-    const cardY = lineY + 40;
-    const cardHeight = 155;
-    
-    // Sombra de la tarjeta
-    doc.setFillColor(220, 220, 220);
-    doc.roundedRect(22, cardY + 2, 166, cardHeight, 4, 4, "F");
-    
-    // Tarjeta blanca
-    doc.setFillColor(255, 255, 255);
-    doc.roundedRect(20, cardY, 166, cardHeight, 4, 4, "F");
-
-    // Título de la sección
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(16);
-    doc.setTextColor(33, 33, 33);
-    doc.text("Escanea para ver el menú", 105, cardY + 20, { align: "center" });
-
-    // Línea decorativa
-    doc.setDrawColor(255, 107, 53);
-    doc.setLineWidth(2);
-    const decorLineY = cardY + 27;
-    doc.line(80, decorLineY, 130, decorLineY);
-
-    // QR Code
-    const qrSize = 90;
-    const qrX = (210 - qrSize) / 2;
-    const qrY = cardY + 40;
-    
-    doc.addImage(qrUrl, "PNG", qrX, qrY, qrSize, qrSize);
-
-    // Instrucción debajo del QR
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(11);
-    doc.setTextColor(102, 102, 102);
-    doc.text("Apunta tu cámara aquí", 105, qrY + qrSize + 12, { align: "center" });
-
-    // ---------------------------------------------------
-    // FOOTER EN LA PARTE INFERIOR
-    // ---------------------------------------------------
-    const footerY = 285;
-    
-    // Línea decorativa
-    doc.setDrawColor(220, 220, 220);
-    doc.setLineWidth(0.5);
-    doc.line(40, footerY, 170, footerY);
-
-    // Texto del footer
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(9);
-    doc.setTextColor(140, 140, 140);
-    doc.text("Gracias por usar nuestro servicio", 105, footerY + 5, { align: "center" });
-
-    // ---------------------------------------------------
-    // GUARDAR
-    // ---------------------------------------------------
-    doc.save(`${title}-QR.pdf`);
-
-  } catch (error) {
-    console.error("❌ Error al generar PDF:", error);
-  }
-};
+  };
 
   if (loading) {
     return (
@@ -357,15 +394,15 @@ const loadImageAsDataURL = (url: string): Promise<string> => {
                 <span className="text-sm mt-2">Generar QR</span>
               </Button>
               {qrImageUrl && (
-  <div className="mt-8 text-center">
-    <Image
-      src={qrImageUrl} // Asegúrate de que esto sea la URL generada por createObjectURL
-      alt="QR del Menú"
-      width={300}
-      height={300}
-    />
-  </div>
-)}
+                <div className="mt-8 text-center">
+                  <Image
+                    src={qrImageUrl} // Asegúrate de que esto sea la URL generada por createObjectURL
+                    alt="QR del Menú"
+                    width={300}
+                    height={300}
+                  />
+                </div>
+              )}
             </div>
           </div>
         </CardContent>
