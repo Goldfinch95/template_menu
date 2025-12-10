@@ -27,6 +27,7 @@ import {
   UtensilsCrossed,
   Pencil,
   GripVertical,
+  Play,
 } from "lucide-react";
 import { Spinner } from "@/common/components/ui/spinner";
 import CatDialog from "./components/CatDialog";
@@ -231,12 +232,15 @@ function SortableCategory({
 }) {
   // Estado local para los items de esta categoría
   const [localItems, setLocalItems] = useState<Items[]>(category.items || []);
-
+  const [isFocused, setIsFocused] = useState(false);
   // Sincronizar cuando cambien los items de la categoría
   useEffect(() => {
-    
     setLocalItems(category.items || []);
   }, [category.items]);
+
+  const currentTitle = categoryTitles[category.id] ?? category.title;
+  const hasChanged = currentTitle !== category.title;
+  const showPlayButton = isFocused && currentTitle.length > 3 && hasChanged;
 
   const {
     attributes,
@@ -278,12 +282,15 @@ function SortableCategory({
             type="text"
             value={categoryTitles[category.id] ?? category.title}
             onChange={(e) => handleTitleChange(category.id, e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") {
-                e.preventDefault();
-                handleEditSave(category.id);
+            onFocus={() => setIsFocused(true)} // ← NUEVO
+            onBlur={() => {
+              setIsFocused(false);
+              // Si hay cambios no guardados, revertir al valor original
+              if (hasChanged) {
+                // ← NUEVA lógica
+                handleTitleChange(category.id, category.title); // ← Revierte al original
               }
-            }}
+            }} // ← NUEVO
             className="flex-1 min-w-0 p-1 font-semibold text-slate-700 bg-transparent border-b border-transparent focus:border-orange-500 focus:outline-none transition-colors truncate"
           />
 
@@ -291,6 +298,26 @@ function SortableCategory({
           <div className="flex space-x-2">
             {/* Botón Eliminar */}
             <Dialog>
+              {showPlayButton && (
+                <motion.div
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: 20 }}
+                  transition={{ duration: 0.5 }}
+                >
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 text-orange-500 hover:bg-orange-50"
+                    onMouseDown={(e) => {
+                      e.preventDefault();
+                      handleEditSave(category.id);
+                    }}
+                  >
+                    <Play className="h-4 w-4 text-orange-500" />
+                  </Button>
+                </motion.div>
+              )}
               <DialogTrigger asChild>
                 <Button
                   variant="ghost"
@@ -443,7 +470,7 @@ const MenuCatPage = ({
       coordinateGetter: sortableKeyboardCoordinates,
     })
   );
-  
+
   // Simular delay (para demostraciones o pruebas)
   const simulateDelay = (ms: number) =>
     new Promise((resolve) => setTimeout(resolve, ms));
@@ -612,16 +639,16 @@ const MenuCatPage = ({
       await updateCategory(categoryId, { title: newTitle });
       await onCategoryChange();
       toast("Categoría actualizada con éxito.", {
-  duration: 2000,
-  icon: null,
-  style: {
-    background: "#22c55e",
-    color: "white",
-    borderRadius: "10px",
-    padding: "14px 16px",
-    fontSize: "16px",
-  },
-});
+        duration: 2000,
+        icon: null,
+        style: {
+          background: "#22c55e",
+          color: "white",
+          borderRadius: "10px",
+          padding: "14px 16px",
+          fontSize: "16px",
+        },
+      });
       //aqui deberia avisarle al sonner
       //console.log(`✅ Categoría ${categoryId} actualizada: ${newTitle}`);
     } catch {
@@ -633,21 +660,20 @@ const MenuCatPage = ({
   };
 
   const handleDelete = async (categoryId: number) => {
-    
     try {
       await deleteCategory(categoryId);
       await onCategoryChange();
       toast("Categoría eliminada con éxito.", {
-  duration: 2000,
-  icon: null,
-  style: {
-    background: "#22c55e",
-    color: "white",
-    borderRadius: "10px",
-    padding: "14px 16px",
-    fontSize: "16px",
-  },
-});
+        duration: 2000,
+        icon: null,
+        style: {
+          background: "#22c55e",
+          color: "white",
+          borderRadius: "10px",
+          padding: "14px 16px",
+          fontSize: "16px",
+        },
+      });
     } catch {
       console.error("Error al eliminar categoría");
     }
@@ -660,16 +686,16 @@ const MenuCatPage = ({
       await deleteItem(itemId);
       await onCategoryChange();
       toast("Plato eliminado con éxito.", {
-  duration: 2000,
-  icon: null,
-  style: {
-    background: "#22c55e",
-    color: "white",
-    borderRadius: "10px",
-    padding: "14px 16px",
-    fontSize: "16px",
-  },
-});
+        duration: 2000,
+        icon: null,
+        style: {
+          background: "#22c55e",
+          color: "white",
+          borderRadius: "10px",
+          padding: "14px 16px",
+          fontSize: "16px",
+        },
+      });
       //console.log(`✅ Ítem ${itemId} eliminado correctamente`);
     } catch {
       console.error("❌ Error al eliminar ítem");
