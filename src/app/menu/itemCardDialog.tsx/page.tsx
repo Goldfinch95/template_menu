@@ -7,10 +7,10 @@ import {
   DialogDescription,
   DialogClose,
 } from "@/common/components/ui/dialog";
-import { Button } from "@/common/components/ui/button";
 import Image from "next/image";
+import { Items } from "@/interfaces/menu";
 interface Props {
-  item: any;
+  item: Items;
   onClose: () => void;
 }
 
