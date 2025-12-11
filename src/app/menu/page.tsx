@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef, Suspense, useMemo } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import FoodMenuItem from "@/app/components/FoodMenuItem";
-import type { Menu, Categories, Items  } from "@/interfaces/menu";
+import type { Menu, Categories, Items } from "@/interfaces/menu";
 import { getMenu } from "@/common/utils/api";
 import Image from "next/image";
 import { Button } from "@/common/components/ui/button";
@@ -49,7 +49,7 @@ function getLuminance(color: string): number {
 function MenuContent() {
   const [menu, setMenu] = useState<Menu>({} as Menu);
   const [categories, setCategories] = useState<Categories[]>([]);
-  const [selectedItem, setSelectedItem] = useState<Items  | null>(null);
+  const [selectedItem, setSelectedItem] = useState<Items | null>(null);
   const searchParams = useSearchParams();
   const menuId = searchParams.get("id");
   const router = useRouter();
@@ -88,7 +88,6 @@ function MenuContent() {
     if (!menu.color?.primary) return false;
     return getLuminance(menu.color.primary) < 140;
   }, [menu.color?.primary]);
-
 
   /* --------------------------------------------------
      📌 Detectar color claro/oscuro para cards
@@ -193,10 +192,12 @@ function MenuContent() {
      📌 RENDER MENU PAGE
   -------------------------------------------------- */
   return (
-    <div className="min-h-screen flex flex-col"
-    style={{
-        backgroundColor: menu.color?.primary || '#ffffff'
-      }}>
+    <div
+      className="min-h-screen flex flex-col"
+      style={{
+        backgroundColor: menu.color?.primary || "#ffffff",
+      }}
+    >
       {/* NAVBAR */}
       <motion.div
         initial={{ opacity: 0, y: -15 }}
@@ -204,9 +205,9 @@ function MenuContent() {
         transition={{ duration: 0.35 }}
         className="fixed top-0 left-0 right-0 z-50 backdrop-blur-md"
         style={{
-          backgroundColor: menu.color?.primary 
+          backgroundColor: menu.color?.primary
             ? `${menu.color.primary}B3` // Añade transparencia 70% (B3 en hex)
-            : 'rgba(255, 255, 255, 0.7)'
+            : "rgba(255, 255, 255, 0.7)",
         }}
       >
         <div className="max-w-xl mx-auto px-4 py-2 flex items-center justify-start">
@@ -214,9 +215,9 @@ function MenuContent() {
             variant="ghost"
             size="icon"
             className={`rounded-xl transition-colors ${
-              isNavbarDark 
-                ? 'hover:bg-white/10 text-white' 
-                : 'hover:bg-black/10 text-black'
+              isNavbarDark
+                ? "hover:bg-white/10 text-white"
+                : "hover:bg-black/10 text-black"
             }`}
             onClick={() => router.push(`/menuEditor?id=${menuId}`)}
           >
@@ -261,46 +262,52 @@ function MenuContent() {
 
       {/* CATEGORY NAV */}
       <div
-        className="sticky top-12 z-40 bg-background/95 backdrop-blur-md "
+        className="sticky top-12 z-40 backdrop-blur-xl"
         style={{
-          backgroundColor: menu.color?.primary,
+          backgroundColor: menu.color?.primary
+            ? `${menu.color.primary}CC` // 80% transparencia
+            : "rgba(255,255,255,0.8)",
         }}
       >
         <div
           className={`
-            max-w-xl mx-auto px-3 py-3 flex gap-2 scrollbar-hide 
-            ${
-              categories.length <= 4
-                ? "justify-center overflow-visible"
-                : "overflow-x-auto justify-start"
-            }
-          `}
+      max-w-xl mx-auto px-4 py-3 flex gap-2 scrollbar-hide
+      ${categories.length <= 4 ? "justify-center" : "overflow-x-auto"}
+    `}
         >
           {categories.map((cat) => {
             const isActive = activeCategory === cat.id;
 
-            // Color de fondo de la categoría activa
             const activeBg = menu.color?.secondary || "#000";
-            // Determinar si el texto debe ser claro u oscuro según luminancia
             const textColor =
               getLuminance(activeBg) < 140 ? "text-white" : "text-black";
 
             return (
-              <Badge
+              <motion.button
+                whileTap={{ scale: 0.92 }}
                 key={cat.id}
                 onClick={() => scrollToCategory(cat.id)}
                 className={`
-        px-4 py-2 rounded-full cursor-pointer transition-all whitespace-nowrap
-        ${
-          isActive
-            ? `shadow-lg ${textColor}`
-            : "bg-accent text-accent-foreground hover:bg-accent/80"
-        }
-      `}
-                style={isActive ? { backgroundColor: activeBg } : {}}
+            px-5 py-2 rounded-full font-medium transition-all text-sm whitespace-nowrap
+            backdrop-blur-lg
+            ${
+              isActive
+                ? `${textColor} shadow-md`
+                : "text-muted-foreground hover:text-foreground"
+            }
+          `}
+                style={{
+                  backgroundColor: isActive
+                    ? activeBg
+                    : "rgba(255,255,255,0.25)",
+                  border: isActive
+                    ? "1px solid rgba(255,255,255,0.35)"
+                    : "1px solid rgba(255,255,255,0.15)",
+                  boxShadow: isActive ? "0 4px 12px rgba(0,0,0,0.15)" : "none",
+                }}
               >
                 {cat.title}
-              </Badge>
+              </motion.button>
             );
           })}
         </div>
@@ -321,14 +328,23 @@ function MenuContent() {
 
             return (
               <section key={category.id} id={category.id.toString()}>
-                <div className="mb-4">
+                <div className="mb-6">
                   <h2
-                    className="text-xl font-semibold text-foreground"
-                    style={{ color: menu.color?.secondary }}
+                    className="text-lg font-semibold tracking-wide"
+                    style={{
+                      color:
+                        menu.color?.secondary ,
+                    }}
                   >
                     {category.title}
                   </h2>
-                  <Separator className="mt-2" />
+                  <div
+                    className="mt-2 w-full rounded-full"
+                    style={{
+                      height: "3px",
+                      backgroundColor: `${menu.color?.secondary}AA`, // barra suave con transparencia
+                    }}
+                  />
                 </div>
 
                 <div className="space-y-4">
@@ -363,17 +379,14 @@ function MenuContent() {
         </main>
       </div>
       {selectedItem && (
-      <ItemCardDialog
-        item={selectedItem}
-        onClose={() => setSelectedItem(null)}
-      />
-    )}
+        <ItemCardDialog
+          item={selectedItem}
+          onClose={() => setSelectedItem(null)}
+        />
+      )}
     </div>
-    
   );
 }
-
-
 
 export default function Menupage() {
   return (
