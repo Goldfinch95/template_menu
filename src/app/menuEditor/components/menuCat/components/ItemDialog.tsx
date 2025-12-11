@@ -17,6 +17,7 @@ import { Alert, AlertDescription } from "@/common/components/ui/alert";
 import { Input } from "@/common/components/ui/input";
 import { Label } from "@/common/components/ui/label";
 import { Button } from "@/common/components/ui/button";
+import { Checkbox } from "@/common/components/ui/checkbox";
 import { createItem, updateItem, upsertItemImages } from "@/common/utils/api";
 import Image from "next/image"; // Importa Image desde next/image
 import { toast } from "sonner";
@@ -42,6 +43,7 @@ const ItemDialog = ({
   const [previewUrl, setPreviewUrl] = useState<string>("");
   const [loading, setLoading] = useState(false);
   const [alertMessage, setAlertMessage] = useState<string | null>(null);
+  const [active, setActive] = useState<boolean>(true);
 
   const isEditMode = !!item;
 
@@ -52,11 +54,13 @@ const ItemDialog = ({
       setTitle(item.title || "");
       setDescription(item.description || "");
       setPrice(item.price?.toString() || "");
+      setActive(item.active);
 
       if (item.images && item.images.length > 0) {
         setPreviewUrl(item.images[0].url);
       }
     } else {
+      setActive(true);
       setTitle("");
       setDescription("");
       setPrice("");
@@ -137,11 +141,14 @@ const ItemDialog = ({
 
       if (isEditMode) {
         // Actualizar ítem existente
+        console.log("Estado active antes de enviar:", active);
         const payload: Partial<Items> = {
           title: title.trim(),
           description: description.trim() || undefined,
           price: Number(price),
+          active: active,
         };
+        console.log("Payload enviado", payload);
         await updateItem(item.id, payload);
         toast("Plato actualizado con éxito.", {
           duration: 2000,
@@ -322,6 +329,22 @@ const ItemDialog = ({
             )}
           </Label>
           <p className="text-base text-slate-400 mt-2">PNG, JPG hasta 4MB</p>
+          {/* aqui va el checkbox */}
+          <div className="flex items-center gap-3 mt-3">
+            <Checkbox
+              id="active-checkbox"
+              checked={active}
+              onCheckedChange={(v) => setActive(Boolean(v))}
+              className="!h-8 !w-8 rounded-md border-2 border-orange-400 data-[state=checked]:bg-orange-500 
+               data-[state=checked]:border-orange-500 transition-all"
+            />
+            <Label
+              htmlFor="active-checkbox"
+              className="text-slate-700 text-base font-semibold"
+            >
+              Plato disponible
+            </Label>
+          </div>
           <DialogFooter className="mt-5">
             <Button
               onClick={handleSave}

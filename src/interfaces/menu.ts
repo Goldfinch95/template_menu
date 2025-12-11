@@ -1,6 +1,5 @@
 //  INTERFAZ GENERAL
 
-
 //user
 export interface User {
   id: number;
@@ -44,9 +43,7 @@ export interface RegisterData {
   email: string;
   cel?: string;
   roleId?: number;
-
 }
-
 
 // menu
 export interface Menu {
@@ -81,12 +78,12 @@ export interface Categories {
 // items de las categorias
 
 export interface Items {
-  active: boolean;
   categoryId: number;
   createdAt: string;
   description: string;
   id: number;
   images: ImageItems[];
+  active: boolean;
   price: number;
   title: string;
   updatedAt: string;
@@ -119,7 +116,7 @@ export interface newMenu {
   logo: File | null;
   pos: string;
   title: string;
-  categories: Categories[]; 
+  categories: Categories[];
 }
 
 // nueva categoria
@@ -135,7 +132,6 @@ export interface newItem {
   description: string;
   price: number;
   images?: ImageItems[];
-  
 }
 
 export interface newImage {
