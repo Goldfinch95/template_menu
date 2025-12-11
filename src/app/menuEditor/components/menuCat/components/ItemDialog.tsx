@@ -183,6 +183,7 @@ const ItemDialog = ({
           title: title.trim(),
           description: description.trim(),
           price: Number(price),
+          active: active
         };
         const newItem = await createItem(payload);
         savedItemId = newItem.id;

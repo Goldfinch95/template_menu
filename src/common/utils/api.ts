@@ -539,6 +539,7 @@ export const createItem = async (data: newItem): Promise<Items> => {
       title: data.title,
       price: data.price,
       description: data.description || undefined,
+      active: data.active,
       // Omitimos las imágenes por ahora
     };
 

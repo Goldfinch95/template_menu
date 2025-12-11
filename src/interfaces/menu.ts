@@ -132,6 +132,7 @@ export interface newItem {
   description: string;
   price: number;
   images?: ImageItems[];
+  active: boolean;
 }
 
 export interface newImage {
