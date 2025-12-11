@@ -82,7 +82,16 @@ function MenuContent() {
   }, [menuId]);
 
   /* --------------------------------------------------
-     📌 Detectar color claro/oscuro
+     📌 Detectar color claro/oscuro para el navbar
+  -------------------------------------------------- */
+  const isNavbarDark = useMemo(() => {
+    if (!menu.color?.primary) return false;
+    return getLuminance(menu.color.primary) < 140;
+  }, [menu.color?.primary]);
+
+
+  /* --------------------------------------------------
+     📌 Detectar color claro/oscuro para cards
   -------------------------------------------------- */
   const isDark = useMemo(() => {
     if (!menu.color?.primary) return false;
@@ -184,19 +193,31 @@ function MenuContent() {
      📌 RENDER MENU PAGE
   -------------------------------------------------- */
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <div className="min-h-screen flex flex-col"
+    style={{
+        backgroundColor: menu.color?.primary || '#ffffff'
+      }}>
       {/* NAVBAR */}
       <motion.div
         initial={{ opacity: 0, y: -15 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.35 }}
-        className="fixed top-0 left-0 right-0 z-50 backdrop-blur-md bg-background/70"
+        className="fixed top-0 left-0 right-0 z-50 backdrop-blur-md"
+        style={{
+          backgroundColor: menu.color?.primary 
+            ? `${menu.color.primary}B3` // Añade transparencia 70% (B3 en hex)
+            : 'rgba(255, 255, 255, 0.7)'
+        }}
       >
         <div className="max-w-xl mx-auto px-4 py-2 flex items-center justify-start">
           <Button
             variant="ghost"
             size="icon"
-            className="rounded-xl hover:bg-accent"
+            className={`rounded-xl transition-colors ${
+              isNavbarDark 
+                ? 'hover:bg-white/10 text-white' 
+                : 'hover:bg-black/10 text-black'
+            }`}
             onClick={() => router.push(`/menuEditor?id=${menuId}`)}
           >
             <ArrowLeft className="h-5 w-5" />
