@@ -67,7 +67,7 @@ const FoodMenuItem: React.FC<Props> = ({
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -12 }}
       transition={{ duration: 0.25 }}
-      className="flex justify-between items-center gap-4"
+      className="flex items-center gap-4"
     >
       {/* Left info */}
       <div className="flex-1 min-w-0">
@@ -85,7 +85,7 @@ const FoodMenuItem: React.FC<Props> = ({
       </div>
 
       {/* Image */}
-      <div className="w-24 h-24 flex-shrink-0 overflow-hidden rounded-2xl shadow-md shadow-black/20">
+      <div className="w-24 h-24 flex-shrink-0 overflow-hidden rounded-xl shadow-sm">
         <Image
           src={imageSrc}
           alt={imageAlt}

@@ -332,8 +332,7 @@ function MenuContent() {
                   <h2
                     className="text-lg font-semibold tracking-wide"
                     style={{
-                      color:
-                        menu.color?.secondary ,
+                      color: menu.color?.secondary,
                     }}
                   >
                     {category.title}
@@ -359,7 +358,17 @@ function MenuContent() {
                       >
                         {/* Card clickeable */}
                         <Card
-                          className={cardClass + " cursor-pointer"}
+                          className={`
+    rounded-2xl
+    border 
+    shadow-sm shadow-black/5 
+    transition-all 
+    cursor-pointer
+    ${isDark 
+      ? "bg-neutral-900 border-neutral-700 active:scale-[0.97]" 
+      : "bg-white border-neutral-200 active:scale-[0.97]"
+    }
+  `}
                           onClick={() => setSelectedItem(item)}
                         >
                           <CardContent className="p-4">
