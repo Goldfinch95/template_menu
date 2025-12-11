@@ -391,6 +391,7 @@ function MenuContent() {
       {selectedItem && (
         <ItemCardDialog
           item={selectedItem}
+          primaryColor={menu.color?.primary}
           onClose={() => setSelectedItem(null)}
         />
       )}
