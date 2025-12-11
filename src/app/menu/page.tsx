@@ -364,9 +364,10 @@ function MenuContent() {
     shadow-sm shadow-black/5 
     transition-all 
     cursor-pointer
-    ${isDark 
-      ? "bg-neutral-900 border-neutral-700 active:scale-[0.97]" 
-      : "bg-white border-neutral-200 active:scale-[0.97]"
+    ${
+      isDark
+        ? "bg-neutral-900 border-neutral-700 active:scale-[0.97]"
+        : "bg-white border-neutral-200 active:scale-[0.97]"
     }
   `}
                           onClick={() => setSelectedItem(item)}

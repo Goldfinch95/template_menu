@@ -4,20 +4,32 @@ import React, { useMemo } from "react";
 import Image from "next/image";
 import { motion } from "framer-motion";
 import { Items } from "@/interfaces/menu";
+import { Inter } from "next/font/google";
+
+// Importar Inter
+const inter = Inter({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"], // normal, medium, semibold, bold
+});
 
 type Props = Items & {
   primaryColor?: string;
 };
 
-// Convert HEX or RGB to luminance
 function getLuminance(color: string): number {
   let r, g, b;
 
   if (color.startsWith("#")) {
     const hex = color.replace("#", "");
-    const bigint = parseInt(hex.length === 3
-      ? hex.split("").map((x) => x + x).join("")
-      : hex, 16);
+    const bigint = parseInt(
+      hex.length === 3
+        ? hex
+            .split("")
+            .map((x) => x + x)
+            .join("")
+        : hex,
+      16
+    );
 
     r = (bigint >> 16) & 255;
     g = (bigint >> 8) & 255;
@@ -27,10 +39,9 @@ function getLuminance(color: string): number {
     if (!values) return 255;
     [r, g, b] = values.map(Number);
   } else {
-    return 255; // fallback if color invalid
+    return 255;
   }
 
-  // luminance formula
   return 0.2126 * r + 0.7152 * g + 0.0722 * b;
 }
 
@@ -39,9 +50,8 @@ const FoodMenuItem: React.FC<Props> = ({
   description,
   price,
   images,
-  primaryColor
+  primaryColor,
 }) => {
-
   const firstImage = images
     ?.filter((img) => img.active)
     ?.sort((a, b) => a.sortOrder - b.sortOrder)[0];
@@ -51,11 +61,16 @@ const FoodMenuItem: React.FC<Props> = ({
 
   const priceNumber = typeof price === "string" ? parseFloat(price) : price;
 
-  // 🧠 Detect automatically if dark or light
+  // Detecta si el color primario es claro u oscuro
   const isDark = useMemo(() => {
     if (!primaryColor) return false;
     return getLuminance(primaryColor) < 140;
   }, [primaryColor]);
+
+  // Clases adaptativas de borde
+  const ringClass = isDark
+    ? "ring-1 ring-white/10 shadow-lg"
+    : "ring-1 ring-black/10 shadow-sm";
 
   const textColorClass = isDark ? "text-white/90" : "text-black/80";
   const titleColorClass = isDark ? "text-white" : "text-black";
@@ -67,11 +82,13 @@ const FoodMenuItem: React.FC<Props> = ({
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -12 }}
       transition={{ duration: 0.25 }}
-      className="flex items-center gap-4"
+      className={`flex items-center gap-4 ${inter.className}`}
     >
-      {/* Left info */}
+      {/* Left text */}
       <div className="flex-1 min-w-0">
-        <h3 className={`font-semibold text-lg leading-tight drop-shadow-sm ${titleColorClass}`}>
+        <h3
+          className={`font-semibold text-lg leading-tight tracking-tight ${titleColorClass}`}
+        >
           {title}
         </h3>
 
@@ -79,19 +96,29 @@ const FoodMenuItem: React.FC<Props> = ({
           {description}
         </p>
 
-        <p className={`text-xl font-bold mt-2 drop-shadow ${priceColorClass}`}>
+        <p
+          className={`text-xl font-bold mt-2 tracking-tight ${priceColorClass}`}
+        >
           ${priceNumber.toFixed(2)}
         </p>
       </div>
 
-      {/* Image */}
-      <div className="w-24 h-24 flex-shrink-0 overflow-hidden rounded-xl shadow-sm">
+      {/* Image container — opción A */}
+      <div
+        className={`
+          w-24 h-24 flex-shrink-0 
+    rounded-2xl overflow-hidden 
+    flex items-center justify-center
+    bg-transparent ring-1
+    ${ringClass}
+         `}
+      >
         <Image
           src={imageSrc}
           alt={imageAlt}
           width={96}
           height={96}
-          className="object-cover w-full h-full"
+          className="object-contain w-full h-full"
         />
       </div>
     </motion.div>
