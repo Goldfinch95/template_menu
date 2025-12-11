@@ -330,7 +330,7 @@ function MenuContent() {
               <section key={category.id} id={category.id.toString()}>
                 <div className="mb-6">
                   <h2
-                    className="text-lg font-semibold tracking-wide"
+                    className="text-xl font-semibold tracking-wide"
                     style={{
                       color: menu.color?.secondary,
                     }}

@@ -51,6 +51,7 @@ const FoodMenuItem: React.FC<Props> = ({
   price,
   images,
   primaryColor,
+  active,
 }) => {
   const firstImage = images
     ?.filter((img) => img.active)
@@ -58,6 +59,7 @@ const FoodMenuItem: React.FC<Props> = ({
 
   const imageSrc = firstImage?.url || "/food_template.webp";
   const imageAlt = firstImage?.alt || title;
+  const isAvailable = active !== false;
 
   const priceNumber = typeof price === "string" ? parseFloat(price) : price;
 
@@ -87,40 +89,60 @@ const FoodMenuItem: React.FC<Props> = ({
       {/* Left text */}
       <div className="flex-1 min-w-0">
         <h3
-          className={`font-semibold text-lg leading-tight tracking-tight ${titleColorClass}`}
+          className={`font-semibold text-2xl leading-tight tracking-tight ${titleColorClass}`}
         >
           {title}
         </h3>
 
-        <p className={`text-sm line-clamp-2 mt-1 ${textColorClass}`}>
+        <p className={`text-base line-clamp-2 mt-1 ${textColorClass}`}>
           {description}
         </p>
 
-        <p
-          className={`text-xl font-bold mt-2 tracking-tight ${priceColorClass}`}
-        >
-          ${priceNumber.toFixed(2)}
-        </p>
+        {/* Si está disponible, mostrar precio normal */}
+        {isAvailable ? (
+          <p
+            className={`text-xl font-bold mt-2 tracking-tight ${priceColorClass}`}
+          >
+            ${priceNumber.toFixed(2)}
+          </p>
+        ) : (
+          /* Si NO está disponible, mostrar badge suave */
+          <div className="mt-3">
+            <span
+    className={`
+      text-base px-2 py-1 rounded-md font-medium
+      ${isDark
+        ? "bg-red-400/20 text-red-200 border border-red-400/30"
+        : "bg-red-500/10 text-red-700 border border-red-500/20"
+      }
+    `}
+  >
+              No disponible
+            </span>
+          </div>
+        )}
       </div>
 
-      {/* Image container — opción A */}
-      <div
-        className={`
-          w-24 h-24 flex-shrink-0 
-    rounded-2xl overflow-hidden 
-    flex items-center justify-center
-    bg-transparent ring-1
-    ${ringClass}
-         `}
-      >
-        <Image
-          src={imageSrc}
-          alt={imageAlt}
-          width={96}
-          height={96}
-          className="object-contain w-full h-full"
-        />
-      </div>
+      {/* Renderizar imagen SOLO si existe una imagen activa */}
+      {firstImage && (
+        <div
+          className={`
+      w-24 h-24 flex-shrink-0 
+      rounded-2xl overflow-hidden 
+      flex items-center justify-center
+      bg-transparent ring-1
+      ${ringClass}
+    `}
+        >
+          <Image
+            src={imageSrc}
+            alt={imageAlt}
+            width={96}
+            height={96}
+            className="object-contain w-full h-full"
+          />
+        </div>
+      )}
     </motion.div>
   );
 };
