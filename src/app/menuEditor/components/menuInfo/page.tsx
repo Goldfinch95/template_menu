@@ -30,7 +30,8 @@ const MenuInfoPage = ({ menuId, onMenuCreated }: InfoEditorProps) => {
   const [loading, setLoading] = useState(true);
   // estado para determinar si es un menú vacío (nuevo)
   const [isEmpty, setIsEmpty] = useState<boolean>(false);
-  
+
+  const [isGeneratingQr, setIsGeneratingQr] = useState(false);
 
   /*const [newMenuTitle, setNewMenuTitle] = useState<string>(""); // Título del nuevo menú
   const [newMenuLogo, setNewMenuLogo] = useState<string>("");*/
@@ -118,26 +119,28 @@ const MenuInfoPage = ({ menuId, onMenuCreated }: InfoEditorProps) => {
   // Función para obtener el QR del menú
   const handleGenerateQr = async () => {
     if (!currentMenuId) return;
-    
+
+     setIsGeneratingQr(true);
+
     try {
       const qrUrl = await getMenuQr(currentMenuId);
       // Muestra el toast de éxito
-      if(qrUrl) {
+      if (qrUrl) {
         toast.success("Codigo QR creado con éxito.", {
-        duration: 2000,
-        icon: null,
-        className: "success-toast-center",
-        style: {
-          background: "#22c55e",
-          color: "white",
-          fontWeight: 400,
-          borderRadius: "10px",
-          padding: "14px 16px",
-          fontSize: "16px",
-        },
-      });
+          duration: 2000,
+          icon: null,
+          className: "success-toast-center",
+          style: {
+            background: "#22c55e",
+            color: "white",
+            fontWeight: 400,
+            borderRadius: "10px",
+            padding: "14px 16px",
+            fontSize: "16px",
+          },
+        });
       }
-      
+
       const doc = new jsPDF();
 
       const title = menu.title || "Sin título";
@@ -253,22 +256,25 @@ const MenuInfoPage = ({ menuId, onMenuCreated }: InfoEditorProps) => {
       doc.save(`${title}-QR.pdf`);
     } catch (error) {
       console.error("❌ Error al generar PDF:", error);
-      if(error instanceof Error){
+      if (error instanceof Error) {
         toast.error("No se pudo generar el QR, recargue e intente de nuevo", {
-              duration: 2000,
-              icon: null,
-              className: "error-toast-center",
-              style: {
-                background: "#ef4444",
-                color: "white",
-                fontWeight: 400,
-                borderRadius: "10px",
-                padding: "14px 16px",
-                fontSize: "16px",
-              },
-            });
+          duration: 2000,
+          icon: null,
+          className: "error-toast-center",
+          style: {
+            background: "#ef4444",
+            color: "white",
+            fontWeight: 400,
+            borderRadius: "10px",
+            padding: "14px 16px",
+            fontSize: "16px",
+          },
+        });
+        
       }
-    }
+    } finally {
+    setIsGeneratingQr(false);
+  }
   };
 
   if (loading) {
@@ -387,10 +393,20 @@ const MenuInfoPage = ({ menuId, onMenuCreated }: InfoEditorProps) => {
               />
               <Button
                 onClick={handleGenerateQr}
+                disabled={isGeneratingQr}
                 className="w-full h-25 bg-blue-500 hover:bg-blue-600 text-white font-semibold rounded-xl shadow-lg transition-all duration-300 hover:shadow-2xl flex flex-col items-center justify-center"
               >
-                <QrCode className="!w-8 !h-8" />
-                <span className="text-sm mt-2">Generar QR</span>
+                {isGeneratingQr ? (
+                  <>
+                    <Spinner className="w-6 h-6 mb-2 text-white" />
+                    <span className="text-sm opacity-90">Generando...</span>
+                  </>
+                ) : (
+                  <>
+                    <QrCode className="!w-8 !h-8" />
+                    <span className="text-sm mt-2">Generar QR</span>
+                  </>
+                )}
               </Button>
             </div>
           </div>
