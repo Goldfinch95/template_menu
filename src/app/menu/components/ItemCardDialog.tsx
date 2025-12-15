@@ -73,27 +73,13 @@ export default function ItemCardDialog({ item, primaryColor, onClose }: Props) {
   const textColor = isDark ? "text-white/80" : "text-black/70";
   const priceColor = isDark ? "text-white" : "text-black";
 
-  const imageRing = isDark
-    ? `
-    ring-2 ring-white/30
-    ring-offset-2 ring-offset-neutral-900
-    shadow-lg
-  `
-    : `
-    ring-2 ring-black/20
-    ring-offset-2 ring-offset-white
-    shadow-md
-  `;
-
-  const closeColor = isDark
-    ? "text-white/80 hover:text-white"
-    : "text-black/70 hover:text-black";
+  
 
   return (
     <Dialog open={!!item} onOpenChange={onClose}>
       <DialogContent
         className={`
-           w-[95vw] max-w-lg sm:max-w-xl
+           w-[95vw] pt-4 max-w-lg sm:max-w-xl
     p-0 overflow-hidden
     rounded-3xl
     border shadow-2xl
@@ -103,35 +89,31 @@ export default function ItemCardDialog({ item, primaryColor, onClose }: Props) {
       >
         {/* Imagen */}
         {firstImage && (
-          <div className="relative w-full h-72 sm:h-80">
-            <div
-              className={`w-full h-full
-      flex items-center justify-center `}
-            >
-              <Image
-                src={firstImage.url}
-                alt={firstImage.alt || item.title}
-                width={800}
-                height={600}
-                className="object-contain w-full h-full"
-              />
-            </div>
+  <div className="relative w-full h-72 sm:h-80"> {/* Se añade mt-8 para moverlo hacia abajo */}
+    <div
+      className={`w-full h-full flex items-center justify-center`}
+    >
+      <Image
+        src={firstImage.url}
+        alt={firstImage.alt || item.title}
+        width={800}
+        height={600}
+        className="object-contain w-full h-full"
+      />
+    </div>
 
-            <DialogClose
-  className={`
-    absolute top-4 right-4
-    flex items-center justify-center
-    
-    ${isDark ? "text-white" : "text-black"}
-    text-3xl
-    
-  `}
->
-  &times;
-</DialogClose>
-          </div>
-        )}
-
+    <DialogClose
+      className={`
+        absolute top-4 right-4
+        flex items-center justify-center
+        ${isDark ? "text-white" : "text-black"}
+        text-3xl
+      `}
+    >
+      &times;
+    </DialogClose>
+  </div>
+)}
         {/* Info */}
         <div className={`flex flex-col gap-4 p-6 sm:p-8 ${inter.className}`}>
           <DialogTitle
