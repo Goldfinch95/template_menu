@@ -7,9 +7,7 @@ import type { Menu, Categories, Items } from "@/interfaces/menu";
 import { getMenu } from "@/common/utils/api";
 import Image from "next/image";
 import { Button } from "@/common/components/ui/button";
-import { Badge } from "@/common/components/ui/badge";
 import { Card, CardContent } from "@/common/components/ui/card";
-import { Separator } from "@/common/components/ui/separator";
 import { ArrowLeft } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import ItemCardDialog from "./components/ItemCardDialog";
@@ -106,29 +104,7 @@ const getTextColor = (color: string): string => {
 
   
 
-  /* --------------------------------------------------
-     🎨 Card con colores dinámicos
-  -------------------------------------------------- */
-  const cardClass = isDark
-    ? `
-        rounded-3xl
-        bg-white/15
-        backdrop-blur-xl
-        border border-white/20
-        shadow-[0_8px_30px_rgba(0,0,0,0.3)]
-        hover:bg-white/25
-        transition-all
-      `
-    : `
-        rounded-3xl
-        bg-black/10
-        backdrop-blur-xl
-        border border-black/20
-        shadow-[0_8px_30px_rgba(0,0,0,0.12)]
-        hover:bg-black/15
-        transition-all
-      `;
-
+  
   /* --------------------------------------------------
      📌 Sincronizar navbar con el scroll
   -------------------------------------------------- */
