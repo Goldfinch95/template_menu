@@ -1,9 +1,14 @@
-import { LoginData, LoginResponse, RegisterData, User } from "@/interfaces/menu";
+import {
+  LoginData,
+  LoginResponse,
+  RegisterData,
+  User,
+} from "@/interfaces/menu";
 import { API_CONFIG } from "@/common/utils/config";
 import { http } from "@/common/utils/http";
 
 export const authService = {
-    // registro
+  // registro
   async register(data: RegisterData): Promise<User> {
     return http.post<User>(API_CONFIG.ENDPOINTS.USERS, {
       name: data.name.trim(),
@@ -34,12 +39,15 @@ export const authService = {
       }
 
       return response;
-    } catch (error: any) {
-        //manejo de errores
-      if (error.message.includes("403")) {
+    } catch (error: unknown) {
+      //manejo de errores
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
+
+      if (errorMessage.includes("403")) {
         throw new Error("Tu cuenta está inactiva. Contacta al administrador.");
       }
-      if (error.message.includes("401")) {
+      if (errorMessage.includes("401")) {
         throw new Error("Email o contraseña incorrectos");
       }
       throw error;
@@ -47,7 +55,10 @@ export const authService = {
   },
 
   //olvidar la contraseña
-  async forgotPassword(email: string, signal?: AbortSignal): Promise<{ message: string }> {
+  async forgotPassword(
+    email: string,
+    signal?: AbortSignal
+  ): Promise<{ message: string }> {
     try {
       return await http.post<{ message: string }>(
         `${API_CONFIG.ENDPOINTS.USERS}/forgot-password`,
@@ -87,6 +98,7 @@ export const authService = {
     localStorage.removeItem("authToken");
     localStorage.removeItem("user");
     localStorage.removeItem("subdomain");
-    document.cookie = "authToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+    document.cookie =
+      "authToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
   },
 };
