@@ -17,6 +17,8 @@ import ItemCardDialog from "./components/ItemCardDialog";
    es claro u oscuro
 -------------------------------------------------- */
 function getLuminance(color: string): number {
+  if (!color) return 255; // Si color es undefined o null, retorna un valor alto (blanco)
+
   let r, g, b;
 
   if (color.startsWith("#")) {
@@ -35,10 +37,10 @@ function getLuminance(color: string): number {
     b = bigint & 255;
   } else if (color.startsWith("rgb")) {
     const values = color.match(/\d+/g);
-    if (!values) return 255;
+    if (!values) return 255; // Si no puede extraer valores RGB, devuelve un valor alto
     [r, g, b] = values.map(Number);
   } else {
-    return 255;
+    return 255; // Si no es un formato soportado, se asume blanco
   }
 
   return 0.2126 * r + 0.7152 * g + 0.0722 * b;
@@ -81,10 +83,10 @@ function MenuContent() {
 
   /* --------------------------------------------------
    📌 Detectar si el color secundario es claro u oscuro
--------------------------------------------------- */
-const getTextColor = (color: string): string => {
-  return getLuminance(color) < 140 ? "text-white" : "text-black";
-};
+  -------------------------------------------------- */
+  const getTextColor = (color: string): string => {
+    return getLuminance(color) < 140 ? "text-white" : "text-black";
+  };
 
   /* --------------------------------------------------
      📌 Detectar color claro/oscuro para el navbar
@@ -102,9 +104,6 @@ const getTextColor = (color: string): string => {
     return getLuminance(menu.color.primary) < 140;
   }, [menu.color?.primary]);
 
-  
-
-  
   /* --------------------------------------------------
      📌 Sincronizar navbar con el scroll
   -------------------------------------------------- */
@@ -213,103 +212,110 @@ const getTextColor = (color: string): string => {
 
       {/* HEADER */}
       <header className="relative h-64 w-full mt-14">
-  <div
-    className="absolute inset-0 bg-cover bg-center"
-    style={
-      menu.backgroundImage
-        ? {
-            backgroundImage: `linear-gradient(to bottom, rgba(0,0,0,0.55), rgba(0,0,0,0.55)), url(${menu.backgroundImage})`,
+        <div
+          className="absolute inset-0 bg-cover bg-center"
+          style={
+            menu.backgroundImage
+              ? {
+                  backgroundImage: `linear-gradient(to bottom, rgba(0,0,0,0.55), rgba(0,0,0,0.55)), url(${menu.backgroundImage})`,
+                }
+              : { backgroundColor: menu.color?.primary }
           }
-        : { backgroundColor: menu.color?.primary }
-    }
-  />
-
-  <div className="relative flex flex-col items-center justify-center text-center h-full max-w-xl mx-auto px-4">
-    {menu.logo && (
-      <Card className="p-2 w-28 h-28 flex items-center justify-center rounded-2xl shadow-xl overflow-hidden bg-transparent border-0 mb-3">
-        <Image
-          src={menu.logo}
-          alt="Logo"
-          width={50} // tamaño original alto/resolución
-          height={50}
-          className="object-cover w-full h-full"
         />
-      </Card>
-    )}
 
-    <h1
-      className={`text-3xl font-semibold drop-shadow-lg ${
-        menu.color?.primary && getTextColor(menu.color?.primary) === "text-white"
-          ? "text-white"
-          : "text-black"
-      }`}
-    >
-      {menu.title}
-    </h1>
+        <div className="relative flex flex-col items-center justify-center text-center h-full max-w-xl mx-auto px-4">
+          {menu.logo && (
+            <Card className="p-2 w-28 h-28 flex items-center justify-center rounded-2xl shadow-xl overflow-hidden bg-transparent border-0 mb-3">
+              <Image
+                src={menu.logo}
+                alt="Logo"
+                width={50} // tamaño original alto/resolución
+                height={50}
+                className="object-cover w-full h-full"
+              />
+            </Card>
+          )}
 
-    <p
-      className={`text-md mt-1 ${
-        menu.color?.primary && getTextColor(menu.color?.primary) === "text-white"
-          ? "text-white/90"
-          : "text-black/90"
-      }`}
-    >
-      {menu.pos}
-    </p>
-  </div>
-</header>
+          <h1
+            className={`text-3xl font-semibold drop-shadow-lg ${
+              menu.backgroundImage
+                ? "text-white" // Si hay imagen de fondo, texto blanco
+                : getTextColor(menu.color?.primary) === "text-white"
+                ? "text-white" // Si el color primario es oscuro, texto blanco
+                : "text-black" // Si el color primario es claro, texto negro
+            }`}
+          >
+            {menu.title}
+          </h1>
+
+          <p
+            className={`text-md mt-1 ${
+              menu.backgroundImage
+                ? "text-white/90" // Si hay imagen de fondo, texto blanco con opacidad
+                : getTextColor(menu.color?.primary) === "text-white"
+                ? "text-white/90" // Si el color primario es oscuro, texto blanco con opacidad
+                : "text-black/90" // Si el color primario es claro, texto negro con opacidad
+            }`}
+          >
+            {menu.pos}
+          </p>
+        </div>
+      </header>
 
       {/* CATEGORY NAV */}
       <div
-  className="sticky top-12 z-40 backdrop-blur-xl"
-  style={{
-    backgroundColor: menu.color?.primary
-      ? `${menu.color.primary}CC` // 80% transparencia
-      : "rgba(255,255,255,0.8)",
-  }}
->
-  <div
-    className={`
-      max-w-xl mx-auto px-4 py-3 flex gap-2 scrollbar-hide
-      ${categories.length <= 4 ? "justify-center" : "overflow-x-auto"}
-    `}
-  >
-    {categories.map((cat) => {
-  const isActive = activeCategory === cat.id;
+        className="sticky top-12 z-40 backdrop-blur-xl"
+        style={{
+          backgroundColor: menu.color?.primary
+            ? `${menu.color.primary}CC` // 80% transparencia
+            : "rgba(255,255,255,0.8)",
+        }}
+      >
+        <div
+          className={`max-w-xl mx-auto px-4 py-3 flex gap-2 scrollbar-hide ${
+            categories.length <= 4 ? "justify-center" : "overflow-x-auto"
+          }`}
+        >
+          {categories.map((cat) => {
+            const isActive = activeCategory === cat.id;
 
-  const activeBg = menu.color?.secondary || "#000";
-  const textColor = getTextColor(activeBg); // Cambiar texto según luminancia
+            const activeBg = menu.color?.secondary || "#000";
+            const textColor = getTextColor(activeBg); // Cambiar texto según luminancia
 
-  const inactiveTextColor = getTextColor(menu.color?.primary || "#fff"); // Para categorías no seleccionadas
+            const inactiveTextColor = getTextColor(
+              menu.color?.primary || "#fff"
+            ); // Para categorías no seleccionadas
 
-  return (
-    <motion.button
-      whileTap={{ scale: 0.92 }}
-      key={cat.id}
-      onClick={() => scrollToCategory(cat.id)}
-      className={`
-        px-5 py-2 rounded-full font-medium transition-all text-sm whitespace-nowrap
-        backdrop-blur-lg
-        ${isActive
-          ? `${textColor} shadow-md`
-          : `${inactiveTextColor} text-opacity-80 hover:text-opacity-100`}
-      `}
-      style={{
-        backgroundColor: isActive
-          ? activeBg
-          : "rgba(255,255,255,0.25)",
-        border: isActive
-          ? "1px solid rgba(255,255,255,0.35)"
-          : "1px solid rgba(255,255,255,0.15)",
-        boxShadow: isActive ? "0 4px 12px rgba(0,0,0,0.15)" : "none",
-      }}
-    >
-      {cat.title}
-    </motion.button>
-  );
-})}
-  </div>
-</div>
+            return (
+              <motion.button
+                whileTap={{ scale: 0.92 }}
+                key={cat.id}
+                onClick={() => scrollToCategory(cat.id)}
+                className={`
+                  px-5 py-2 rounded-full font-medium transition-all text-sm whitespace-nowrap
+                  backdrop-blur-lg
+                  ${
+                    isActive
+                      ? `${textColor} shadow-md`
+                      : `${inactiveTextColor} text-opacity-80 hover:text-opacity-100`
+                  }
+                `}
+                style={{
+                  backgroundColor: isActive
+                    ? activeBg
+                    : "rgba(255,255,255,0.25)",
+                  border: isActive
+                    ? "1px solid rgba(255,255,255,0.35)"
+                    : "1px solid rgba(255,255,255,0.15)",
+                  boxShadow: isActive ? "0 4px 12px rgba(0,0,0,0.15)" : "none",
+                }}
+              >
+                {cat.title}
+              </motion.button>
+            );
+          })}
+        </div>
+      </div>
 
       {/* CONTENT */}
       <div
@@ -357,17 +363,17 @@ const getTextColor = (color: string): string => {
                         {/* Card clickeable */}
                         <Card
                           className={`
-    rounded-2xl
-    border 
-    shadow-sm shadow-black/5 
-    transition-all 
-    cursor-pointer
-    ${
-      isDark
-        ? "bg-neutral-900 border-neutral-700 active:scale-[0.97]"
-        : "bg-white border-neutral-200 active:scale-[0.97]"
-    }
-  `}
+                            rounded-2xl
+                            border 
+                            shadow-sm shadow-black/5 
+                            transition-all 
+                            cursor-pointer
+                            ${
+                              isDark
+                                ? "bg-neutral-900 border-neutral-700 active:scale-[0.97]"
+                                : "bg-white border-neutral-200 active:scale-[0.97]"
+                            }
+                          `}
                           onClick={() => setSelectedItem(item)}
                         >
                           <CardContent className="p-4">
