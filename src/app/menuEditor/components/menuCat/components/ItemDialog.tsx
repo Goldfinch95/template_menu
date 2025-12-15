@@ -141,14 +141,14 @@ const ItemDialog = ({
 
       if (isEditMode) {
         // Actualizar ítem existente
-        console.log("Estado active antes de enviar:", active);
+        //console.log("Estado active antes de enviar:", active);
         const payload: Partial<Items> = {
           title: title.trim(),
           description: description.trim() || undefined,
           price: Number(price),
           active: active,
         };
-        console.log("Payload enviado", payload);
+        //console.log("Payload enviado", payload);
         await updateItem(item.id, payload);
         toast("Plato actualizado con éxito.", {
           duration: 2000,

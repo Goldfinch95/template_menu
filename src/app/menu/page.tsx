@@ -82,6 +82,13 @@ function MenuContent() {
   }, [menuId]);
 
   /* --------------------------------------------------
+   📌 Detectar si el color secundario es claro u oscuro
+-------------------------------------------------- */
+const getTextColor = (color: string): string => {
+  return getLuminance(color) < 140 ? "text-white" : "text-black";
+};
+
+  /* --------------------------------------------------
      📌 Detectar color claro/oscuro para el navbar
   -------------------------------------------------- */
   const isNavbarDark = useMemo(() => {
@@ -96,6 +103,8 @@ function MenuContent() {
     if (!menu.color?.primary) return false;
     return getLuminance(menu.color.primary) < 140;
   }, [menu.color?.primary]);
+
+  
 
   /* --------------------------------------------------
      🎨 Card con colores dinámicos
@@ -228,90 +237,103 @@ function MenuContent() {
 
       {/* HEADER */}
       <header className="relative h-64 w-full mt-14">
-        <div
-          className="absolute inset-0 bg-cover bg-center"
-          style={
-            menu.backgroundImage
-              ? {
-                  backgroundImage: `linear-gradient(to bottom, rgba(0,0,0,0.55), rgba(0,0,0,0.55)), url(${menu.backgroundImage})`,
-                }
-              : { backgroundColor: menu.color?.primary }
+  <div
+    className="absolute inset-0 bg-cover bg-center"
+    style={
+      menu.backgroundImage
+        ? {
+            backgroundImage: `linear-gradient(to bottom, rgba(0,0,0,0.55), rgba(0,0,0,0.55)), url(${menu.backgroundImage})`,
           }
+        : { backgroundColor: menu.color?.primary }
+    }
+  />
+
+  <div className="relative flex flex-col items-center justify-center text-center h-full max-w-xl mx-auto px-4">
+    {menu.logo && (
+      <Card className="p-2 w-28 h-28 flex items-center justify-center rounded-2xl shadow-xl overflow-hidden bg-transparent border-0 mb-3">
+        <Image
+          src={menu.logo}
+          alt="Logo"
+          width={50} // tamaño original alto/resolución
+          height={50}
+          className="object-cover w-full h-full"
         />
+      </Card>
+    )}
 
-        <div className="relative flex flex-col items-center justify-center text-center h-full max-w-xl mx-auto px-4">
-          {menu.logo && (
-            <Card className="p-2 w-28 h-28 flex items-center justify-center rounded-2xl shadow-xl overflow-hidden  bg-transparent border-0 mb-3">
-              <Image
-                src={menu.logo}
-                alt="Logo"
-                width={50} // tamaño original alto/resolución
-                height={50}
-                className="object-cover w-full h-full"
-              />
-            </Card>
-          )}
+    <h1
+      className={`text-3xl font-semibold drop-shadow-lg ${
+        menu.color?.primary && getTextColor(menu.color?.primary) === "text-white"
+          ? "text-white"
+          : "text-black"
+      }`}
+    >
+      {menu.title}
+    </h1>
 
-          <h1 className="text-white text-3xl font-semibold drop-shadow-lg">
-            {menu.title}
-          </h1>
-
-          <p className="text-white/90 text-md mt-1">{menu.pos}</p>
-        </div>
-      </header>
+    <p
+      className={`text-md mt-1 ${
+        menu.color?.primary && getTextColor(menu.color?.primary) === "text-white"
+          ? "text-white/90"
+          : "text-black/90"
+      }`}
+    >
+      {menu.pos}
+    </p>
+  </div>
+</header>
 
       {/* CATEGORY NAV */}
       <div
-        className="sticky top-12 z-40 backdrop-blur-xl"
-        style={{
-          backgroundColor: menu.color?.primary
-            ? `${menu.color.primary}CC` // 80% transparencia
-            : "rgba(255,255,255,0.8)",
-        }}
-      >
-        <div
-          className={`
+  className="sticky top-12 z-40 backdrop-blur-xl"
+  style={{
+    backgroundColor: menu.color?.primary
+      ? `${menu.color.primary}CC` // 80% transparencia
+      : "rgba(255,255,255,0.8)",
+  }}
+>
+  <div
+    className={`
       max-w-xl mx-auto px-4 py-3 flex gap-2 scrollbar-hide
       ${categories.length <= 4 ? "justify-center" : "overflow-x-auto"}
     `}
-        >
-          {categories.map((cat) => {
-            const isActive = activeCategory === cat.id;
+  >
+    {categories.map((cat) => {
+  const isActive = activeCategory === cat.id;
 
-            const activeBg = menu.color?.secondary || "#000";
-            const textColor =
-              getLuminance(activeBg) < 140 ? "text-white" : "text-black";
+  const activeBg = menu.color?.secondary || "#000";
+  const textColor = getTextColor(activeBg); // Cambiar texto según luminancia
 
-            return (
-              <motion.button
-                whileTap={{ scale: 0.92 }}
-                key={cat.id}
-                onClick={() => scrollToCategory(cat.id)}
-                className={`
-            px-5 py-2 rounded-full font-medium transition-all text-sm whitespace-nowrap
-            backdrop-blur-lg
-            ${
-              isActive
-                ? `${textColor} shadow-md`
-                : "text-muted-foreground hover:text-foreground"
-            }
-          `}
-                style={{
-                  backgroundColor: isActive
-                    ? activeBg
-                    : "rgba(255,255,255,0.25)",
-                  border: isActive
-                    ? "1px solid rgba(255,255,255,0.35)"
-                    : "1px solid rgba(255,255,255,0.15)",
-                  boxShadow: isActive ? "0 4px 12px rgba(0,0,0,0.15)" : "none",
-                }}
-              >
-                {cat.title}
-              </motion.button>
-            );
-          })}
-        </div>
-      </div>
+  const inactiveTextColor = getTextColor(menu.color?.primary || "#fff"); // Para categorías no seleccionadas
+
+  return (
+    <motion.button
+      whileTap={{ scale: 0.92 }}
+      key={cat.id}
+      onClick={() => scrollToCategory(cat.id)}
+      className={`
+        px-5 py-2 rounded-full font-medium transition-all text-sm whitespace-nowrap
+        backdrop-blur-lg
+        ${isActive
+          ? `${textColor} shadow-md`
+          : `${inactiveTextColor} text-opacity-80 hover:text-opacity-100`}
+      `}
+      style={{
+        backgroundColor: isActive
+          ? activeBg
+          : "rgba(255,255,255,0.25)",
+        border: isActive
+          ? "1px solid rgba(255,255,255,0.35)"
+          : "1px solid rgba(255,255,255,0.15)",
+        boxShadow: isActive ? "0 4px 12px rgba(0,0,0,0.15)" : "none",
+      }}
+    >
+      {cat.title}
+    </motion.button>
+  );
+})}
+  </div>
+</div>
 
       {/* CONTENT */}
       <div
