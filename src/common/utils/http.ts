@@ -51,7 +51,7 @@ export const http = {
     return this.request<T>(endpoint, { ...options, method: "GET" });
   },
 
-  post<T>(endpoint: string, data?: any, options?: FetchOptions): Promise<T> {
+  post<T>(endpoint: string, data?: unknown, options?: FetchOptions): Promise<T> {
     return this.request<T>(endpoint, {
       ...options,
       method: "POST",
@@ -59,7 +59,7 @@ export const http = {
     });
   },
 
-  put<T>(endpoint: string, data?: any, options?: FetchOptions): Promise<T> {
+  put<T>(endpoint: string, data?: unknown, options?: FetchOptions): Promise<T> {
     return this.request<T>(endpoint, {
       ...options,
       method: "PUT",
