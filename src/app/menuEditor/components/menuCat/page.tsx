@@ -27,7 +27,7 @@ import {
   UtensilsCrossed,
   Pencil,
   GripVertical,
-  Play,
+  Check,
 } from "lucide-react";
 import { Spinner } from "@/common/components/ui/spinner";
 import CatDialog from "./components/CatDialog";
@@ -291,7 +291,7 @@ function SortableCategory({
                 handleTitleChange(category.id, category.title); // ← Revierte al original
               }
             }} // ← NUEVO
-            className="flex-1 min-w-0 p-1 font-semibold text-slate-700 bg-transparent border-b border-transparent focus:border-orange-500 focus:outline-none transition-colors truncate"
+            className="flex-1 min-w-0 p-1 font-semibold text-slate-700 bg-transparent border-b border-transparent  focus:outline-none transition-colors truncate"
           />
 
           {/* BOTONES DE ACCIÓN */}
@@ -300,21 +300,28 @@ function SortableCategory({
             <Dialog>
               {showPlayButton && (
                 <motion.div
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: 20 }}
-                  transition={{ duration: 0.5 }}
+                  initial={{ opacity: 0.0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0.0 }}
+                  transition={{
+                    duration: 0.4,
+                    ease: [0.4, 0.0, 0.2, 1], // material / iOS-like
+                  }}
                 >
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-8 w-8 text-orange-500 hover:bg-orange-50"
+                    className=" h-8 w-8
+          text-emerald-600
+          hover:bg-emerald-50
+          hover:scale-105
+          transition"
                     onMouseDown={(e) => {
                       e.preventDefault();
                       handleEditSave(category.id);
                     }}
                   >
-                    <Play className="h-4 w-4 text-orange-500" />
+                    <Check className="h-4 w-4" />
                   </Button>
                 </motion.div>
               )}
