@@ -1,4 +1,5 @@
 "use client";
+
 import {
   Dialog,
   DialogContent,
@@ -9,69 +10,161 @@ import {
 import Image from "next/image";
 import { Items } from "@/interfaces/menu";
 import { Inter } from "next/font/google";
+import { useMemo } from "react";
 
-// Cargar Inter con los pesos que necesitas
+// Inter
 const inter = Inter({
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700"], // normal, medium, semibold, bold
+  weight: ["400", "500", "600", "700"],
 });
 
 interface Props {
   item: Items | null;
+  primaryColor?: string;
   onClose: () => void;
 }
 
-export default function ItemCardDialog({ item, onClose }: Props) {
+/* -----------------------------
+   Luminancia
+----------------------------- */
+function getLuminance(color: string): number {
+  let r, g, b;
+
+  if (color.startsWith("#")) {
+    const hex = color.replace("#", "");
+    const bigint = parseInt(
+      hex.length === 3
+        ? hex
+            .split("")
+            .map((x) => x + x)
+            .join("")
+        : hex,
+      16
+    );
+    r = (bigint >> 16) & 255;
+    g = (bigint >> 8) & 255;
+    b = bigint & 255;
+  } else {
+    return 255;
+  }
+
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+}
+
+export default function ItemCardDialog({ item, primaryColor, onClose }: Props) {
   if (!item) return null;
-  
-  const hasImage = item.images?.[0]?.url;
-  const isAvailable = item.active; // Se asume que `active` es un booleano
+
+  const firstImage = item.images?.find((img) => img.active);
+  const isAvailable = item.active !== false;
+
+  const isDark = useMemo(() => {
+    if (!primaryColor) return false;
+    return getLuminance(primaryColor) < 140;
+  }, [primaryColor]);
+
+  /* -----------------------------
+     Clases dinámicas
+  ----------------------------- */
+  const dialogBg = isDark
+    ? "bg-neutral-900 border-neutral-700"
+    : "bg-white border-neutral-200";
+
+  const titleColor = isDark ? "text-white" : "text-black";
+  const textColor = isDark ? "text-white/80" : "text-black/70";
+  const priceColor = isDark ? "text-white" : "text-black";
+
+  const imageRing = isDark
+    ? `
+    ring-2 ring-white/30
+    ring-offset-2 ring-offset-neutral-900
+    shadow-lg
+  `
+    : `
+    ring-2 ring-black/20
+    ring-offset-2 ring-offset-white
+    shadow-md
+  `;
+
+  const closeColor = isDark
+    ? "text-white/80 hover:text-white"
+    : "text-black/70 hover:text-black";
 
   return (
     <Dialog open={!!item} onOpenChange={onClose}>
-      <DialogContent className="max-w-md w-full rounded-xl p-0 overflow-hidden bg-white shadow-xl border border-gray-100">
-        {/* Imagen principal */}
-        {hasImage ? (
-          <div className="w-full h-60 overflow-hidden rounded-xl relative">
-            <Image
-              src={item.images?.[0]?.url || "/placeholder.png"}
-              width={500}
-              height={250}
-              alt={item.title}
-              className="object-contain w-full h-full"
-            />
-            <DialogClose className="absolute top-4 right-4 text-white text-lg opacity-70 hover:opacity-100 transition-opacity">
-              &times;
-            </DialogClose>
-          </div>
-        ) : null}
+      <DialogContent
+        className={`
+           w-[95vw] max-w-lg sm:max-w-xl
+    p-0 overflow-hidden
+    rounded-3xl
+    border shadow-2xl
+          ${dialogBg}
+          [&>button]:hidden
+        `}
+      >
+        {/* Imagen */}
+        {firstImage && (
+          <div className="relative w-full h-72 sm:h-80">
+            <div
+              className={`w-full h-full
+      flex items-center justify-center `}
+            >
+              <Image
+                src={firstImage.url}
+                alt={firstImage.alt || item.title}
+                width={800}
+                height={600}
+                className="object-contain w-full h-full"
+              />
+            </div>
 
-        {/* Información */}
-        <div className={`flex flex-col p-6 gap-2 ${hasImage ? 'mt-4' : 'mt-0'}  ${inter.className}`}>
-          <DialogTitle className="font-semibold text-xl text-gray-900 tracking-tight">
+            <DialogClose
+  className={`
+    absolute top-4 right-4
+    flex items-center justify-center
+    
+    ${isDark ? "text-white" : "text-black"}
+    text-3xl
+    
+  `}
+>
+  &times;
+</DialogClose>
+          </div>
+        )}
+
+        {/* Info */}
+        <div className={`flex flex-col gap-4 p-6 sm:p-8 ${inter.className}`}>
+          <DialogTitle
+            className={`text-2xl sm:text-3xl font-semibold tracking-tight ${titleColor}`}
+          >
             {item.title}
           </DialogTitle>
-          <DialogDescription className="text-sm text-gray-600 mt-1 leading-relaxed">
+
+          <DialogDescription
+            className={`text-base sm:text-lg leading-relaxed ${textColor}`}
+          >
             {item.description}
           </DialogDescription>
-          
-          {/* Precio o mensaje de no disponible */}
+
           {isAvailable ? (
-            <p className="text-xl font-bold mt-2 tracking-tight text-gray-900">
+            <p
+              className={`text-2xl font-semibold tracking-tight ${priceColor}`}
+            >
               ${item.price}
             </p>
           ) : (
-            <div className="mt-3">
-              <span
-                className={`text-base px-2 py-1 rounded-md font-medium
-                  ${isAvailable
-                    ? "text-gray-900"
-                    : "bg-red-500/10 text-red-700 border border-red-500/20"
-                  }`}
-              >
-                No disponible
-              </span>
-            </div>
+            <span
+              className={`
+          inline-block text-sm px-3 py-1 rounded-md font-medium
+          ${
+            isDark
+              ? "bg-red-400/20 text-red-200 border border-red-400/30"
+              : "bg-red-500/10 text-red-700 border border-red-500/20"
+          }
+        `}
+            >
+              No disponible
+            </span>
           )}
         </div>
       </DialogContent>
