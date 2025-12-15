@@ -52,15 +52,18 @@ function getLuminance(color: string): number {
 }
 
 export default function ItemCardDialog({ item, primaryColor, onClose }: Props) {
-  if (!item) return null;
-
-  const firstImage = item.images?.find((img) => img.active);
-  const isAvailable = item.active !== false;
 
   const isDark = useMemo(() => {
     if (!primaryColor) return false;
     return getLuminance(primaryColor) < 140;
   }, [primaryColor]);
+  
+  if (!item) return null;
+
+  const firstImage = item.images?.find((img) => img.active);
+  const isAvailable = item.active !== false;
+
+  
 
   /* -----------------------------
      Clases dinámicas
