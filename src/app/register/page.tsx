@@ -9,7 +9,7 @@ import { Input } from "@/common/components/ui/input";
 import { Label } from "@/common/components/ui/label";
 import { AnimatePresence, motion } from "framer-motion";
 import { Manrope } from "next/font/google";
-import { registerUser } from "@/common/utils/api";
+import { authService } from "@/app/services";
 import { UtensilsCrossed } from "lucide-react";
 import { toast } from "sonner";
 
@@ -132,7 +132,7 @@ export default function RegisterPage() {
 
     try {
       // Registrar usuario
-      await registerUser({
+      await authService.register({
         name: form.name.trim(),
         lastName: form.lastName.trim(),
         email: form.email.trim(),
