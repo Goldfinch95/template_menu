@@ -191,8 +191,8 @@ export default function InfoDialog({
       errors.push("El título debe tener más de 3 caracteres.");
     }
 
-    if (title.trim().length > 25) {
-      errors.push("El título debe tener menos de 25 caracteres.");
+    if (title.trim().length > 28) {
+      errors.push("El título debe tener menos de 28 caracteres.");
     }
 
     // Validar pos solo si el usuario ingresó algo
@@ -201,6 +201,10 @@ export default function InfoDialog({
       errors.push(
         "La ubicación debe tener más de 3 caracteres o dejarse vacía."
       );
+    }
+
+    if (posTrimmed.length > 50) {
+      errors.push("La ubicación no debe exceder los 60 caracteres.");
     }
 
     if (errors.length > 0) {
