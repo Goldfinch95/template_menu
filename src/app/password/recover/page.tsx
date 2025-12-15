@@ -12,7 +12,7 @@ import { Input } from "@/common/components/ui/input";
 import { Label } from "@/common/components/ui/label";
 import { Spinner } from "@/common/components/ui/spinner";
 import { Alert, AlertDescription } from "@/common/components/ui/alert";
-import { resetPassword } from "@/common/utils/api";
+import { authService } from "@/app/services";
 
 import { UtensilsCrossed, Eye, EyeOff } from "lucide-react";
 
@@ -93,7 +93,7 @@ const PasswordRecoverContent = () => {
     abortControllerRef.current = new AbortController();
     const fakeTime = Math.random() * 700 + 1500;
     await simulateDelay(fakeTime);
-    await resetPassword(token, password, abortControllerRef.current.signal);
+    await authService.resetPassword(token, password, abortControllerRef.current.signal);
 
     toast.success("Contraseña actualizada con éxito.", {
       duration: 1400,

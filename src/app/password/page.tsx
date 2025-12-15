@@ -12,7 +12,7 @@ import { Input } from "@/common/components/ui/input";
 import { Label } from "@/common/components/ui/label";
 import { Alert, AlertDescription } from "@/common/components/ui/alert";
 import { UtensilsCrossed } from "lucide-react";
-import { forgotPassword } from "@/common/utils/api";
+import { authService } from "@/app/services";
 import { Spinner } from "@/common/components/ui/spinner"; // Importar el spinner de shadcn/ui
 
 const manrope = Manrope({ subsets: ["latin"] });
@@ -77,7 +77,7 @@ const Page = () => {
       abortControllerRef.current = new AbortController();
       const fakeTime = Math.random() * 700 + 1500;
       await simulateDelay(fakeTime);
-      await forgotPassword(cleanedEmail, abortControllerRef.current.signal);
+      await authService.forgotPassword(cleanedEmail, abortControllerRef.current.signal);
 
       toast.success(`Se envió el email a  "${cleanedEmail}"`, {
         duration: 2000,
