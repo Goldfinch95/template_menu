@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef, Suspense, useMemo } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import FoodMenuItem from "@/app/components/FoodMenuItem";
 import type { Menu, Categories, Items } from "@/interfaces/menu";
-import { getMenu } from "@/common/utils/api";
+import { menuService } from "@/app/services";
 import Image from "next/image";
 import { Button } from "@/common/components/ui/button";
 import { Card, CardContent } from "@/common/components/ui/card";
@@ -68,7 +68,7 @@ function MenuContent() {
 
     const loadMenu = async () => {
       try {
-        const menuData = await getMenu(menuId);
+        const menuData = await menuService.getById(menuId);
         setMenu(menuData);
 
         const sortedCategories = [...menuData.categories].sort(
