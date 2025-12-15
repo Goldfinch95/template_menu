@@ -14,23 +14,24 @@ export const itemService = {
     };
 
     return http.post<Items>(API_CONFIG.ENDPOINTS.ITEMS, payload, {
+      useAuth: true,
       useTenant: true,
     });
   },
-//editar item
+  //editar item
   async update(
     itemId: number,
     data: Partial<Items> | UpdateItemPosition
   ): Promise<Items> {
-    return http.put<Items>(
-      `${API_CONFIG.ENDPOINTS.ITEMS}/${itemId}`,
-      data,
-      { useTenant: true }
-    );
+    return http.put<Items>(`${API_CONFIG.ENDPOINTS.ITEMS}/${itemId}`, data, {
+      useAuth: true,
+      useTenant: true,
+    });
   },
-//borrar item
+  //borrar item
   async delete(itemId: number): Promise<void> {
     return http.delete<void>(`${API_CONFIG.ENDPOINTS.ITEMS}/${itemId}`, {
+      useAuth: true,
       useTenant: true,
     });
   },

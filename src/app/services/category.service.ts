@@ -12,7 +12,7 @@ export const categoryService = {
     return http.post<Categories>(
       API_CONFIG.ENDPOINTS.CATEGORIES,
       { menuId: data.menuId, title: data.title },
-      { useTenant: true }
+      { useAuth: true, useTenant: true }
     );
   },
 
@@ -24,14 +24,14 @@ export const categoryService = {
     return http.put<Categories>(
       `${API_CONFIG.ENDPOINTS.CATEGORIES}/${categoryId}`,
       data,
-      { useTenant: true }
+      { useAuth: true, useTenant: true }
     );
   },
   //borrar categoria
   async delete(categoryId: number): Promise<void> {
     return http.delete<void>(
       `${API_CONFIG.ENDPOINTS.CATEGORIES}/${categoryId}`,
-      { useTenant: true }
+      { useAuth: true, useTenant: true }
     );
   },
 };

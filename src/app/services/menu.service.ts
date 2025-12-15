@@ -1,6 +1,7 @@
 import { Menu, newMenu } from "@/interfaces/menu";
 import { API_CONFIG } from "@/common/utils/config";
 import { http } from "@/common/utils/http";
+import { getTenantHeaders } from "@/common/utils/auth";
 
 //obtener todos los menus
 export const menuService = {

@@ -31,7 +31,7 @@ export const imageService = {
     return http.uploadFormData<{ ok: boolean }>(
       `${API_CONFIG.ENDPOINTS.IMAGES}/items/${itemId}`,
       formData,
-      { method: "PUT", useTenant: true }
+      { method: "PUT", useAuth: true, useTenant: true }
     );
   },
 };
