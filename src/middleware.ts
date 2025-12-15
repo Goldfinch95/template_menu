@@ -13,7 +13,8 @@ export function middleware(request: NextRequest) {
   const temporalTokenPaths = ["/password/create", "/password/recover"];
   
   // Rutas públicas con parámetros específicos
-  const isPublicMenuRoute = currentPath === "/menu" && searchParams.has("id");
+  const isPublicMenuRoute = currentPath === "/menu" && searchParams.has("tenant") && searchParams.has("menuId");
+
   
   // Rutas privadas que requieren authToken
   const privatePaths = [

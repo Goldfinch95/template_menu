@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Manrope } from "next/font/google";
 import { toast } from "sonner";
 
-import { loginUser } from "@/common/utils/api";
+import { authService  } from "@/app/services";
 
 import { Alert, AlertDescription } from "@/common/components/ui/alert";
 import { Button } from "@/common/components/ui/button";
@@ -174,7 +174,7 @@ function Login() {
     try {
       const fakeTime = Math.random() * 700 + 1500;
       await simulateDelay(fakeTime);
-      await loginUser(cleaned);
+      await authService.login(cleaned);
 
       router.push("/menuShowcase?loginSuccess=1");
     } catch (err) {

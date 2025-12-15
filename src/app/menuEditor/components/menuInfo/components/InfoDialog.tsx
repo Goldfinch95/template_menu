@@ -191,6 +191,10 @@ export default function InfoDialog({
       errors.push("El título debe tener más de 3 caracteres.");
     }
 
+    if (title.trim().length > 25) {
+      errors.push("El título debe tener menos de 25 caracteres.");
+    }
+
     // Validar pos solo si el usuario ingresó algo
     const posTrimmed = pos.trim();
     if (posTrimmed.length > 0 && posTrimmed.length <= 3) {
@@ -221,8 +225,14 @@ export default function InfoDialog({
       return;
     }
 
-    const primary = isValidHex(primaryColor.trim()) && primaryColor.trim() !== "#" ? primaryColor.trim() : menuPrimary || "#d4d4d4";
-    const secondary = isValidHex(secondaryColor.trim()) && secondaryColor.trim() !== "#" ? secondaryColor.trim() : menuSecondary || "#262626";
+    const primary =
+      isValidHex(primaryColor.trim()) && primaryColor.trim() !== "#"
+        ? primaryColor.trim()
+        : menuPrimary || "#d4d4d4";
+    const secondary =
+      isValidHex(secondaryColor.trim()) && secondaryColor.trim() !== "#"
+        ? secondaryColor.trim()
+        : menuSecondary || "#262626";
 
     const menuDataChanged =
       title.trim() !== menuTitle ||
@@ -264,7 +274,8 @@ export default function InfoDialog({
         if (logoFile) payload.logo = logoFile as unknown as string;
         else if (menuLogo) payload.logo = menuLogo;
 
-        if (backgroundFile) payload.backgroundImage = backgroundFile as unknown as string;
+        if (backgroundFile)
+          payload.backgroundImage = backgroundFile as unknown as string;
         else if (menuBackground) payload.backgroundImage = menuBackground;
 
         if (menuDataChanged) {

@@ -58,6 +58,8 @@ function MenuContent() {
   const [isScrolling, setIsScrolling] = useState(false);
   const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
+  /* logica para redirigir enlace de qr al menu */
+
   /* --------------------------------------------------
      📌 Cargar menú
   -------------------------------------------------- */

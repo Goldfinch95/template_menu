@@ -9,7 +9,7 @@ import { Manrope } from "next/font/google";
 import { toast } from "sonner";
 
 import { Menu } from "@/interfaces/menu";
-import { getMenus, logoutUser } from "@/common/utils/api";
+import { menuService, authService } from "@/app/services";
 
 import { Card } from "@/common/components/ui/card";
 import { Button } from "@/common/components/ui/button";
@@ -62,7 +62,7 @@ function MenuShowcase() {
 
   // Logout
   const handleLogout = () => {
-    logoutUser();
+    authService.logout();
     router.push("/");
   };
 
@@ -183,7 +183,7 @@ function MenuShowcase() {
         await simulateDelay(fakeTime);
         setIsLoading(true);
         // llamar al API para obtener menús
-        const data = await getMenus();
+        const data = await menuService.getAll();
         setMenus(data);
       } catch (err) {
         console.log(err);
