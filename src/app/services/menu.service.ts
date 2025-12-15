@@ -15,6 +15,7 @@ export const menuService = {
   //obtener menu especifico
   async getById(id: string | number): Promise<Menu> {
     return http.get<Menu>(`${API_CONFIG.ENDPOINTS.MENUS}/${id}`, {
+      useAuth: true,
       useTenant: true,
     });
   },
@@ -24,36 +25,43 @@ export const menuService = {
     const formData = new FormData();
 
     formData.append("title", data.title);
-    if (data.userId !== undefined) formData.append("userId", String(data.userId));
+    if (data.userId !== undefined)
+      formData.append("userId", String(data.userId));
     if (data.pos) formData.append("pos", data.pos);
     if (data.color) formData.append("color", JSON.stringify(data.color));
     if (data.logo) formData.append("logo", data.logo);
-    if (data.backgroundImage) formData.append("backgroundImage", data.backgroundImage);
+    if (data.backgroundImage)
+      formData.append("backgroundImage", data.backgroundImage);
 
     return http.uploadFormData<Menu>(API_CONFIG.ENDPOINTS.MENUS, formData, {
+      useAuth: true,
       useTenant: true,
     });
   },
-//editar menu
+  //editar menu
   async update(id: string | number, data: Partial<Menu>): Promise<Menu> {
     const formData = new FormData();
 
     if (data.title !== undefined) formData.append("title", data.title);
-    if (data.userId !== undefined) formData.append("userId", String(data.userId));
+    if (data.userId !== undefined)
+      formData.append("userId", String(data.userId));
     if (data.hasOwnProperty("pos")) formData.append("pos", data.pos || "");
-    if (data.color !== undefined) formData.append("color", JSON.stringify(data.color));
+    if (data.color !== undefined)
+      formData.append("color", JSON.stringify(data.color));
     if (data.logo) formData.append("logo", data.logo);
-    if (data.backgroundImage) formData.append("backgroundImage", data.backgroundImage);
+    if (data.backgroundImage)
+      formData.append("backgroundImage", data.backgroundImage);
 
     return http.uploadFormData<Menu>(
       `${API_CONFIG.ENDPOINTS.MENUS}/${id}`,
       formData,
-      { method: "PUT", useTenant: true }
+      { method: "PUT", useAuth: true, useTenant: true }
     );
   },
-//borrar menu
+  //borrar menu
   async delete(id: string | number): Promise<void> {
     return http.delete<void>(`${API_CONFIG.ENDPOINTS.MENUS}/${id}`, {
+      useAuth: true,
       useTenant: true,
     });
   },

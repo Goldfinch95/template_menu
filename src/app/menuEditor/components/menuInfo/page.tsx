@@ -9,7 +9,7 @@ import { Button } from "@/common/components/ui/button";
 import { motion } from "framer-motion";
 import { ImageIcon } from "lucide-react";
 import InfoDialog from "./components/InfoDialog";
-import { getMenu, getMenuQr } from "@/common/utils/api";
+import { menuService } from "@/app/services";
 import { Menu } from "@/interfaces/menu";
 import { jsPDF } from "jspdf";
 import { toast } from "sonner";
@@ -56,7 +56,7 @@ const MenuInfoPage = ({ menuId, onMenuCreated }: InfoEditorProps) => {
     try {
       const fakeTime = Math.random() * 700 + 1500;
       await simulateDelay(fakeTime);
-      const [menuData] = await Promise.all([getMenu(id)]);
+      const [menuData] = await Promise.all([menuService.getById(id)]);
       //console.log("📥 Menú cargado:", menuData);
       setMenu(menuData);
       setIsEmpty(false);
@@ -123,7 +123,7 @@ const MenuInfoPage = ({ menuId, onMenuCreated }: InfoEditorProps) => {
      setIsGeneratingQr(true);
 
     try {
-      const qrUrl = await getMenuQr(currentMenuId);
+      const qrUrl = await menuService.getQr(currentMenuId);
       // Muestra el toast de éxito
       if (qrUrl) {
         toast.success("Codigo QR creado con éxito.", {

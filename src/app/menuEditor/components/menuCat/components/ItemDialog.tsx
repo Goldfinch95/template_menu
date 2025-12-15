@@ -18,7 +18,7 @@ import { Input } from "@/common/components/ui/input";
 import { Label } from "@/common/components/ui/label";
 import { Button } from "@/common/components/ui/button";
 import { Checkbox } from "@/common/components/ui/checkbox";
-import { createItem, updateItem, upsertItemImages } from "@/common/utils/api";
+import { itemService, imageService } from "@/app/services";
 import Image from "next/image"; // Importa Image desde next/image
 import { toast } from "sonner";
 
@@ -149,7 +149,7 @@ const ItemDialog = ({
           active: active,
         };
         //console.log("Payload enviado", payload);
-        await updateItem(item.id, payload);
+        await itemService.update(item.id, payload);
         toast("Plato actualizado con éxito.", {
           duration: 2000,
           icon: null,
@@ -174,7 +174,7 @@ const ItemDialog = ({
               active: true,
             },
           ];
-          await upsertItemImages(savedItemId, images, [selectedImage]);
+          await imageService.upsertItemImages(savedItemId, images, [selectedImage]);
         }
       } else {
         // Crear nuevo ítem
@@ -185,7 +185,7 @@ const ItemDialog = ({
           price: Number(price),
           active: active
         };
-        const newItem = await createItem(payload);
+        const newItem = await itemService.create(payload);
         savedItemId = newItem.id;
 
         if (selectedImage) {
@@ -197,7 +197,7 @@ const ItemDialog = ({
               active: true,
             },
           ];
-          await upsertItemImages(savedItemId, images, [selectedImage]);
+          await imageService.upsertItemImages(savedItemId, images, [selectedImage]);
         }
         toast.success("Plato creado con éxito.", {
           duration: 2000,

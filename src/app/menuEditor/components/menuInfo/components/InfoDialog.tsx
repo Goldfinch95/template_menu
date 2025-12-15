@@ -7,7 +7,7 @@ import { motion } from "framer-motion";
 import { cn } from "@/common/utils/utils";
 import { HexColorPicker } from "react-colorful";
 
-import { createMenu, updateMenu } from "@/common/utils/api";
+import { menuService } from "@/app/services";
 import { Menu, newMenu } from "@/interfaces/menu";
 import { toast } from "sonner";
 
@@ -261,7 +261,7 @@ export default function InfoDialog({
           categories: [],
         };
 
-        const createdMenu = await createMenu(payload);
+        const createdMenu = await menuService.create(payload);
         onCreated?.(createdMenu.id);
         router.push(`/menuShowcase?menuCreated=true`);
       } else {
@@ -279,7 +279,7 @@ export default function InfoDialog({
         else if (menuBackground) payload.backgroundImage = menuBackground;
 
         if (menuDataChanged) {
-          await updateMenu(menuId, payload);
+          await menuService.update(menuId, payload);
           onUpdated?.(menuId);
           toast.success("Menú actualizado con éxito.", {
             duration: 2000,

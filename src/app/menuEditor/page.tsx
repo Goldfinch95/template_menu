@@ -3,7 +3,7 @@
 import React, { useCallback, useState, useEffect, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { Menu } from "@/interfaces/menu";
-import { deleteMenu, getMenu } from "@/common/utils/api";
+import { menuService } from "@/app/services";
 // subcomponentes
 import NavbarEditor from "@/app/menuEditor/components/NavbarEditor";
 import MenuInfo from "./components/menuInfo/page";
@@ -37,7 +37,7 @@ const MenuEditorContent = () => {
   // Cargar menú existente si hay id en los parámetros
   const fetchMenuData = useCallback(async (menuId: string) => {
     try {
-      const menuData = await getMenu(menuId);
+      const menuData = await menuService.getById(menuId);
       setMenu(menuData);
       //console.log(menuData);
       // console.log("✅ Menú y categorías cargadas:", menuData.categories.length);
@@ -64,7 +64,7 @@ const MenuEditorContent = () => {
     }
 
     try {
-      await deleteMenu(menuId);
+      await menuService.delete(menuId);
       router.push("/menuShowcase?menuDeleted=true");
     } catch {
       alert("Error al eliminar el menú");
@@ -87,7 +87,6 @@ const MenuEditorContent = () => {
           <MenuInfo
             menuId={menu.id}
             onMenuCreated={(newMenuId) => {
-              console.log("🔔 Abuelo notificado - Nuevo menú creado con ID:", newMenuId);
               // Actualiza
               router.push(`/menuEditor?id=${newMenuId}`);
               // Recarga

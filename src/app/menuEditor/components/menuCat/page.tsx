@@ -33,12 +33,7 @@ import { Spinner } from "@/common/components/ui/spinner";
 import CatDialog from "./components/CatDialog";
 import ItemDialog from "./components/ItemDialog";
 import { Categories, Items, UpdateCategoryPosition } from "@/interfaces/menu";
-import {
-  deleteCategory,
-  updateCategory,
-  deleteItem,
-  updateItem,
-} from "@/common/utils/api";
+import { categoryService, itemService } from "@/app/services";
 import { cn } from "@/common/utils/utils";
 import { AlertTriangle, X } from "lucide-react";
 import {
@@ -548,7 +543,7 @@ const MenuCatPage = ({
 
       try {
         const updateData: UpdateCategoryPosition = { newPosition };
-        await updateCategory(movedCategory.id, updateData);
+        await categoryService.update(movedCategory.id, updateData);
         await onCategoryChange();
         // console.log(`✅ Orden de categoría actualizado correctamente`);
       } catch {
@@ -612,7 +607,7 @@ const MenuCatPage = ({
       );*/
 
       try {
-        await updateItem(movedItem.id, { newPosition });
+        await itemService.update(movedItem.id, { newPosition });
         await onCategoryChange();
         //console.log(`✅ Orden de item actualizado correctamente`);
       } catch {
@@ -643,7 +638,7 @@ const MenuCatPage = ({
     setSavingId(categoryId);
 
     try {
-      await updateCategory(categoryId, { title: newTitle });
+      await categoryService.update(categoryId, { title: newTitle });
       await onCategoryChange();
       toast("Categoría actualizada con éxito.", {
         duration: 2000,
@@ -668,7 +663,7 @@ const MenuCatPage = ({
 
   const handleDelete = async (categoryId: number) => {
     try {
-      await deleteCategory(categoryId);
+      await categoryService.delete(categoryId);
       await onCategoryChange();
       toast("Categoría eliminada con éxito.", {
         duration: 2000,
@@ -690,7 +685,7 @@ const MenuCatPage = ({
     setDeletingItemId(itemId);
 
     try {
-      await deleteItem(itemId);
+      await itemService.delete(itemId);
       await onCategoryChange();
       toast("Plato eliminado con éxito.", {
         duration: 2000,

@@ -21,7 +21,7 @@ import { Label } from "@/common/components/ui/label";
 import { X } from "lucide-react";
 import { Button } from "@/common/components/ui/button";
 import { newCategory } from "@/interfaces/menu";
-import { createCategory } from "@/common/utils/api";
+import { categoryService } from "@/app/services";
 import { toast } from "sonner";
 interface CatDialogProps {
   trigger?: React.ReactNode;
@@ -70,7 +70,7 @@ const CatDialog = ({ trigger, menuId, onCategoryCreated }: CatDialogProps) => {
         menuId: Number(menuId),
       };
       //console.log("el payload es", payload)
-      const response = await createCategory(payload);
+      const response = await categoryService.create(payload);
       //console.log("categoria creada,reiniciando input")
       if (response) {
         setTitle("");
