@@ -8,9 +8,6 @@ const getBaseUrl = () => {
   if (process.env.NEXT_PUBLIC_VERCEL_URL) {
     return `https://${process.env.NEXT_PUBLIC_VERCEL_URL}/api`;
   }
-  
-  // Fallback para desarrollo local
-  return "http://localhost:3000/api";
 };
 
 export const API_CONFIG = {
