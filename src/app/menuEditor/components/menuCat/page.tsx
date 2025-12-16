@@ -235,7 +235,7 @@ function SortableCategory({
 
   const currentTitle = categoryTitles[category.id] ?? category.title;
   const hasChanged = currentTitle !== category.title;
-  const showPlayButton = isFocused && currentTitle.length > 3 && hasChanged;
+  const showPlayButton = isFocused && currentTitle.length > 3 && currentTitle.length < 41 && hasChanged;
 
   const {
     attributes,

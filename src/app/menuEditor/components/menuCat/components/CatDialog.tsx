@@ -11,10 +11,7 @@ import {
   DialogFooter,
   DialogTitle,
 } from "@/common/components/ui/dialog";
-import {
-  Alert,
-  AlertDescription,
-} from "@/common/components/ui/alert";
+import { Alert, AlertDescription } from "@/common/components/ui/alert";
 import { Input } from "@/common/components/ui/input";
 import { Label } from "@/common/components/ui/label";
 
@@ -37,14 +34,15 @@ const CatDialog = ({ trigger, menuId, onCategoryCreated }: CatDialogProps) => {
   // Estado para controlar la apertura/cierre del Dialog
   const [isOpen, setIsOpen] = useState(false);
 
-  
-
   // VALIDACIÓN DE DATOS (acumulativa)
   const validateFields = () => {
     const errors: string[] = [];
 
     if (title.trim().length < 3) {
       errors.push("El título debe tener más de 3 caracteres.");
+    }
+    if (title.trim().length > 40) {
+      errors.push("El título no debe tener más de 40 caracteres.");
     }
     // Si hay errores → mostrarlos
     if (errors.length > 0) {
@@ -77,16 +75,16 @@ const CatDialog = ({ trigger, menuId, onCategoryCreated }: CatDialogProps) => {
         if (onCategoryCreated) {
           onCategoryCreated();
           toast.success("Categoría creada con éxito.", {
-  duration: 2000,
-  icon: null,
-  style: {
-    background: "#22c55e",
-    color: "white",
-    borderRadius: "10px",
-    padding: "14px 16px",
-    fontSize: "16px",
-  },
-});
+            duration: 2000,
+            icon: null,
+            style: {
+              background: "#22c55e",
+              color: "white",
+              borderRadius: "10px",
+              padding: "14px 16px",
+              fontSize: "16px",
+            },
+          });
         }
         setIsOpen(false); // Limpiar el campo
       }
@@ -121,7 +119,10 @@ const CatDialog = ({ trigger, menuId, onCategoryCreated }: CatDialogProps) => {
             </Alert>
           )}
           <div className="flex flex-col space-y-2">
-            <Label className="text-slate-700 text-sm font-semibold" htmlFor="categoryTitle">
+            <Label
+              className="text-slate-700 text-sm font-semibold"
+              htmlFor="categoryTitle"
+            >
               Título de la Categoría
             </Label>
             <Input
@@ -130,7 +131,6 @@ const CatDialog = ({ trigger, menuId, onCategoryCreated }: CatDialogProps) => {
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="Ingresa el título de la categoría"
-              
             />
           </div>
         </div>
