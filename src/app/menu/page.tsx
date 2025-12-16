@@ -351,20 +351,24 @@ function MenuContent() {
                     }}
                   />
                 </div>
-
-                <div className="space-y-4">
-                  <AnimatePresence>
-                    {sortedItems.map((item) => (
-                      <motion.div
-                        key={item.id}
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -10 }}
-                        transition={{ duration: 0.25 }}
-                      >
-                        {/* Card clickeable */}
-                        <Card
-                          className={`
+                {sortedItems.length === 0 ? (
+                  <p className=" text-gray-500">
+                    No has agregado platos a esta categoria
+                  </p>
+                ) : (
+                  <div className="space-y-4">
+                    <AnimatePresence>
+                      {sortedItems.map((item) => (
+                        <motion.div
+                          key={item.id}
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: -10 }}
+                          transition={{ duration: 0.25 }}
+                        >
+                          {/* Card clickeable */}
+                          <Card
+                            className={`
                             rounded-2xl
                             border 
                             shadow-sm shadow-black/5 
@@ -376,19 +380,20 @@ function MenuContent() {
                                 : "bg-white border-neutral-200 active:scale-[0.97]"
                             }
                           `}
-                          onClick={() => setSelectedItem(item)}
-                        >
-                          <CardContent className="p-4">
-                            <FoodMenuItem
-                              {...item}
-                              primaryColor={menu.color?.primary}
-                            />
-                          </CardContent>
-                        </Card>
-                      </motion.div>
-                    ))}
-                  </AnimatePresence>
-                </div>
+                            onClick={() => setSelectedItem(item)}
+                          >
+                            <CardContent className="p-4">
+                              <FoodMenuItem
+                                {...item}
+                                primaryColor={menu.color?.primary}
+                              />
+                            </CardContent>
+                          </Card>
+                        </motion.div>
+                      ))}
+                    </AnimatePresence>
+                  </div>
+                )}
               </section>
             );
           })}

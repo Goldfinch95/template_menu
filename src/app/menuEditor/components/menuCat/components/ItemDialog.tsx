@@ -21,6 +21,7 @@ import { Checkbox } from "@/common/components/ui/checkbox";
 import { itemService, imageService } from "@/app/services";
 import Image from "next/image"; // Importa Image desde next/image
 import { toast } from "sonner";
+import { Textarea } from "@/common/components/ui/textarea";
 
 interface ItemDialogProps {
   trigger: React.ReactNode;
@@ -95,12 +96,14 @@ const ItemDialog = ({
     if (title.trim().length < 3) {
       errors.push("El título debe tener al menos 3 caracteres.");
     }
+    if (title.trim().length > 30) {
+    errors.push("El título no debe tener más de 30 caracteres.");
+  }
 
     if (errors.length > 0) {
       setAlertMessage(errors.join("\n"));
       return false;
     }
-
     setAlertMessage(null);
     return true;
   };
@@ -270,16 +273,16 @@ const ItemDialog = ({
             className=""
           />
           <Label
-            className="text-slate-700 text-sm font-semibold"
+            className="text-slate-700 text-sm font-semibold pt-1"
             htmlFor="categoryTitle"
           >
             Descripción
           </Label>
-          <Input
+          <Textarea
             placeholder="Descripción"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            className=""
+            className="py-2"
           />
           <Label
             className="text-slate-700 text-sm font-semibold"
