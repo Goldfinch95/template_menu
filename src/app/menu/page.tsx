@@ -68,8 +68,8 @@ function MenuContent() {
 
     const loadMenu = async () => {
       try {
-        //const menuData = await menuService.getById(menuId);
-        const menuData = await menuService.getPublicMenu(menuId);
+        const menuData = await menuService.getById(menuId);
+        //const menuData = await menuService.getPublicMenu(menuId);
         console.log(menuData);
         setMenu(menuData);
 
