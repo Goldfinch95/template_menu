@@ -319,9 +319,7 @@ function Login() {
                       type="email"
                       placeholder="correo@example.com"
                       value={form.email}
-                      onPaste={(e) => e.preventDefault()} // Bloquea pegar
-                      onCopy={(e) => e.preventDefault()} // Bloquea copiar
-                      onCut={(e) => e.preventDefault()} // Bloquea cortar
+                      
                       onChange={handleChange}
                       onKeyDown={(e) => {
                         if (e.key === " ") e.preventDefault();
