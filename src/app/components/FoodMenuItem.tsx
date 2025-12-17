@@ -53,12 +53,10 @@ const FoodMenuItem: React.FC<Props> = ({
   primaryColor,
   active,
 }) => {
-  const firstImage = images
-    ?.filter((img) => img.active)
-    ?.sort((a, b) => a.sortOrder - b.sortOrder)[0];
+  const firstImage = images?.[0]; // Accedemos directamente a la primera imagen en el array
+  const imageSrc = firstImage?.url; // Usamos la URL de la primera imagen o una imagen por defecto
+  const imageAlt = firstImage?.alt || title; // Usamos el alt de la imagen o el título como fallback
 
-  const imageSrc = firstImage?.url || "/food_template.webp";
-  const imageAlt = firstImage?.alt || title;
   const isAvailable = active !== false;
 
   const priceNumber = typeof price === "string" ? parseFloat(price) : price;
@@ -109,14 +107,15 @@ const FoodMenuItem: React.FC<Props> = ({
           /* Si NO está disponible, mostrar badge suave */
           <div className="mt-3">
             <span
-    className={`
+              className={`
       text-base px-2 py-1 rounded-md font-medium
-      ${isDark
-        ? "bg-red-400/20 text-red-200 border border-red-400/30"
-        : "bg-red-500/10 text-red-700 border border-red-500/20"
+      ${
+        isDark
+          ? "bg-red-400/20 text-red-200 border border-red-400/30"
+          : "bg-red-500/10 text-red-700 border border-red-500/20"
       }
     `}
-  >
+            >
               No disponible
             </span>
           </div>
@@ -124,25 +123,24 @@ const FoodMenuItem: React.FC<Props> = ({
       </div>
 
       {/* Renderizar imagen SOLO si existe una imagen activa */}
-      {firstImage && (
-        <div
-          className={`
+
+      <div
+        className={`
       w-24 h-24 flex-shrink-0 
       rounded-2xl overflow-hidden 
       flex items-center justify-center
       bg-transparent ring-1
       ${ringClass}
     `}
-        >
-          <Image
-            src={imageSrc}
-            alt={imageAlt}
-            width={96}
-            height={96}
-            className="object-contain w-full h-full"
-          />
-        </div>
-      )}
+      >
+        <Image
+          src={imageSrc}
+          alt={imageAlt}
+          width={96}
+          height={96}
+          className="object-contain w-full h-full"
+        />
+      </div>
     </motion.div>
   );
 };

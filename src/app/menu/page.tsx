@@ -68,7 +68,9 @@ function MenuContent() {
 
     const loadMenu = async () => {
       try {
-        const menuData = await menuService.getById(menuId);
+        //const menuData = await menuService.getById(menuId);
+        const menuData = await menuService.getPublicMenu(menuId);
+        console.log(menuData);
         setMenu(menuData);
 
         const sortedCategories = [...menuData.categories].sort(

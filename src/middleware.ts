@@ -13,7 +13,10 @@ export function middleware(request: NextRequest) {
   const temporalTokenPaths = ["/password/create", "/password/recover"];
   
   // Rutas públicas con parámetros específicos
-  const isPublicMenuRoute = currentPath === "/menu" && searchParams.has("tenant") && searchParams.has("menuId");
+  const isPublicMenuRoute = currentPath === "/menu" && (
+    searchParams.has("id") || 
+    (searchParams.has("tenant") && searchParams.has("menuId"))
+  );
 
   
   // Rutas privadas que requieren authToken
@@ -28,7 +31,7 @@ export function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // ✔ Ruta pública con parámetro ID (ej: /menu?id=3 desde QR)
+  // ✔ Ruta pública con parámetro ID (ej: /menu?id=40 desde QR)
   if (isPublicMenuRoute) {
     return NextResponse.next();
   }

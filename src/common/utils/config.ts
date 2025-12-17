@@ -5,9 +5,9 @@ const getBaseUrl = () => {
   }
   
   // En Vercel, usa la URL automática del backend
-  if (process.env.NEXT_PUBLIC_VERCEL_URL) {
-    return `https://${process.env.NEXT_PUBLIC_VERCEL_URL}/api`;
-  }
+  /*if (process.env.NEXT_PUBLIC_VERCEL_URL) {
+    return `https://${process.env.NEXT_PUBLIC_VERCEL_URL}`;
+  }*/
 };
 
 export const API_CONFIG = {
@@ -16,6 +16,7 @@ export const API_CONFIG = {
     USERS: "/users",
     AUTH: "/auth",
     MENUS: "/menus",
+    PUBLIC_MENUS: "/public/menus",
     CATEGORIES: "/categories",
     ITEMS: "/items",
     IMAGES: "/images",

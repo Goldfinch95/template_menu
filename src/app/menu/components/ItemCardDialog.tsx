@@ -60,7 +60,9 @@ export default function ItemCardDialog({ item, primaryColor, onClose }: Props) {
   
   if (!item) return null;
 
-  const firstImage = item.images?.find((img) => img.active);
+  const firstImage = item.images?.[0]; // Accedemos directamente a la primera imagen en el array
+  const imageSrc = firstImage?.url; // Usamos la URL de la primera imagen o una imagen por defecto
+  const imageAlt = firstImage?.alt;
   const isAvailable = item.active !== false;
 
   
@@ -97,8 +99,8 @@ export default function ItemCardDialog({ item, primaryColor, onClose }: Props) {
       className={`w-full h-full flex items-center justify-center`}
     >
       <Image
-        src={firstImage.url}
-        alt={firstImage.alt || item.title}
+        src={imageSrc}
+        alt={imageAlt || item.title}
         width={800}
         height={600}
         className="object-contain w-full h-full"

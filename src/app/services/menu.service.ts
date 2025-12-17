@@ -21,6 +21,15 @@ export const menuService = {
     });
   },
 
+  //obtener menu publico
+  async getPublicMenu(id: string | number): Promise<Menu> {
+  return http.get<Menu>(`${API_CONFIG.ENDPOINTS.PUBLIC_MENUS}/${id}`, {
+    useAuth: false,
+    useTenant: false,
+    cache: "no-store",
+  });
+},
+
   //crear menu
   async create(data: newMenu): Promise<Menu> {
     const formData = new FormData();
