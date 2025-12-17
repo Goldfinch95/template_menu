@@ -10,13 +10,17 @@ import { http } from "@/common/utils/http";
 export const authService = {
   // registro
   async register(data: RegisterData): Promise<User> {
-    return http.post<User>(API_CONFIG.ENDPOINTS.USERS, {
-      name: data.name.trim(),
-      lastName: data.lastName.trim(),
-      email: data.email.trim(),
-      cel: data.cel,
-      roleId: data.roleId,
-    });
+    return http.post<User>(
+      API_CONFIG.ENDPOINTS.USERS,
+      {
+        name: data.name.trim(),
+        lastName: data.lastName.trim(),
+        email: data.email.trim(),
+        cel: data.cel,
+        roleId: data.roleId,
+      },
+      { useAuth: true, useTenant: false }
+    );
   },
 
   //logearse
