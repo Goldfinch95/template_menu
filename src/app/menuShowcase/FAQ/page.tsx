@@ -28,7 +28,7 @@ export default function FaqPage() {
     {
       question: "¿Cómo puedo compartir mi menú con los clientes?",
       answer:
-        "Puedes compartir tu menú digital copiando el enlace del menú o generando un código QR que los clientes pueden escanear.",
+        "Puedes compartir tu menú digital generando un código QR que los clientes pueden escanear.",
     },
     {
       question: "¿Necesito pagar para usar la plataforma?",
