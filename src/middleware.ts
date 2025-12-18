@@ -10,7 +10,7 @@ export function middleware(request: NextRequest) {
   const publicPaths = ["/", "/password"];
   
   // Rutas con token temporal (deben tener el parámetro 'token' en la URL)
-  const temporalTokenPaths = ["/password/create", "/password/recover"];
+  const temporalTokenPaths = ["/password/create", "/password/recover", "/create"];
   
   // Rutas públicas con parámetros específicos
   const isPublicMenuRoute = currentPath === "/menu" && (
