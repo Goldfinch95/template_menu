@@ -66,10 +66,7 @@ function MenuShowcase() {
     router.push("/");
   };
 
-  // Simular delay (para demostraciones o pruebas)
-
-  const simulateDelay = (ms: number) =>
-    new Promise((resolve) => setTimeout(resolve, ms));
+ 
 
   // ---------- Efectos ----------
   useEffect(() => {
@@ -179,8 +176,6 @@ function MenuShowcase() {
   useEffect(() => {
     const fetchMenus = async () => {
       try {
-        const fakeTime = Math.random() * 700 + 1500;
-        await simulateDelay(fakeTime);
         setIsLoading(true);
         // llamar al API para obtener menús
         const data = await menuService.getAll();
