@@ -26,8 +26,6 @@ const MenuInfoPage = ({ menuId, onMenuCreated }: InfoEditorProps) => {
   );
   // estado para el menú
   const [menu, setMenu] = useState<Menu>({} as Menu);
-  // estado de carga
-  const [loading, setLoading] = useState(true);
   // estado para determinar si es un menú vacío (nuevo)
   const [isEmpty, setIsEmpty] = useState<boolean>(false);
 
@@ -44,11 +42,8 @@ const MenuInfoPage = ({ menuId, onMenuCreated }: InfoEditorProps) => {
     //si no hay menu
     if (!id) {
       setIsEmpty(true);
-      setLoading(false);
       return;
     }
-
-    setLoading(true);
     //si hay menu
     try {
       const [menuData] = await Promise.all([menuService.getById(id)]);
@@ -58,7 +53,7 @@ const MenuInfoPage = ({ menuId, onMenuCreated }: InfoEditorProps) => {
     } catch {
       console.error("❌ Error al obtener el menú");
     } finally {
-      setLoading(false);
+      
     }
   }, []);
 
@@ -272,13 +267,6 @@ const MenuInfoPage = ({ menuId, onMenuCreated }: InfoEditorProps) => {
   }
   };
 
-  if (loading) {
-    return (
-      <div className="w-full flex justify-center items-center">
-        <Spinner className="w-12 h-12 text-orange-500" />
-      </div>
-    );
-  }
   // si NO hay menu en la BD, renderiza esto:
   if (isEmpty) {
     return (
