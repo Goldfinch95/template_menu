@@ -10,6 +10,7 @@ import { HexColorPicker } from "react-colorful";
 import { menuService } from "@/app/services";
 import { Menu, newMenu } from "@/interfaces/menu";
 import { toast } from "sonner";
+import { Spinner } from "@/common/components/ui/spinner";
 
 import {
   Dialog,
@@ -86,6 +87,8 @@ export default function InfoDialog({
   >("primary");
   // mensaje de alerta / error
   const [alertMessage, setAlertMessage] = useState<string | null>(null);
+// Estado de carga
+  const [loading, setLoading] = useState(false); 
 
   // ---------- Refs ----------
   // refs para inputs de color primario
@@ -228,7 +231,7 @@ export default function InfoDialog({
       }
       return;
     }
-
+    setLoading(true);
     const primary =
       isValidHex(primaryColor.trim()) && primaryColor.trim() !== "#"
         ? primaryColor.trim()
@@ -268,6 +271,7 @@ export default function InfoDialog({
         const createdMenu = await menuService.create(payload);
         onCreated?.(createdMenu.id);
         router.push(`/menuShowcase?menuCreated=true`);
+        setLoading(false);
       } else {
         const payload: Partial<Menu> = {
           title: title.trim(),
@@ -298,6 +302,7 @@ export default function InfoDialog({
               fontSize: "16px",
             },
           });
+          setLoading(false);
         }
       }
     } catch (err) {
@@ -515,8 +520,9 @@ export default function InfoDialog({
           <Button
             className="bg-orange-500 hover:bg-orange-600"
             onClick={handleSubmit}
+            disabled={loading} // Deshabilitar el botón mientras está en carga
           >
-            Guardar
+            {loading ? <Spinner className="w-5 h-5 text-white" /> : "Guardar"} {/* Mostrar el spinner si está cargando */}
           </Button>
         </DialogFooter>
       </DialogContent>
