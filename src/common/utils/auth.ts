@@ -17,7 +17,7 @@ export const getAuthHeaders = (): Record<string, string> => {
 // obtener el subdominio del usuario
 
 export const getSubdomain = (): string => {
-  return localStorage.getItem("subdomain") || "amax";
+  return localStorage.getItem("subdomain") as string;
 };
 
 // obtener el tenant del usuario
