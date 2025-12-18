@@ -423,12 +423,7 @@ function MenuShowcase() {
             </Link>
           </p>
           {/* contacto */}
-          <Button
-            variant="ghost"
-            className="text-orange-500 hover:text-orange-600 hover:bg-orange-50 rounded-xl px-6 py-2 transition font-medium"
-          >
-            Contáctanos
-          </Button>
+          
         </div>
       </footer>
     </main>

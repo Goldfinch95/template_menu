@@ -31,9 +31,9 @@ export default function FaqPage() {
         "Puedes compartir tu menú digital generando un código QR que los clientes pueden escanear.",
     },
     {
-      question: "¿Necesito pagar para usar la plataforma?",
+      question: "Tengo un poblema ¿Como me puedo Contactar?",
       answer:
-        "No, la plataforma es completamente gratuita. Puedes crear y gestionar menús sin ningún costo.",
+        "Nuestro sitio web es x y el numero de telefono es x",
     },
   ];
 
