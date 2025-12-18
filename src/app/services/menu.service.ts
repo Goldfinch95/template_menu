@@ -83,9 +83,9 @@ export const menuService = {
     format: string = "png",
     size: number = 300
   ): Promise<string> {
-    console.log(`${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.MENUS}/${menuId}/qr?format=${format}&size=${size}?tenant=amax`)
+    console.log(`${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.MENUS}/${menuId}/qr?format=${format}&size=${size}&tenant=amax`)
     const response = await fetch(
-      `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.MENUS}/${menuId}/qr?format=${format}&size=${size}?tenant=amax`,
+      `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.MENUS}/${menuId}/qr?format=${format}&size=${size}&tenant=amax`,
       {
         method: "GET",
         headers: {
