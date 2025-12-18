@@ -24,7 +24,7 @@ export const menuService = {
   //obtener menu publico
   async getPublicMenu(id: string | number): Promise<Menu> {
   return http.get<Menu>(`${API_CONFIG.ENDPOINTS.PUBLIC_MENUS}/${id}`, {
-    useAuth: true,
+    useAuth: false,
     useTenant: false,
     cache: "no-store",
   });

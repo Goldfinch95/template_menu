@@ -11,6 +11,7 @@ import { Card, CardContent } from "@/common/components/ui/card";
 import { ArrowLeft } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import ItemCardDialog from "./components/ItemCardDialog";
+import { Spinner } from "@/common/components/ui/spinner";
 
 /* --------------------------------------------------
    🔍 Detecta luminancia y determina si el color
@@ -57,6 +58,7 @@ function MenuContent() {
   const [activeCategory, setActiveCategory] = useState(1);
   const [isScrolling, setIsScrolling] = useState(false);
   const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   /* logica para redirigir enlace de qr al menu */
 
@@ -68,7 +70,7 @@ function MenuContent() {
 
     const loadMenu = async () => {
       try {
-        //const menuData = await menuService.getById(menuId);
+        setIsLoading(true);
         const menuData = await menuService.getPublicMenu(menuId);
         console.log(menuData);
         setMenu(menuData);
@@ -77,8 +79,10 @@ function MenuContent() {
           (a, b) => a.position - b.position
         );
         setCategories(sortedCategories);
+        setIsLoading(false);
       } catch (error) {
         console.error("❌ Error al cargar el menú:", error);
+        setIsLoading(false);
       }
     };
 
@@ -175,7 +179,17 @@ function MenuContent() {
       }, 700);
     }
   };
+/* --------------------------------------------------
+     📌 RENDER de carga
+  -------------------------------------------------- */
 
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <Spinner className="w-8 h-8 text-orange-500" /> {/* Aquí el Spinner */}
+      </div>
+    );
+  }
   /* --------------------------------------------------
      📌 RENDER MENU PAGE
   -------------------------------------------------- */

@@ -104,7 +104,7 @@ function SortableItem({
   <div className="w-12 h-12 flex-shrink-0 rounded-lg border border-slate-200 relative">
     {loadingImage && (
       <div className="absolute inset-0 flex items-center justify-center bg-slate-100 rounded-lg">
-        <Spinner className="w-6 h-6 text-slate-400" />
+        <Spinner className="w-6 h-6 text-orange-500" />
       </div>
     )}
 
