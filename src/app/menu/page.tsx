@@ -8,10 +8,11 @@ import { menuService } from "@/app/services";
 import Image from "next/image";
 import { Button } from "@/common/components/ui/button";
 import { Card, CardContent } from "@/common/components/ui/card";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, UtensilsCrossed } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import ItemCardDialog from "./components/ItemCardDialog";
 import { Spinner } from "@/common/components/ui/spinner";
+
 
 /* --------------------------------------------------
    🔍 Detecta luminancia y determina si el color
@@ -194,7 +195,7 @@ function MenuContent() {
         >
           {/* Logo del menú o una ilustración opcional */}
           <Card className="w-20 h-20 rounded-full shadow-lg flex items-center justify-center mb-4">
-            <Spinner className="w-12 h-12 text-primary-500" />
+            <Spinner className="w-12 h-12 text-orange-500" />
           </Card>
 
           <p className="text-lg text-muted-foreground">
@@ -204,6 +205,12 @@ function MenuContent() {
           {/* Cualquier otro texto adicional */}
           <div className="mt-4 text-sm text-gray-500">
             Este proceso puede tardar unos segundos.
+          </div>
+          <div className="mt-4 text-sm text-gray-500">Gracias por usar</div>
+          <div className="flex justify-center">
+            <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-orange-400 to-orange-500 flex items-center justify-center shadow-md">
+              <UtensilsCrossed className="w-8 h-8 text-white" />
+            </div>
           </div>
         </motion.div>
       </div>
