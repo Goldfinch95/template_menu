@@ -107,9 +107,7 @@ const MenuEditorContent = () => {
                 menuCategories={menu.categories}
                 onCategoryChange={() => fetchMenuData(String(menu.id))}
               />
-            </>
-          )}
-          {/* Eliminar menú */}
+              {/* Eliminar menú */}
           {menu?.id && (
             <div className="px-4 w-full">
               <Dialog>
@@ -153,6 +151,9 @@ const MenuEditorContent = () => {
               </Dialog>
             </div>
           )}
+            </>
+          )}
+          
         </div>
       </motion.section>
     </main>
