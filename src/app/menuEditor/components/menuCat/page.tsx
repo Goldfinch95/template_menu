@@ -54,6 +54,7 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { toast } from "sonner";
+
 function SortableItem({
   item,
   categoryId,
@@ -75,6 +76,8 @@ function SortableItem({
     transition,
     isDragging,
   } = useSortable({ id: item.id });
+
+  const [loadingImage, setLoadingImage] = useState(true);
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -98,18 +101,24 @@ function SortableItem({
 
         <div className="flex items-center gap-2 overflow-hidden flex-1">
           {previewUrl ? (
-            <div
-              style={{ backgroundImage: `url(${previewUrl})` }}
-              className="w-12 h-12 flex-shrink-0 rounded-lg border border-slate-200 bg-center bg-cover"
-            />
+            <div className="w-12 h-12 flex-shrink-0 rounded-lg border border-slate-200 relative">
+              {loadingImage && (
+                <div className="absolute inset-0 flex items-center justify-center bg-slate-100 rounded-lg">
+                  <Spinner className="w-6 h-6 text-slate-400" />
+                </div>
+              )}
+              <img
+                src={previewUrl}
+                alt={item.title || "Plato"}
+                className="w-full h-full object-cover rounded-lg"
+                onLoad={() => setLoadingImage(false)} // Una vez cargada la imagen, ocultamos el spinner
+              />
+            </div>
           ) : (
             <div className="w-12 h-12 flex-shrink-0 rounded-lg bg-slate-100 flex items-center justify-center">
               <UtensilsCrossed className="w-6 h-6 text-slate-400" />
             </div>
           )}
-
-          <div className="flex-1 min-w-0 overflow-hidden">
-            {" "}
             {/* Aseguramos que el texto no desborde */}
             <p className="font-medium text-slate-700 text-sm truncate">
               {item.title || "Nuevo plato"}
