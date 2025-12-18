@@ -88,8 +88,8 @@ const MenuEditorContent = () => {
         <div className="space-y-8">
           {/* Sección de imágenes del menú */}
           {loadingMenuInfo ? (
-            <div className="flex justify-center items-center py-12">
-              <Spinner /> {/* Spinner mientras carga MenuInfo */}
+            <div className="w-full flex justify-center items-center">
+              <Spinner className="w-12 h-12 text-orange-500" />
             </div>
           ) : (
             <>
