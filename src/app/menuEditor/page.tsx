@@ -35,6 +35,8 @@ const MenuEditorContent = () => {
   const [menu, setMenu] = useState<Menu>({} as Menu);
   //controlar la carga de MenuInfo
   const [loadingMenuInfo, setLoadingMenuInfo] = useState<boolean>(true);
+  // Controlar la carga de MenuCatPage
+  const [loadingMenuCat, setLoadingMenuCat] = useState<boolean>(true);
   // Cargar menú existente si hay id en los parámetros
   const fetchMenuData = useCallback(async (menuId: string) => {
     try {
@@ -106,54 +108,53 @@ const MenuEditorContent = () => {
                 menuId={menu.id}
                 menuCategories={menu.categories}
                 onCategoryChange={() => fetchMenuData(String(menu.id))}
+                onMenuCatLoaded={() => setLoadingMenuCat(false)}
               />
               {/* Eliminar menú */}
-          {menu?.id && (
-            <div className="px-4 w-full">
-              <Dialog>
-                <DialogTrigger asChild>
-                  <button className="w-full py-4 mt-8 flex items-center justify-center gap-2 bg-red-500 hover:bg-red-600 active:bg-red-700 text-white font-semibold rounded-xl transition-all duration-200 shadow-lg shadow-red-500/25 max-w-sm mx-auto">
-                    <Trash2 size={18} />
-                    Eliminar Menú
-                  </button>
-                </DialogTrigger>
+              {!loadingMenuCat && menu?.id && (
+                <div className="px-4 w-full">
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <button className="w-full py-4 mt-8 flex items-center justify-center gap-2 bg-red-500 hover:bg-red-600 active:bg-red-700 text-white font-semibold rounded-xl transition-all duration-200 shadow-lg shadow-red-500/25 max-w-sm mx-auto">
+                        <Trash2 size={18} />
+                        Eliminar Menú
+                      </button>
+                    </DialogTrigger>
 
-                <DialogContent className="max-w-sm rounded-2xl p-6 shadow-xl [&>button]:hidden">
-                  <DialogClose className="absolute right-6 top-6 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground !flex items-center justify-center">
-                    <X className="h-5 w-5 text-red-600" />
-                  </DialogClose>
+                    <DialogContent className="max-w-sm rounded-2xl p-6 shadow-xl [&>button]:hidden">
+                      <DialogClose className="absolute right-6 top-6 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground !flex items-center justify-center">
+                        <X className="h-5 w-5 text-red-600" />
+                      </DialogClose>
 
-                  <DialogHeader>
-                    <DialogTitle className="flex items-center gap-2 text-red-600">
-                      <AlertTriangle className="w-5 h-5" />
-                      Eliminar menú
-                    </DialogTitle>
-                  </DialogHeader>
+                      <DialogHeader>
+                        <DialogTitle className="flex items-center gap-2 text-red-600">
+                          <AlertTriangle className="w-5 h-5" />
+                          Eliminar menú
+                        </DialogTitle>
+                      </DialogHeader>
 
-                  <DialogDescription className="text-base text-slate-600">
-                    ¿Estás seguro de que deseas eliminar este menú? Esta acción
-                    no se puede deshacer.
-                  </DialogDescription>
+                      <DialogDescription className="text-base text-slate-600">
+                        ¿Estás seguro de que deseas eliminar este menú? Esta acción no se puede deshacer.
+                      </DialogDescription>
 
-                  <DialogFooter className="flex justify-end gap-2 mt-4">
-                    <DialogClose asChild>
-                      <Button variant="outline">Cancelar</Button>
-                    </DialogClose>
+                      <DialogFooter className="flex justify-end gap-2 mt-4">
+                        <DialogClose asChild>
+                          <Button variant="outline">Cancelar</Button>
+                        </DialogClose>
 
-                    <Button
-                      className="bg-red-600 hover:bg-red-700 text-white"
-                      onClick={handleDeleteMenu}
-                    >
-                      Eliminar
-                    </Button>
-                  </DialogFooter>
-                </DialogContent>
-              </Dialog>
-            </div>
-          )}
+                        <Button
+                          className="bg-red-600 hover:bg-red-700 text-white"
+                          onClick={handleDeleteMenu}
+                        >
+                          Eliminar
+                        </Button>
+                      </DialogFooter>
+                    </DialogContent>
+                  </Dialog>
+                </div>
+              )}
             </>
           )}
-          
         </div>
       </motion.section>
     </main>

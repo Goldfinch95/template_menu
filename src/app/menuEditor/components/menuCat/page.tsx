@@ -442,12 +442,14 @@ interface CatEditorProps {
   menuId: number;
   menuCategories: Categories[];
   onCategoryChange: () => Promise<void>;
+  onMenuCatLoaded: () => void;
 }
 
 const MenuCatPage = ({
   menuId,
   menuCategories,
   onCategoryChange,
+  onMenuCatLoaded,
 }: CatEditorProps) => {
   // ⚠️ MOVER TODOS LOS HOOKS ANTES DEL RETURN CONDICIONAL
   const [loading, setLoading] = useState(true);
@@ -473,9 +475,7 @@ const MenuCatPage = ({
     })
   );
 
-  // Simular delay (para demostraciones o pruebas)
-  const simulateDelay = (ms: number) =>
-    new Promise((resolve) => setTimeout(resolve, ms));
+  
 
   useEffect(() => {
     const loadCategories = async () => {
@@ -484,10 +484,12 @@ const MenuCatPage = ({
         return;
       }
       setLoading(true);
-      const fakeTime = Math.random() * 700 + 1500;
-      await simulateDelay(fakeTime);
+      
       setCategories(menuCategories);
       setLoading(false);
+      if (onMenuCatLoaded) {
+        onMenuCatLoaded();
+      }
     };
 
     loadCategories();
