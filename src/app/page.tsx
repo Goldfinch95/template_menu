@@ -156,8 +156,7 @@ function Login() {
 
   const handleTogglePassword = () => setShowPassword((s) => !s);
 
-  const simulateDelay = (ms: number) =>
-    new Promise((resolve) => setTimeout(resolve, ms));
+  
 
   const handleSubmit = async () => {
     if (loading) return; // evita dobles submits
@@ -172,8 +171,6 @@ function Login() {
     setLoading(true);
 
     try {
-      const fakeTime = Math.random() * 700 + 1500;
-      await simulateDelay(fakeTime);
       await authService.login(cleaned);
 
       router.push("/menuShowcase?loginSuccess=1");
