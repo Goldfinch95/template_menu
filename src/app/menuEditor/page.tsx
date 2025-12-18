@@ -8,11 +8,11 @@ import { menuService } from "@/app/services";
 import NavbarEditor from "@/app/menuEditor/components/NavbarEditor";
 import MenuInfo from "./components/menuInfo/page";
 import MenuCatPage from "./components/menuCat/page";
+import { Spinner } from "@/common/components/ui/spinner";
 
 import { Trash2, X, AlertTriangle } from "lucide-react";
 
 import { motion } from "framer-motion";
-
 
 import {
   Dialog,
@@ -27,22 +27,25 @@ import {
 import { Button } from "@/common/components/ui/button";
 
 const MenuEditorContent = () => {
-
   // ---------- Router ----------
-    const router = useRouter();
-    const searchParams = useSearchParams();
+  const router = useRouter();
+  const searchParams = useSearchParams();
 
   // Estado para el menú
   const [menu, setMenu] = useState<Menu>({} as Menu);
+  //controlar la carga de MenuInfo
+  const [loadingMenuInfo, setLoadingMenuInfo] = useState<boolean>(true);
   // Cargar menú existente si hay id en los parámetros
   const fetchMenuData = useCallback(async (menuId: string) => {
     try {
       const menuData = await menuService.getById(menuId);
       setMenu(menuData);
+      setLoadingMenuInfo(false);
       //console.log(menuData);
       // console.log("✅ Menú y categorías cargadas:", menuData.categories.length);
     } catch (err: unknown) {
       console.error("❌ Error al cargar el menú:", err);
+      setLoadingMenuInfo(false);
     }
   }, []); // Dependencias vacías, ya que menuId viene del useEffect.
 
@@ -84,20 +87,28 @@ const MenuEditorContent = () => {
       >
         <div className="space-y-8">
           {/* Sección de imágenes del menú */}
-          <MenuInfo
-            menuId={menu.id}
-            onMenuCreated={(newMenuId) => {
-              // Actualiza
-              router.push(`/menuEditor?id=${newMenuId}`);
-              // Recarga
-              fetchMenuData(String(newMenuId));
-            }}
-          />
-          <MenuCatPage
-            menuId={menu.id}
-            menuCategories={menu.categories}
-            onCategoryChange={() => fetchMenuData(String(menu.id))}
-          />
+          {loadingMenuInfo ? (
+            <div className="flex justify-center items-center py-12">
+              <Spinner /> {/* Spinner mientras carga MenuInfo */}
+            </div>
+          ) : (
+            <>
+              <MenuInfo
+                menuId={menu.id}
+                onMenuCreated={(newMenuId) => {
+                  // Actualiza
+                  router.push(`/menuEditor?id=${newMenuId}`);
+                  // Recarga
+                  fetchMenuData(String(newMenuId));
+                }}
+              />
+              <MenuCatPage
+                menuId={menu.id}
+                menuCategories={menu.categories}
+                onCategoryChange={() => fetchMenuData(String(menu.id))}
+              />
+            </>
+          )}
           {/* Eliminar menú */}
           {menu?.id && (
             <div className="px-4 w-full">
@@ -122,7 +133,8 @@ const MenuEditorContent = () => {
                   </DialogHeader>
 
                   <DialogDescription className="text-base text-slate-600">
-                    ¿Estás seguro de que deseas eliminar este menú? Esta acción no se puede deshacer.
+                    ¿Estás seguro de que deseas eliminar este menú? Esta acción
+                    no se puede deshacer.
                   </DialogDescription>
 
                   <DialogFooter className="flex justify-end gap-2 mt-4">
@@ -161,4 +173,3 @@ export default function MenuEditor() {
     </Suspense>
   );
 }
-
