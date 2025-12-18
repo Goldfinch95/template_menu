@@ -186,7 +186,7 @@ function MenuContent() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-gray-100 p-4">
+      <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-b from-white via-[#FFF3EC] to-[#FFE6D3] backdrop-blur-xl bg-white/60 borderborder-white/30 shadow-[0_8px_24px_rgba(0,0,0,0.08)] p-4">
         <motion.div
           initial={{ opacity: 0, scale: 0.8 }}
           animate={{ opacity: 1, scale: 1 }}
