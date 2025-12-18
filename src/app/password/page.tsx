@@ -62,9 +62,7 @@ const Page = () => {
     return true;
   }, [email]);
 
-  // Simular delay (para demostraciones o pruebas)
-  const simulateDelay = (ms: number) =>
-    new Promise((resolve) => setTimeout(resolve, ms));
+  
 
   // -------- Enviar formulario --------
   const handleSubmit = async () => {
@@ -75,8 +73,6 @@ const Page = () => {
     setLoading(true);
     try {
       abortControllerRef.current = new AbortController();
-      const fakeTime = Math.random() * 700 + 1500;
-      await simulateDelay(fakeTime);
       await authService.forgotPassword(cleanedEmail, abortControllerRef.current.signal);
 
       toast.success(`Se envió el email a  "${cleanedEmail}"`, {
