@@ -107,10 +107,17 @@ function SortableItem({
         <Spinner className="w-6 h-6 text-slate-400" />
       </div>
     )}
+
     <div
       className="w-full h-full bg-center bg-cover rounded-lg"
       style={{ backgroundImage: `url(${previewUrl})` }}
-      onLoad={() => setLoadingImage(false)} // Ocultar el spinner cuando la imagen se haya cargado
+      ref={(el) => {
+        if (el && loadingImage) {
+          const image = new Image();
+          image.src = previewUrl;
+          image.onload = () => setLoadingImage(false);
+        }
+      }}
     />
   </div>
 ) : (
