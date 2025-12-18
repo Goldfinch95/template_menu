@@ -96,11 +96,10 @@ export const menuService = {
         
       }
     );
-
+    console.log(response)
     if (!response.ok) {
       throw new Error("No se pudo obtener el QR del menú");
     }
-
     const qrBlob = await response.blob();
     return URL.createObjectURL(qrBlob);
   },
