@@ -179,14 +179,33 @@ function MenuContent() {
       }, 700);
     }
   };
-/* --------------------------------------------------
+  /* --------------------------------------------------
      📌 RENDER de carga
   -------------------------------------------------- */
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <Spinner className="w-8 h-8 text-orange-500" /> {/* Aquí el Spinner */}
+      <div className="min-h-screen flex flex-col items-center justify-center bg-gray-100 p-4">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.5 }}
+          className="flex flex-col items-center justify-center text-center space-y-4"
+        >
+          {/* Logo del menú o una ilustración opcional */}
+          <Card className="w-20 h-20 rounded-full shadow-lg flex items-center justify-center mb-4">
+            <Spinner className="w-12 h-12 text-primary-500" />
+          </Card>
+
+          <p className="text-lg text-muted-foreground">
+            Estamos dirigiéndote a tu menú. Por favor, espera un momento...
+          </p>
+
+          {/* Cualquier otro texto adicional */}
+          <div className="mt-4 text-sm text-gray-500">
+            Este proceso puede tardar unos segundos.
+          </div>
+        </motion.div>
       </div>
     );
   }
